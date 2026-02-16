@@ -1,0 +1,51 @@
+@if (pwa.shouldShowBanner) {
+<div class="pwa-banner" role="alert">
+    <div class="pwa-banner__content">
+        <!-- App icon -->
+        <div class="pwa-banner__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                <line x1="12" y1="18" x2="12" y2="18" />
+            </svg>
+        </div>
+
+        <div class="pwa-banner__text">
+            @if (pwa.isIos()) {
+            <p class="pwa-banner__title">Instala SIAE en tu iPhone</p>
+            <p class="pwa-banner__desc">
+                Toca
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="share-icon">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16 6 12 2 8 6" />
+                    <line x1="12" y1="2" x2="12" y2="15" />
+                </svg>
+                y luego <strong>"Agregar a pantalla de inicio"</strong>
+            </p>
+            } @else {
+            <p class="pwa-banner__title">¡Instala SIAE en tu dispositivo!</p>
+            <p class="pwa-banner__desc">Accede más rápido como una app nativa</p>
+            }
+        </div>
+    </div>
+
+    <div class="pwa-banner__actions">
+        @if (!pwa.isIos()) {
+        <button class="pwa-btn pwa-btn--install" (click)="onInstall()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Instalar
+        </button>
+        }
+        <button class="pwa-btn pwa-btn--dismiss" (click)="onDismiss()">
+            Ahora no
+        </button>
+    </div>
+</div>
+}

@@ -1,9 +1,13 @@
 {
-  "name": "FRONT-END-SIAE",
-  "short_name": "FRONT-END-SIAE",
+  "name": "SIAE - Sistema Integral de Administración Educativa",
+  "short_name": "SIAE",
+  "description": "Sistema Integral de Administración Educativa - USEBEQ",
   "display": "standalone",
+  "orientation": "any",
   "scope": "./",
   "start_url": "./",
+  "theme_color": "#4f46e5",
+  "background_color": "#0f172a",
   "icons": [
     {
       "src": "icons/icon-72x72.png",
