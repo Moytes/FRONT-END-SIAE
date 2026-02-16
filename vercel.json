@@ -1,6 +1,6 @@
 {
     "buildCommand": "npx ng build --configuration=production",
-    "outputDirectory": "dist/FRONT-END-SIAE",
+    "outputDirectory": "dist/FRONT-END-SIAE/browser",
     "framework": null,
     "rewrites": [
         {
