@@ -1,0 +1,183 @@
+<div class="professional-builder-layout">
+  
+  <!-- LEFT SIDEBAR: CONFIGURACIÓN -->
+  <aside class="sidebar-config">
+     <div class="sidebar-header">
+       <div class="icon-box">⚙️</div>
+       <h2 class="text-xl">Parámetros</h2>
+     </div>
+     
+     <div class="form-group">
+        <label>Título de la Misión</label>
+        <input type="text" [(ngModel)]="activityTitle" placeholder="Ej. El Bosque Mágico..." class="form-input">
+     </div>
+
+     <div class="form-group">
+        <label>Dimensión Lingüística</label>
+        <select [(ngModel)]="dimension" class="form-select">
+           <option value="FONOLOGIA">Fonología</option>
+           <option value="PRAGMATICA">Pragmática</option>
+           <option value="MORFOSINTAXIS">Morfosintaxis</option>
+           <option value="SEMANTICA">Semántica</option>
+           <option value="DISCURSOS">Discursos</option>
+           <option value="JUEGO">Juego / Westby</option>
+        </select>
+     </div>
+
+     <div class="form-group mt-6">
+        <label>Mecánica Pedagógica (Juego)</label>
+        <div class="mechanics-grid">
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 1" (click)="setActivityType(1)">
+              <span class="mech-icon">🧠</span>
+              <span class="mech-title">Flashcards</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 3" (click)="setActivityType(3)">
+              <span class="mech-icon">✅</span>
+              <span class="mech-title">Opciones</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 5" (click)="setActivityType(5)">
+              <span class="mech-icon">✍️</span>
+              <span class="mech-title">Escritura IA</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 11" (click)="setActivityType(11)">
+              <span class="mech-icon">🧩</span>
+              <span class="mech-title">Secuencias</span>
+           </div>
+        </div>
+     </div>
+  </aside>
+
+  <!-- MAIN WORKSPACE: CONSTRUCTOR -->
+  <main class="main-workspace">
+     <header class="workspace-header">
+       <h1 class="text-3xl">Constructor Mágico ✨</h1>
+       <p class="text-slate-500">Diseña el contenido específico de la misión paso a paso.</p>
+     </header>
+
+     <div class="workspace-card" *ngIf="activityType()">
+        <!-- 1. Tarjetas Visuales -->
+        <ng-container *ngIf="[1,2,4,7,8].includes(activityType())">
+           <div class="form-group">
+              <label>Palabra o Estímulo Principal</label>
+              <input type="text" [(ngModel)]="flashcardWord" placeholder="Ej: PATO" class="form-input" style="font-size: 1.5rem;">
+           </div>
+           <div class="form-group mt-4" style="margin-top: 2rem;">
+              <label>URL de la Imagen (Ilustración)</label>
+              <div class="flex-row">
+                 <input type="text" [(ngModel)]="flashcardImageUrl" placeholder="Ej: https://.../imagen.png" class="form-input">
+              </div>
+           </div>
+        </ng-container>
+
+        <!-- 3. Opciones Múltiples -->
+        <ng-container *ngIf="[3,9,10].includes(activityType())">
+           <div class="form-group">
+              <label>Pregunta para el Alumno</label>
+              <input type="text" [(ngModel)]="checklistMainQ" placeholder="Ej: ¿Cuál es un animal doméstico?" class="form-input" style="margin-bottom: 1.5rem;">
+           </div>
+           <div class="form-group">
+              <label>Alternativas de Respuesta</label>
+              <div class="flex-row">
+                <input type="text" [(ngModel)]="newQuestionText" placeholder="Escribe una opción..." class="form-input" (keyup.enter)="addQuestion()">
+                <button class="btn-secondary" (click)="addQuestion()">Añadir +</button>
+              </div>
+           </div>
+
+           <p class="hint-text" *ngIf="checklistQuestions().length > 0">Haz clic en ★ para marcar la respuesta correcta.</p>
+
+           <ul class="q-list">
+             <li *ngFor="let q of checklistQuestions(); let i = index" [class.correct-option]="q.isCorrect">
+                <div class="option-left">
+                  <button class="star-btn" [class.star-active]="q.isCorrect" (click)="toggleCorrect(i)" title="Marcar como correcta">
+                    {{ q.isCorrect ? '★' : '☆' }}
+                  </button>
+                  <span>{{ ['A', 'B', 'C', 'D', 'E', 'F'][i] || '*' }}. {{ q.text }}</span>
+                </div>
+                <button class="del-btn" (click)="removeQuestion(i)">✖</button>
+             </li>
+           </ul>
+        </ng-container>
+
+        <!-- 5. Escritura IA / Discursos -->
+        <ng-container *ngIf="activityType() === 5">
+           <div class="form-group">
+              <label>Tema del Párrafo o Cuento</label>
+              <textarea [(ngModel)]="iaPrompt" class="form-input" rows="4" placeholder="Ej: Escribe un cuento sobre un dragón en el espacio..."></textarea>
+           </div>
+        </ng-container>
+
+        <!-- 11. Secuencias (el maestro ingresa en ORDEN CORRECTO) -->
+        <ng-container *ngIf="activityType() === 11">
+           <div class="form-group">
+              <label>Instrucción de Secuencia</label>
+              <input type="text" [(ngModel)]="sequenceMainQ" placeholder="Ej: Ordena los pasos para plantar un árbol" class="form-input" style="margin-bottom: 1.5rem;">
+           </div>
+
+           <p class="hint-text">Agrega los pasos en el <strong>ORDEN CORRECTO</strong>. El sistema los revolverá para que el alumno los ordene.</p>
+
+           <div class="form-group">
+              <label>Nuevo Paso</label>
+              <div class="flex-row">
+                <input type="text" [(ngModel)]="newSequenceStepText" placeholder="Paso..." class="form-input" (keyup.enter)="addSequenceStep()">
+                <button class="btn-secondary" (click)="addSequenceStep()">Añadir Paso +</button>
+              </div>
+           </div>
+           <ul class="q-list seq-list">
+             <li *ngFor="let step of sequenceSteps(); let i = index">
+                <span class="seq-number">{{ i + 1 }}</span>
+                <span class="seq-text">{{ step }}</span>
+                <button class="del-btn" (click)="removeSequenceStep(i)">✖</button>
+             </li>
+           </ul>
+        </ng-container>
+
+        <!-- Guardar Datos -->
+        <div class="save-actions">
+           <button class="btn-primary" (click)="saveConfiguration()" [disabled]="!activityTitle() || !activityType()">
+             🚀 Publicar e Iniciar Misión
+           </button>
+        </div>
+     </div>
+
+     <div class="workspace-card" *ngIf="!activityType()" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
+        <p class="text-slate-500 font-bold text-center">👈 Selecciona una "Mecánica de Juego" en el panel izquierdo para comenzar.</p>
+     </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR: AYUDA PEDAGÓGICA -->
+  <aside class="sidebar-help">
+     <div class="help-header">
+       <h2 class="text-sky">💡 Guía Tecnopedagógica</h2>
+       <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.5rem;">Soporte en vivo</p>
+     </div>
+     
+     <div class="help-content">
+        <div class="help-block" *ngIf="[1,2,4,7,8].includes(activityType())">
+           <h3 class="help-title">Tarjetas Visuales</h3>
+           <p class="help-desc">Ideal para trabajar discriminación fonológica o vocabulario. El sistema mostrará la imagen en pantalla grande al alumno.</p>
+           <span class="help-pill">Tiempo de Juego: 2 mins</span>
+        </div>
+
+        <div class="help-block" *ngIf="[3,9,10].includes(activityType())">
+           <h3 class="help-title">Opciones Múltiples</h3>
+           <p class="help-desc">Agrega varias opciones y marca con ★ la que sea <strong>correcta</strong>. El alumno verá las opciones como botones grandes y el motor validará su respuesta automáticamente.</p>
+           <span class="help-pill">Evalúa razonamiento</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 5">
+           <h3 class="help-title">Escritura Libre / IA</h3>
+           <p class="help-desc">Abre un espacio grande "Cuaderno de Tareas" donde el niño podrá redactar discursos o historietas, ideal para procesar Morfosintaxis.</p>
+           <div class="preview-box">
+             ✍️ "Había una vez..."
+           </div>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 11">
+           <h3 class="help-title">Secuencias Arrastrables</h3>
+           <p class="help-desc">Introduce los pasos en <strong>ORDEN CORRECTO</strong>. El sistema los revolverá y el alumno aplicará Drag &amp; Drop para re-ordenarlos. Se calificará automáticamente.</p>
+           <span class="help-pill">Físicas Kanban (Arrastrar)</span>
+        </div>
+     </div>
+  </aside>
+
+</div>

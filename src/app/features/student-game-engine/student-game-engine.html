@@ -1,0 +1,193 @@
+<div class="game-wrapper" *ngIf="mission()">
+  
+  <!-- Fondo Estrellado / Animado -->
+  <div class="bg-particles">
+    <div class="particle" style="top: 10%; left: 20%; animation-delay: 0s;">✨</div>
+    <div class="particle" style="top: 30%; left: 80%; animation-delay: 1s;">🌟</div>
+    <div class="particle" style="top: 70%; left: 15%; animation-delay: 2s;">🪐</div>
+    <div class="particle" style="top: 80%; left: 90%; animation-delay: 0.5s;">🚀</div>
+    <div class="particle" style="top: 45%; left: 10%; animation-delay: 1.5s;">⭐</div>
+  </div>
+
+  <!-- PANTALLA INTRO -->
+  <div class="screen intro-screen slide-in" *ngIf="gameState() === 'INTRO'">
+    <div class="badge-container">
+      <span class="dimension-badge" [ngClass]="mission()?.dimension">{{ mission()?.dimension }}</span>
+    </div>
+
+    <h1 class="game-title">{{ mission()?.title }}</h1>
+    
+    <div class="mascot-container mt-6">
+      <div class="speech-bubble pulse-bubble">
+        ¡Hola! Tengo una nueva aventura preparada para ti. ¿Te atreves? 🛸
+      </div>
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Kids&backgroundColor=0ea5e9" alt="Mascota" class="mascot floating">
+    </div>
+
+    <div class="action-footer mt-8 w-full" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+      <button class="duo-btn duo-primary huge-btn w-full" (click)="startMission()">
+        ¡EMPEZAR MISIÓN! <span class="btn-icon">▶️</span>
+      </button>
+      <button class="duo-btn duo-ghost w-full" (click)="goHome()">VOLVER AL CUARTEL</button>
+    </div>
+  </div>
+
+  <!-- PANTALLA JUEGO -->
+  <div class="screen play-screen bounce-in" *ngIf="gameState() === 'PLAYING' || gameState() === 'WRONG'" [class.shake-error]="gameState() === 'WRONG'">
+    <header class="game-header">
+      <button class="close-btn" (click)="goHome()" title="Salir">✖</button>
+      <div class="duo-progress-bar">
+        <div class="duo-progress-fill" [style.width]="progress() + '%'">
+          <div class="duo-progress-highlight"></div>
+        </div>
+      </div>
+      <div class="lives">
+        <span class="heart blink">❤️</span> 
+        <span class="heart">❤️</span> 
+        <span class="heart">❤️</span>
+      </div>
+    </header>
+
+    <div class="game-content" [ngSwitch]="mission()?.activityType">
+      
+      <!--========================================
+            TIPO 1: FLASHCARDS E IMÁGENES
+      =========================================-->
+      <ng-container *ngSwitchCase="1">
+        <div class="instruction-row">
+          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
+          <h2 class="question-text">¿Qué ves en la tarjeta mágica?</h2>
+        </div>
+        
+        <div class="stimulus-area card-pop" [class.success-pulse]="showSuccessAnim()">
+           <div class="card-inner">
+             <img *ngIf="mission()?.config?.imageUrl" [src]="mission()?.config?.imageUrl" class="main-image" alt="Estímulo Misión">
+             <h1 *ngIf="!mission()?.config?.imageUrl && mission()?.config?.targetWord" class="giant-word">{{ mission()?.config?.targetWord }}</h1>
+           </div>
+        </div>
+
+        <div class="interaction-area mt-8">
+           <button class="duo-btn duo-success huge-btn w-full" (click)="completeMission()" [disabled]="showSuccessAnim()">
+              ¡Ya lo dije! 🎤
+           </button>
+        </div>
+      </ng-container>
+
+      <!--========================================
+            TIPO 3: OPCIÓN MÚLTIPLE (CHECKLIST)
+      =========================================-->
+      <ng-container *ngSwitchCase="3">
+        <div class="instruction-row">
+          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
+          <h2 class="question-text">{{ mission()?.config?.question }}</h2>
+        </div>
+
+        <div class="options-grid mt-4">
+          <button *ngFor="let opt of mission()?.config?.options; let idx = index" 
+                  class="option-card duo-btn" 
+                  [class.selected]="selectedOption() === idx"
+                  (click)="selectOption(idx)">
+            <span class="opt-letter">{{ ['A','B','C','D'][idx] }}</span>
+            <span class="opt-text">{{ opt }}</span>
+          </button>
+        </div>
+
+        <div class="interaction-area mt-8">
+           <button class="duo-btn duo-primary huge-btn w-full btn-verify" 
+                   (click)="verifyOption()" 
+                   [disabled]="selectedOption() === null || showSuccessAnim()">
+              Comprobar ✨
+           </button>
+        </div>
+      </ng-container>
+
+      <!--========================================
+            TIPO 5: TEXTO LIBRE (IA/MORFOSINTAXIS)
+      =========================================-->
+      <ng-container *ngSwitchCase="5">
+        <div class="instruction-row">
+          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
+          <h2 class="question-text">{{ mission()?.config?.question }}</h2>
+        </div>
+
+        <div class="text-area-container mt-4">
+          <textarea class="duo-textarea" placeholder="Escribe tu historia aquí..." rows="4" #storyInput></textarea>
+        </div>
+
+        <div class="interaction-area mt-8">
+           <button class="duo-btn duo-success huge-btn w-full" (click)="completeMission()" [disabled]="showSuccessAnim()">
+              Enviar Historia 🚀
+           </button>
+        </div>
+      </ng-container>
+
+      <!--========================================
+            TIPO 11: SECUENCIAS / ESTADIOS (JUEGO)
+      =========================================-->
+      <ng-container *ngSwitchCase="11">
+        <div class="instruction-row">
+          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
+          <h2 class="question-text">{{ mission()?.config?.question || 'Ordena arrastrando las tarjetas' }}</h2>
+        </div>
+
+        <div class="stepper-grid mt-4" cdkDropList (cdkDropListDropped)="drop($event)">
+          <div *ngFor="let step of orderedSteps(); let i = index" class="step-card movable-card" cdkDrag>
+            <div class="drag-handle" cdkDragHandle>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </div>
+            <div class="step-num">{{ i + 1 }}</div>
+            <div class="step-desc">{{ step.text }}</div>
+          </div>
+        </div>
+
+        <div class="interaction-area mt-8">
+           <button class="duo-btn duo-success huge-btn w-full btn-verify" 
+                   (click)="verifySequence()" 
+                   [disabled]="showSuccessAnim()">
+              ¡Secuencia Lista! 🎯
+           </button>
+        </div>
+      </ng-container>
+
+      <!--========================================
+            DEFAULT (Para cualquier otra)
+      =========================================-->
+      <ng-container *ngSwitchDefault>
+         <div class="instruction-row">
+           <h2 class="question-text">¡Sigue las instrucciones del profesor!</h2>
+         </div>
+         <div class="interaction-area mt-8">
+           <button class="duo-btn duo-success huge-btn w-full" (click)="completeMission()">
+              Completar Tarea ✅
+           </button>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+
+  <!-- PANTALLA VICTORIA -->
+  <div class="screen win-screen pop-in" *ngIf="gameState() === 'WIN'">
+    <h1 class="win-title">¡ERES INCREÍBLE!</h1>
+    
+    <div class="reward-chest mt-4 jumping">
+      <img src="https://cdn-icons-png.flaticon.com/512/3176/3176313.png" alt="Cofre de Tesoro" class="chest-img">
+    </div>
+    
+    <div class="score-board mt-6">
+      <div class="score-item">
+        <span class="score-label">PUNTOS</span>
+        <span class="score-value text-yellow">+100</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">PRECISIÓN</span>
+        <span class="score-value text-green">100%</span>
+      </div>
+    </div>
+
+    <div class="action-footer mt-8">
+      <button class="duo-btn duo-primary huge-btn w-full" (click)="goHome()">Siguiente Misión 🚀</button>
+    </div>
+  </div>
+
+</div>

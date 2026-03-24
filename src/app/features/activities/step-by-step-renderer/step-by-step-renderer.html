@@ -1,0 +1,59 @@
+<!-- Tema Púrpura para Juego (Estadios) -->
+<div class="renderer-container bg-purple-50">
+  <header class="renderer-header">
+    <h2 class="title">{{ config()?.title || 'Evaluación por Estadios (Juego Libre)' }}</h2>
+    <span class="badge">Westby Protocol</span>
+  </header>
+
+  <div class="renderer-content">
+    <div class="stepper-panel">
+      <ul class="stepper">
+        <li *ngFor="let step of config()?.steps; let i = index" 
+            class="step-item" 
+            [class.active]="currentStepIndex() === i"
+            [class.completed]="currentStepIndex() > i"
+            (click)="setStep(i)">
+          
+          <div class="step-indicator">
+            <div class="circle">{{ i + 1 }}</div>
+            <div class="line" *ngIf="i < config()?.steps.length - 1"></div>
+          </div>
+          
+          <div class="step-content">
+            <h4 class="step-title">{{ step.title }}</h4>
+            <p class="step-desc" *ngIf="currentStepIndex() === i">{{ step.description }}</p>
+            <div class="step-materials" *ngIf="currentStepIndex() === i && step.materials">
+              <strong>Materiales sugeridos:</strong> {{ step.materials }}
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="evaluation-panel">
+      <h3 class="panel-subtitle">Registro del Estadio Actual ({{ currentStepIndex() + 1 }}/{{ config()?.steps.length || 0 }})</h3>
+      
+      <div class="action-grid mt-4">
+        <button class="eval-btn success" (click)="markCurrent('LOGRADO')" [class.active]="stepAnswers()[currentStepIndex()]?.status === 'LOGRADO'">Logrado</button>
+        <button class="eval-btn warning" (click)="markCurrent('EN_PROCESO')" [class.active]="stepAnswers()[currentStepIndex()]?.status === 'EN_PROCESO'">En Proceso</button>
+        <button class="eval-btn neutral" (click)="markCurrent('NO_OBSERVADO')" [class.active]="stepAnswers()[currentStepIndex()]?.status === 'NO_OBSERVADO'">No Observado</button>
+      </div>
+
+      <div class="mt-6">
+        <app-help-level-selector (levelChange)="helpLevel.set($any($event))"></app-help-level-selector>
+      </div>
+
+      <div class="mt-4">
+          <app-observation-input (noteSaved)="observation.set($any($event))"></app-observation-input>
+      </div>
+
+      <div class="mt-6 flex-between">
+          <button class="nav-btn" [disabled]="currentStepIndex() === 0" (click)="prevStep()">Anterior</button>
+          
+          <button class="nav-btn primary" *ngIf="currentStepIndex() < (config()?.steps?.length || 0) - 1" (click)="nextStep()">Siguiente</button>
+          
+          <button class="save-result-btn" *ngIf="currentStepIndex() === (config()?.steps?.length || 0) - 1" (click)="finish()">Finalizar Protocolo</button>
+      </div>
+    </div>
+  </div>
+</div>

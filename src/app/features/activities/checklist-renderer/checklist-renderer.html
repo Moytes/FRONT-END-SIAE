@@ -1,0 +1,39 @@
+<!-- Tema Verde para Pragmática u otros -->
+<div class="renderer-container bg-green-50" [class.teleprompter-mode]="isTeleprompter()">
+  <header class="renderer-header" *ngIf="!isTeleprompter()">
+    <h2 class="title">{{ config()?.title || 'Lista de Cotejo' }}</h2>
+    <button class="toggle-mode" (click)="toggleTeleprompter()">Modo Teleprompter</button>
+  </header>
+  
+  <div class="teleprompter-view" *ngIf="isTeleprompter()">
+      <button class="exit-btn" (click)="toggleTeleprompter()">Salir Teleprompter</button>
+      <h1 class="giant-question">{{ currentQuestion?.text }}</h1>
+      <div class="minimal-controls">
+        <button class="eval-btn success" (click)="setEval('LOGRADO')">Logrado</button>
+        <button class="eval-btn warning" (click)="setEval('EN_PROCESO')">Área de Apoyo</button>
+      </div>
+      <p class="counter">Pregunta {{currentIndex() + 1}} de {{config()?.questions?.length || 0}}</p>
+  </div>
+
+  <div class="renderer-content" *ngIf="!isTeleprompter()">
+    <div class="checklist-panel">
+      <div *ngFor="let q of config()?.questions; let i = index" class="check-item" [class.completed]="answers()[i] !== undefined">
+        <p class="q-text">{{ i + 1 }}. {{ q.text }}</p>
+        <div class="action-grid">
+            <button class="eval-btn success" [class.active]="answers()[i] === 'LOGRADO'" (click)="setAnswer(i, 'LOGRADO')">Logrado</button>
+            <button class="eval-btn warning" [class.active]="answers()[i] === 'EN_PROCESO'" (click)="setAnswer(i, 'EN_PROCESO')">En Proceso</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="evaluation-panel">
+      <app-help-level-selector (levelChange)="helpLevel.set($any($event))"></app-help-level-selector>
+      <div class="mt-4">
+          <app-observation-input (noteSaved)="observation.set($any($event))"></app-observation-input>
+      </div>
+      <div class="mt-6 text-right">
+          <button class="save-result-btn" (click)="finish()">Guardar Evaluación</button>
+      </div>
+    </div>
+  </div>
+</div>

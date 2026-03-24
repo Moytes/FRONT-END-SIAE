@@ -1,0 +1,42 @@
+.renderer-container { background: #f0fdf4; border-radius: 16px; padding: 2rem; border: 1px solid #bbf7d0; min-height: 50vh; transition: all 0.3s;}
+.renderer-container.teleprompter-mode { background: #0f172a; color: white; position: fixed; inset: 0; z-index: 1000; border-radius: 0; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem; }
+
+.renderer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.title { color: #166534; font-size: 1.5rem; font-weight: 800; margin: 0; }
+
+.toggle-mode { background: #22c55e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+.renderer-content { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+
+.checklist-panel { display: flex; flex-direction: column; gap: 1rem; }
+.check-item { background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+.check-item.completed { border-left: 4px solid #22c55e; }
+.q-text { margin: 0; font-weight: 600; color: #334155; font-size: 1.05rem; }
+
+.action-grid { display: flex; gap: 0.5rem; }
+.eval-btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; border: 2px solid transparent; cursor: pointer; }
+.eval-btn.success { background: #dcfce7; color: #16a34a; }
+.eval-btn.success.active { background: #22c55e; color: white; }
+.eval-btn.warning { background: #fef3c7; color: #d97706; }
+.eval-btn.warning.active { background: #f59e0b; color: white; }
+
+.evaluation-panel { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; align-self: start;}
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.text-right { text-align: right; }
+
+.save-result-btn { background: #16a34a; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+/* TELEPROMPTER STYLES */
+.teleprompter-view { text-align: center; width: 100%; max-width: 900px; }
+.exit-btn { position: absolute; top: 2rem; right: 2rem; background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; }
+.giant-question { font-size: 3.5rem; font-weight: 900; line-height: 1.2; margin-bottom: 3rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.minimal-controls { display: flex; gap: 2rem; justify-content: center; }
+.minimal-controls .eval-btn { font-size: 1.5rem; padding: 1.5rem 3rem; border-radius: 100px; }
+.counter { margin-top: 3rem; color: #94a3b8; font-size: 1.25rem; font-weight: bold; }
+
+@media (max-width: 1024px) {
+  .renderer-content { grid-template-columns: 1fr; }
+  .check-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .giant-question { font-size: 2rem; }
+}

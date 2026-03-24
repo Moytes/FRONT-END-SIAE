@@ -1,0 +1,40 @@
+<!-- Tema Azul para Fonología según MVP -->
+<div class="renderer-container bg-blue-50">
+  <header class="renderer-header">
+    <h2 class="title">{{ config()?.title || 'Actividad de Estímulo Visual' }}</h2>
+    <app-timer-display></app-timer-display>
+  </header>
+
+  <div class="renderer-content">
+    <!-- Tarjeta Visual -->
+    <div class="flashcard">
+      <img *ngIf="config()?.imageUrl" [src]="config().imageUrl" class="stimulus-img" alt="Estímulo visual" />
+      <div class="stimulus-text" *ngIf="config()?.targetWord">
+        {{ config()?.targetWord }}
+      </div>
+    </div>
+
+    <!-- Controles Intervención -->
+    <div class="evaluation-panel">
+      <h3 class="panel-title">Registro Rápido de Producción</h3>
+      <div class="action-grid">
+        <button class="eval-btn success" (click)="setEval('LOGRADO')" [class.active]="evaluation() === 'LOGRADO'">Logrado</button>
+        <button class="eval-btn warning" (click)="setEval('EN_PROCESO')" [class.active]="evaluation() === 'EN_PROCESO'">Área de Apoyo</button>
+        <button class="eval-btn neutral" (click)="setEval('OMISION')" [class.active]="evaluation() === 'OMISION'">Omisión</button>
+        <button class="eval-btn neutral" (click)="setEval('POSICION')" [class.active]="evaluation() === 'POSICION'">Cambio Posición</button>
+      </div>
+      
+      <div class="mt-4">
+        <app-help-level-selector (levelChange)="helpLevel.set($any($event))"></app-help-level-selector>
+      </div>
+
+      <div class="mt-4">
+          <app-observation-input (noteSaved)="observation.set($any($event))"></app-observation-input>
+      </div>
+
+      <div class="mt-6 text-right">
+          <button class="save-result-btn" [disabled]="!canSave()" (click)="finish()">Guardar Progreso</button>
+      </div>
+    </div>
+  </div>
+</div>
