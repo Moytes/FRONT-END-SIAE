@@ -29,6 +29,19 @@
       <span class="nav-label" *ngIf="!isCollapsed">Mi Perfil</span>
     </a>
 
+    <div class="nav-divider" *ngIf="authService.hasPermission('VIEW_MASTER_PANEL')"></div>
+
+    <p class="nav-section-title" *ngIf="!isCollapsed && authService.hasPermission('VIEW_MASTER_PANEL')">Gestión Pedagógica</p>
+
+    <!-- Actividades MVP -->
+    <a routerLink="/actividades/builder" routerLinkActive="active-link" class="nav-item mvp-master-item" *ngIf="authService.hasPermission('VIEW_MASTER_PANEL')" title="Panel Maestro" (click)="closeMobile()">
+      <div class="nav-icon text-purple-500">
+        <!-- Ícono llamativo y vibrante -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon" style="color: #a855f7;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <span class="nav-label" style="font-weight: 700; color: #e9d5ff;" *ngIf="!isCollapsed">Panel Maestro</span>
+    </a>
+
     <div class="nav-divider" *ngIf="authService.hasPermission('manage_courses') || authService.hasPermission('view_my_courses')"></div>
 
     <p class="nav-section-title" *ngIf="!isCollapsed && (authService.hasPermission('manage_courses') || authService.hasPermission('view_my_courses'))">Académico</p>

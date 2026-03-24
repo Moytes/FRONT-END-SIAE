@@ -23,8 +23,24 @@ export const routes: Routes = [
                 path: 'perfil',
                 loadComponent: () =>
                     import('./pages/perfil/perfil').then(m => m.Perfil)
+            },
+            {
+                path: 'actividades/builder',
+                loadComponent: () =>
+                    import('./features/activities/activity-builder/activity-builder.component').then(m => m.ActivityBuilderComponent)
+            },
+            {
+                path: 'actividades/engine/:id',
+                loadComponent: () =>
+                    import('./features/activities/activity-engine/activity-engine.component').then(m => m.ActivityEngineComponent)
             }
         ]
+    },
+    {
+        path: 'jugar/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/student-game-engine/student-game-engine').then(m => m.StudentGameEngineComponent)
     },
     {
         path: '**',

@@ -40,29 +40,27 @@
     </div>
   </section>
 
-  <!-- Contenido Alumno -->
-  <section class="dashboard-grid" *ngIf="authService.hasPermission('view_home_alumno')">
-    <div class="card stat-card info">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-      <div class="card-info">
-        <h3>9.5</h3>
-        <p>Promedio General</p>
-      </div>
-    </div>
-    <div class="card stat-card warning">
-      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <div class="card-info">
-        <h3>2</h3>
-        <p>Tareas Pendientes</p>
-      </div>
+  <!-- Contenido Alumno (Tablero Infantil Interactivo) -->
+  <section class="student-dashboard" *ngIf="authService.hasPermission('VIEW_STUDENT_PANEL')">
+    <div class="welcome-kid text-center">
+      <h2>🚀 ¡Tus Misiones Espaciales! 🌍</h2>
+      <p>Elige tu próxima aventura y gana estrellas mágicas respondiendo genial.</p>
     </div>
 
-    <div class="card tools-card" *ngIf="authService.hasPermission('view_my_courses')">
-      <h3>Mis Accesos</h3>
-      <div class="action-buttons">
-        <button class="btn btn-primary">Ver Horario</button>
-        <button class="btn btn-primary">Ir a Lecciones</button>
-        <button class="btn btn-outline">Consultar Calificaciones</button>
+    <div class="missions-grid">
+      <div class="mission-card bounce-hover" *ngFor="let m of availableMissions; let i = index">
+         <div class="mission-icon">
+            <img [src]="m.config?.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3208/3208536.png'" alt="Misión Icono">
+         </div>
+         <div class="mission-content">
+            <span class="dimension-badge" [ngClass]="m.dimension">{{ m.dimension }}</span>
+            <h3 class="mission-title">{{ m.title }}</h3>
+         </div>
+         <button class="play-btn" (click)="playMission(m.id)">¡Jugar Ahora! ▶️</button>
+      </div>
+
+      <div class="empty-missions" *ngIf="availableMissions.length === 0">
+         <p>No tienes misiones pendientes por ahora. ¡Descansa campeón! 🎉</p>
       </div>
     </div>
   </section>

@@ -25,7 +25,10 @@ const STATIC_USERS: User[] = [
       'view_perfil',
       'manage_grades',
       'manage_courses',
-      'view_reports'
+      'view_reports',
+      'VIEW_MASTER_PANEL',
+      'CREATE_ACTIVITY',
+      'EXECUTE_EVALUATION'
     ]
   },
   {
@@ -40,7 +43,9 @@ const STATIC_USERS: User[] = [
       'view_home_alumno',
       'view_perfil',
       'view_my_grades',
-      'view_my_courses'
+      'view_my_courses',
+      'VIEW_STUDENT_PANEL',
+      'PLAY_ACTIVITY'
     ]
   }
 ];
@@ -50,10 +55,27 @@ const STATIC_USERS: User[] = [
 })
 export class AuthService {
   
-  // Estado inicial es null (nadie ha iniciado sesión)
+  // Clave para guardar en el navegador
+  private readonly STORAGE_KEY = 'SIAE_USER_SESSION';
+
+  // Estado inicial
   private currentUserSignal = signal<User | null>(null);
 
-  constructor() { }
+  constructor() {
+    this.loadSession();
+  }
+
+  // Recupera la sesión al refrescar la página
+  private loadSession() {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        this.currentUserSignal.set(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Error leyendo sesión del caché:', e);
+    }
+  }
 
   get currentUser() {
     return this.currentUserSignal.asReadonly();
@@ -64,6 +86,7 @@ export class AuthService {
     const user = STATIC_USERS.find(u => u.email === email && u.password === password);
     if (user) {
       this.currentUserSignal.set(user);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
       return true;
     }
     return false;
@@ -71,6 +94,7 @@ export class AuthService {
 
   logout() {
     this.currentUserSignal.set(null);
+    localStorage.removeItem(this.STORAGE_KEY);
   }
 
   hasPermission(permission: string): boolean {
