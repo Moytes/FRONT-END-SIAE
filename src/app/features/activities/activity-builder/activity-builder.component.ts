@@ -19,25 +19,43 @@ export class ActivityBuilderComponent {
   dimension = signal<ActivityDimension>('FONOLOGIA');
   activityType = signal<number>(1);
 
-  // Flashcard Temp State
+  // Flashcard Temp State (Act 1, 2, 4, 7, 8)
   flashcardWord = signal('');
   flashcardImageUrl = signal('');
+  // For Act 2: second image for pair
+  flashcardWord2 = signal('');
+  flashcardImageUrl2 = signal('');
 
-  // Checklist / Opciones Múltiples
+  // Checklist / Opciones Múltiples (Act 3, 9, 10)
   checklistMainQ = signal('');
   checklistQuestions = signal<{text: string; isCorrect: boolean}[]>([]);
   newQuestionText = signal('');
+  // For Act 9/10: educational level selection
+  educationalLevel = signal<'preescolar' | 'primaria' | 'secundaria'>('primaria');
 
-  // Escritura IA
+  // Escritura IA (Act 5)
   iaPrompt = signal('');
 
-  // Secuencias
+  // Plan de Acción (Act 6) — no config needed, it generates from history
+
+  // Secuencias (Act 11)
   sequenceMainQ = signal('');
   sequenceSteps = signal<string[]>([]);
   newSequenceStepText = signal('');
 
   setActivityType(type: number) {
     this.activityType.set(type);
+    // Auto-set dimension based on activity type per spec
+    const dimMap: Record<number, ActivityDimension> = {
+      1: 'FONOLOGIA', 2: 'FONOLOGIA',
+      3: 'PRAGMATICA',
+      4: 'MORFOSINTAXIS', 5: 'MORFOSINTAXIS',
+      6: 'MORFOSINTAXIS',
+      7: 'SEMANTICA', 8: 'SEMANTICA',
+      9: 'DISCURSOS', 10: 'DISCURSOS',
+      11: 'JUEGO'
+    };
+    if (dimMap[type]) this.dimension.set(dimMap[type]);
   }
 
   // --- Opciones Múltiples ---
@@ -77,16 +95,35 @@ export class ActivityBuilderComponent {
 
     const type = this.activityType();
 
-    if ([1,2,4,7,8].includes(type)) {
+    if (type === 1 || type === 4 || type === 7 || type === 8) {
+      // Standard flashcard
       specificConfig = { targetWord: this.flashcardWord(), imageUrl: this.flashcardImageUrl() };
-    } else if ([3,9,10].includes(type)) {
+    } else if (type === 2) {
+      // Pares mínimos — two words/images
+      specificConfig = {
+        targetWord: this.flashcardWord(),
+        imageUrl: this.flashcardImageUrl(),
+        pairWord: this.flashcardWord2(),
+        pairImageUrl: this.flashcardImageUrl2()
+      };
+    } else if (type === 3) {
       const options = this.checklistQuestions().map(q => q.text);
       const correctIndex = this.checklistQuestions().findIndex(q => q.isCorrect);
       specificConfig = { question: this.checklistMainQ(), options, correctIndex: correctIndex >= 0 ? correctIndex : 0 };
     } else if (type === 5) {
       specificConfig = { question: this.iaPrompt() };
+    } else if (type === 6) {
+      specificConfig = { title: this.activityTitle() };
+    } else if (type === 9 || type === 10) {
+      const options = this.checklistQuestions().map(q => q.text);
+      const correctIndex = this.checklistQuestions().findIndex(q => q.isCorrect);
+      specificConfig = {
+        question: this.checklistMainQ(),
+        options,
+        correctIndex: correctIndex >= 0 ? correctIndex : 0,
+        educationalLevel: this.educationalLevel()
+      };
     } else if (type === 11) {
-      // El orden en que el maestro los ingresa ES el orden correcto
       specificConfig = { question: this.sequenceMainQ(), steps: this.sequenceSteps() };
     }
 
@@ -100,10 +137,12 @@ export class ActivityBuilderComponent {
     });
 
     if (saved) {
-      // Limpiar formulario para crear otra
+      // Limpiar formulario
       this.activityTitle.set('');
       this.flashcardWord.set('');
       this.flashcardImageUrl.set('');
+      this.flashcardWord2.set('');
+      this.flashcardImageUrl2.set('');
       this.checklistMainQ.set('');
       this.checklistQuestions.set([]);
       this.iaPrompt.set('');
@@ -112,5 +151,31 @@ export class ActivityBuilderComponent {
       // Navegar al engine para probar
       this.router.navigate(['/actividades/engine', id]);
     }
+  }
+
+  // Helper method for template
+  isFlashcardType(): boolean {
+    return [1, 2, 4, 7, 8].includes(this.activityType());
+  }
+
+  isChecklistType(): boolean {
+    return [3, 9, 10].includes(this.activityType());
+  }
+
+  getTypeLabel(type: number): string {
+    const labels: Record<number, string> = {
+      1: 'Act 1 · Producción de Fonemas',
+      2: 'Act 2 · Pares Mínimos',
+      3: 'Act 3 · Checklist Pragmática',
+      4: 'Act 4 · Tarjetas por Niveles',
+      5: 'Act 5 · Análisis IA',
+      6: 'Act 6 · Plan de Acción',
+      7: 'Act 7 · La Comidita',
+      8: 'Act 8 · Preguntas sobre Imagen',
+      9: 'Act 9 · Conversación',
+      10: 'Act 10 · Argumentación',
+      11: 'Act 11 · Estadios de Juego'
+    };
+    return labels[type] || '';
   }
 }

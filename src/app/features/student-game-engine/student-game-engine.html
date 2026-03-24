@@ -48,12 +48,12 @@
       </div>
     </header>
 
-    <div class="game-content" [ngSwitch]="mission()?.activityType">
+    <div class="game-content" [ngSwitch]="getGameType()">
       
       <!--========================================
-            TIPO 1: FLASHCARDS E IMÁGENES
+            FLASHCARD: Act 1, 4, 7, 8
       =========================================-->
-      <ng-container *ngSwitchCase="1">
+      <ng-container *ngSwitchCase="'FLASHCARD'">
         <div class="instruction-row">
           <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
           <h2 class="question-text">¿Qué ves en la tarjeta mágica?</h2>
@@ -61,8 +61,8 @@
         
         <div class="stimulus-area card-pop" [class.success-pulse]="showSuccessAnim()">
            <div class="card-inner">
-             <img *ngIf="mission()?.config?.imageUrl" [src]="mission()?.config?.imageUrl" class="main-image" alt="Estímulo Misión">
-             <h1 *ngIf="!mission()?.config?.imageUrl && mission()?.config?.targetWord" class="giant-word">{{ mission()?.config?.targetWord }}</h1>
+             <img *ngIf="mission()?.config?.imageUrl" [src]="mission()!.config.imageUrl" class="main-image" alt="Estímulo Misión">
+             <h1 *ngIf="mission()?.config?.targetWord" class="giant-word" [class.with-image]="mission()?.config?.imageUrl">{{ mission()!.config.targetWord }}</h1>
            </div>
         </div>
 
@@ -74,9 +74,43 @@
       </ng-container>
 
       <!--========================================
-            TIPO 3: OPCIÓN MÚLTIPLE (CHECKLIST)
+            PARES MÍNIMOS: Act 2
       =========================================-->
-      <ng-container *ngSwitchCase="3">
+      <ng-container *ngSwitchCase="'PAIR'">
+        <div class="instruction-row">
+          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
+          <h2 class="question-text">🎵 ¡Escucha y señala! ¿Cuál es la correcta?</h2>
+        </div>
+
+        <div class="pair-cards-game">
+          <div class="pair-game-card" 
+               [class.pair-selected]="selectedOption() === 0"
+               (click)="selectOption(0)">
+            <img *ngIf="mission()?.config?.imageUrl" [src]="mission()!.config.imageUrl" class="pair-game-img" alt="Imagen 1">
+            <span class="pair-game-word">{{ mission()?.config?.targetWord }}</span>
+          </div>
+          <div class="pair-vs">VS</div>
+          <div class="pair-game-card" 
+               [class.pair-selected]="selectedOption() === 1"
+               (click)="selectOption(1)">
+            <img *ngIf="mission()?.config?.pairImageUrl" [src]="mission()!.config.pairImageUrl" class="pair-game-img" alt="Imagen 2">
+            <span class="pair-game-word">{{ mission()?.config?.pairWord }}</span>
+          </div>
+        </div>
+
+        <div class="interaction-area mt-8">
+           <button class="duo-btn duo-success huge-btn w-full" 
+                   (click)="completeMission()" 
+                   [disabled]="selectedOption() === null || showSuccessAnim()">
+              ¡Esta es! ✨
+           </button>
+        </div>
+      </ng-container>
+
+      <!--========================================
+            OPCIONES MÚLTIPLES: Act 3, 9, 10
+      =========================================-->
+      <ng-container *ngSwitchCase="'OPTIONS'">
         <div class="instruction-row">
           <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
           <h2 class="question-text">{{ mission()?.config?.question }}</h2>
@@ -87,7 +121,7 @@
                   class="option-card duo-btn" 
                   [class.selected]="selectedOption() === idx"
                   (click)="selectOption(idx)">
-            <span class="opt-letter">{{ ['A','B','C','D'][idx] }}</span>
+            <span class="opt-letter">{{ ['A','B','C','D','E','F'][idx] }}</span>
             <span class="opt-text">{{ opt }}</span>
           </button>
         </div>
@@ -102,9 +136,9 @@
       </ng-container>
 
       <!--========================================
-            TIPO 5: TEXTO LIBRE (IA/MORFOSINTAXIS)
+            TEXTO LIBRE: Act 5
       =========================================-->
-      <ng-container *ngSwitchCase="5">
+      <ng-container *ngSwitchCase="'TEXT'">
         <div class="instruction-row">
           <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
           <h2 class="question-text">{{ mission()?.config?.question }}</h2>
@@ -122,9 +156,30 @@
       </ng-container>
 
       <!--========================================
-            TIPO 11: SECUENCIAS / ESTADIOS (JUEGO)
+            PLAN DE ACCIÓN: Act 6
       =========================================-->
-      <ng-container *ngSwitchCase="11">
+      <ng-container *ngSwitchCase="'PLAN'">
+        <div class="instruction-row">
+          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
+          <h2 class="question-text">📋 Tu plan de mejora personal</h2>
+        </div>
+
+        <div class="info-game-card">
+          <p class="info-game-text">Tu maestro ha preparado un plan especial para ti. ¡Sigue las instrucciones y practica en casa!</p>
+          <div class="info-game-emoji">💪🌟📝</div>
+        </div>
+
+        <div class="interaction-area mt-8">
+           <button class="duo-btn duo-success huge-btn w-full" (click)="completeMission()">
+              ¡Entendido! ✅
+           </button>
+        </div>
+      </ng-container>
+
+      <!--========================================
+            SECUENCIAS: Act 11 (Drag & Drop)
+      =========================================-->
+      <ng-container *ngSwitchCase="'SEQUENCE'">
         <div class="instruction-row">
           <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
           <h2 class="question-text">{{ mission()?.config?.question || 'Ordena arrastrando las tarjetas' }}</h2>
@@ -145,20 +200,6 @@
                    (click)="verifySequence()" 
                    [disabled]="showSuccessAnim()">
               ¡Secuencia Lista! 🎯
-           </button>
-        </div>
-      </ng-container>
-
-      <!--========================================
-            DEFAULT (Para cualquier otra)
-      =========================================-->
-      <ng-container *ngSwitchDefault>
-         <div class="instruction-row">
-           <h2 class="question-text">¡Sigue las instrucciones del profesor!</h2>
-         </div>
-         <div class="interaction-area mt-8">
-           <button class="duo-btn duo-success huge-btn w-full" (click)="completeMission()">
-              Completar Tarea ✅
            </button>
         </div>
       </ng-container>

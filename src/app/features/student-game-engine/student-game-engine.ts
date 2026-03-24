@@ -99,6 +99,26 @@ export class StudentGameEngineComponent implements OnInit {
     }, 1200);
   }
 
+  /**
+   * Maps activity type (1-11) to game screen type for the template ngSwitch.
+   * FLASHCARD = Act 1, 4, 7, 8 (single card with image+word)
+   * PAIR = Act 2 (two images side by side for minimal pairs)
+   * OPTIONS = Act 3, 9, 10 (multiple choice / checklist)
+   * TEXT = Act 5 (free text / IA analysis)
+   * PLAN = Act 6 (action plan - informational)
+   * SEQUENCE = Act 11 (drag & drop ordering)
+   */
+  getGameType(): string {
+    const type = this.mission()?.activityType;
+    if (type === 2) return 'PAIR';
+    if ([1, 4, 7, 8].includes(type!)) return 'FLASHCARD';
+    if ([3, 9, 10].includes(type!)) return 'OPTIONS';
+    if (type === 5) return 'TEXT';
+    if (type === 6) return 'PLAN';
+    if (type === 11) return 'SEQUENCE';
+    return 'FLASHCARD'; // fallback
+  }
+
   goHome() {
     this.router.navigate(['/']);
   }

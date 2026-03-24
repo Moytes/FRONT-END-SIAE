@@ -25,23 +25,62 @@
      </div>
 
      <div class="form-group mt-6">
-        <label>Mecánica Pedagógica (Juego)</label>
+        <label>Actividad del Catálogo</label>
         <div class="mechanics-grid">
            <div class="mechanic-card" [class.selected-mech]="activityType() === 1" (click)="setActivityType(1)">
-              <span class="mech-icon">🧠</span>
-              <span class="mech-title">Flashcards</span>
+              <span class="mech-icon">🔊</span>
+              <span class="mech-title">Fonemas</span>
+              <span class="mech-sub">Act 1</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 2" (click)="setActivityType(2)">
+              <span class="mech-icon">🎵</span>
+              <span class="mech-title">Pares Mín.</span>
+              <span class="mech-sub">Act 2</span>
            </div>
            <div class="mechanic-card" [class.selected-mech]="activityType() === 3" (click)="setActivityType(3)">
               <span class="mech-icon">✅</span>
-              <span class="mech-title">Opciones</span>
+              <span class="mech-title">Pragmática</span>
+              <span class="mech-sub">Act 3</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 4" (click)="setActivityType(4)">
+              <span class="mech-icon">🃏</span>
+              <span class="mech-title">Tarjetas</span>
+              <span class="mech-sub">Act 4</span>
            </div>
            <div class="mechanic-card" [class.selected-mech]="activityType() === 5" (click)="setActivityType(5)">
               <span class="mech-icon">✍️</span>
-              <span class="mech-title">Escritura IA</span>
+              <span class="mech-title">Análisis IA</span>
+              <span class="mech-sub">Act 5</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 6" (click)="setActivityType(6)">
+              <span class="mech-icon">📋</span>
+              <span class="mech-title">Plan Acción</span>
+              <span class="mech-sub">Act 6</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 7" (click)="setActivityType(7)">
+              <span class="mech-icon">🍳</span>
+              <span class="mech-title">Comidita</span>
+              <span class="mech-sub">Act 7</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 8" (click)="setActivityType(8)">
+              <span class="mech-icon">👀</span>
+              <span class="mech-title">Imagen</span>
+              <span class="mech-sub">Act 8</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 9" (click)="setActivityType(9)">
+              <span class="mech-icon">💬</span>
+              <span class="mech-title">Conversación</span>
+              <span class="mech-sub">Act 9</span>
+           </div>
+           <div class="mechanic-card" [class.selected-mech]="activityType() === 10" (click)="setActivityType(10)">
+              <span class="mech-icon">🗣️</span>
+              <span class="mech-title">Debate</span>
+              <span class="mech-sub">Act 10</span>
            </div>
            <div class="mechanic-card" [class.selected-mech]="activityType() === 11" (click)="setActivityType(11)">
               <span class="mech-icon">🧩</span>
-              <span class="mech-title">Secuencias</span>
+              <span class="mech-title">Estadios</span>
+              <span class="mech-sub">Act 11</span>
            </div>
         </div>
      </div>
@@ -50,13 +89,14 @@
   <!-- MAIN WORKSPACE: CONSTRUCTOR -->
   <main class="main-workspace">
      <header class="workspace-header">
-       <h1 class="text-3xl">Constructor Mágico ✨</h1>
-       <p class="text-slate-500">Diseña el contenido específico de la misión paso a paso.</p>
+       <h1 class="text-3xl">Constructor de Actividades ✨</h1>
+       <p class="text-slate-500">{{ getTypeLabel(activityType()) }}</p>
      </header>
 
      <div class="workspace-card" *ngIf="activityType()">
-        <!-- 1. Tarjetas Visuales -->
-        <ng-container *ngIf="[1,2,4,7,8].includes(activityType())">
+
+        <!-- Flashcard types: Act 1, 4, 7, 8 -->
+        <ng-container *ngIf="activityType() === 1 || activityType() === 4 || activityType() === 7 || activityType() === 8">
            <div class="form-group">
               <label>Palabra o Estímulo Principal</label>
               <input type="text" [(ngModel)]="flashcardWord" placeholder="Ej: PATO" class="form-input" style="font-size: 1.5rem;">
@@ -69,12 +109,51 @@
            </div>
         </ng-container>
 
-        <!-- 3. Opciones Múltiples -->
-        <ng-container *ngIf="[3,9,10].includes(activityType())">
+        <!-- Act 2: Pares Mínimos (two words) -->
+        <ng-container *ngIf="activityType() === 2">
+           <p class="hint-text">Ingresa las dos palabras del par mínimo con sus imágenes.</p>
+           <div class="pair-container">
+             <div class="pair-col">
+               <div class="form-group">
+                  <label>Palabra 1</label>
+                  <input type="text" [(ngModel)]="flashcardWord" placeholder="Ej: FOCA" class="form-input" style="font-size: 1.3rem;">
+               </div>
+               <div class="form-group">
+                  <label>Imagen Palabra 1</label>
+                  <input type="text" [(ngModel)]="flashcardImageUrl" placeholder="URL imagen..." class="form-input">
+               </div>
+             </div>
+             <div class="pair-divider">VS</div>
+             <div class="pair-col">
+               <div class="form-group">
+                  <label>Palabra 2</label>
+                  <input type="text" [(ngModel)]="flashcardWord2" placeholder="Ej: BOCA" class="form-input" style="font-size: 1.3rem;">
+               </div>
+               <div class="form-group">
+                  <label>Imagen Palabra 2</label>
+                  <input type="text" [(ngModel)]="flashcardImageUrl2" placeholder="URL imagen..." class="form-input">
+               </div>
+             </div>
+           </div>
+        </ng-container>
+
+        <!-- Checklist types: Act 3, 9, 10 -->
+        <ng-container *ngIf="isChecklistType()">
            <div class="form-group">
               <label>Pregunta para el Alumno</label>
               <input type="text" [(ngModel)]="checklistMainQ" placeholder="Ej: ¿Cuál es un animal doméstico?" class="form-input" style="margin-bottom: 1.5rem;">
            </div>
+
+           <!-- Nivel educativo para Act 9/10 -->
+           <div class="form-group" *ngIf="activityType() === 9 || activityType() === 10">
+              <label>Nivel Educativo del Alumno</label>
+              <select [(ngModel)]="educationalLevel" class="form-select">
+                 <option value="preescolar">Preescolar</option>
+                 <option value="primaria">Primaria</option>
+                 <option value="secundaria">Secundaria</option>
+              </select>
+           </div>
+
            <div class="form-group">
               <label>Alternativas de Respuesta</label>
               <div class="flex-row">
@@ -98,7 +177,7 @@
            </ul>
         </ng-container>
 
-        <!-- 5. Escritura IA / Discursos -->
+        <!-- Act 5: Escritura IA / Discursos -->
         <ng-container *ngIf="activityType() === 5">
            <div class="form-group">
               <label>Tema del Párrafo o Cuento</label>
@@ -106,7 +185,16 @@
            </div>
         </ng-container>
 
-        <!-- 11. Secuencias (el maestro ingresa en ORDEN CORRECTO) -->
+        <!-- Act 6: Plan de Acción -->
+        <ng-container *ngIf="activityType() === 6">
+           <div class="info-panel">
+             <h3>📋 Plan de Acción Automático</h3>
+             <p>Esta actividad genera automáticamente un plan de intervención basado en los resultados previos de las evaluaciones del alumno.</p>
+             <p>Al publicar, el motor cruzará los Niveles de Ayuda registrados con el Catálogo de Sugerencias para generar las 2 áreas prioritarias con estrategias específicas.</p>
+           </div>
+        </ng-container>
+
+        <!-- Act 11: Secuencias -->
         <ng-container *ngIf="activityType() === 11">
            <div class="form-group">
               <label>Instrucción de Secuencia</label>
@@ -140,7 +228,7 @@
      </div>
 
      <div class="workspace-card" *ngIf="!activityType()" style="display: flex; align-items: center; justify-content: center; min-height: 200px;">
-        <p class="text-slate-500 font-bold text-center">👈 Selecciona una "Mecánica de Juego" en el panel izquierdo para comenzar.</p>
+        <p class="text-slate-500 font-bold text-center">👈 Selecciona una actividad del catálogo en el panel izquierdo para comenzar.</p>
      </div>
   </main>
 
@@ -152,30 +240,70 @@
      </div>
      
      <div class="help-content">
-        <div class="help-block" *ngIf="[1,2,4,7,8].includes(activityType())">
-           <h3 class="help-title">Tarjetas Visuales</h3>
-           <p class="help-desc">Ideal para trabajar discriminación fonológica o vocabulario. El sistema mostrará la imagen en pantalla grande al alumno.</p>
-           <span class="help-pill">Tiempo de Juego: 2 mins</span>
+        <div class="help-block" *ngIf="activityType() === 1">
+           <h3 class="help-title">Act 1 · Producción de Fonemas</h3>
+           <p class="help-desc">Evalúa la producción correcta de fonemas en posición inicial, media y final. Registra: sin error, omisión, sustitución o distorsión.</p>
+           <span class="help-pill">Dimensión: Fonología</span>
         </div>
 
-        <div class="help-block" *ngIf="[3,9,10].includes(activityType())">
-           <h3 class="help-title">Opciones Múltiples</h3>
-           <p class="help-desc">Agrega varias opciones y marca con ★ la que sea <strong>correcta</strong>. El alumno verá las opciones como botones grandes y el motor validará su respuesta automáticamente.</p>
-           <span class="help-pill">Evalúa razonamiento</span>
+        <div class="help-block" *ngIf="activityType() === 2">
+           <h3 class="help-title">Act 2 · Pares Mínimos</h3>
+           <p class="help-desc">Discriminación y articulación de pares fonológicamente cercanos. Muestra dos imágenes lado a lado. Registra comprensión y articulación.</p>
+           <span class="help-pill">Instrucción: 🎵 ¡Escucha bien!</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 3">
+           <h3 class="help-title">Act 3 · Checklist Pragmática</h3>
+           <p class="help-desc">Evalúa uso social del lenguaje: inicio, mantenimiento y regulación de la comunicación. Escala: 0–3 por ítem.</p>
+           <span class="help-pill">Dimensión: Pragmática</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 4">
+           <h3 class="help-title">Act 4 · Tarjetas por Niveles</h3>
+           <p class="help-desc">Comprensión de enunciados de complejidad creciente. 3 niveles: simple, con atributos, oraciones complejas.</p>
+           <span class="help-pill">Dimensión: Morfosintaxis</span>
         </div>
 
         <div class="help-block" *ngIf="activityType() === 5">
-           <h3 class="help-title">Escritura Libre / IA</h3>
-           <p class="help-desc">Abre un espacio grande "Cuaderno de Tareas" donde el niño podrá redactar discursos o historietas, ideal para procesar Morfosintaxis.</p>
-           <div class="preview-box">
-             ✍️ "Había una vez..."
-           </div>
+           <h3 class="help-title">Act 5 · Análisis IA</h3>
+           <p class="help-desc">Analiza 9 indicadores morfosintácticos del lenguaje espontáneo del alumno mediante inteligencia artificial.</p>
+           <span class="help-pill">Motor IA activado</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 6">
+           <h3 class="help-title">Act 6 · Plan de Acción</h3>
+           <p class="help-desc">Genera un plan pedagógico con estrategias específicas y niveles de ayuda (0–5). Editable con estados: Logrado/Parcial/No logrado.</p>
+           <span class="help-pill">Transversal</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 7">
+           <h3 class="help-title">Act 7 · La Comidita</h3>
+           <p class="help-desc">Evalúa funciones semánticas: nombramiento, señalamiento, petición, protesta, imitación en contexto de juego simbólico.</p>
+           <span class="help-pill">Dimensión: Semántica</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 8">
+           <h3 class="help-title">Act 8 · Preguntas sobre Imagen</h3>
+           <p class="help-desc">5 preguntas generadoras: denominación, locativo, acción, cantidad, adivinanza. Evalúa vocabulario activo y memoria semántica.</p>
+           <span class="help-pill">Dimensión: Semántica</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 9">
+           <h3 class="help-title">Act 9 · Conversación Espontánea</h3>
+           <p class="help-desc">Teleprompter inteligente con preguntas según nivel educativo. Evalúa respeto de turnos, coherencia temática, atención conjunta.</p>
+           <span class="help-pill">Dimensión: Discursos</span>
+        </div>
+
+        <div class="help-block" *ngIf="activityType() === 10">
+           <h3 class="help-title">Act 10 · Argumentación y Debate</h3>
+           <p class="help-desc">Evalúa construcción de argumentos, organización discursiva, justificación de posturas y consideración de perspectiva del otro.</p>
+           <span class="help-pill">Dimensión: Discursos</span>
         </div>
 
         <div class="help-block" *ngIf="activityType() === 11">
-           <h3 class="help-title">Secuencias Arrastrables</h3>
-           <p class="help-desc">Introduce los pasos en <strong>ORDEN CORRECTO</strong>. El sistema los revolverá y el alumno aplicará Drag &amp; Drop para re-ordenarlos. Se calificará automáticamente.</p>
-           <span class="help-pill">Físicas Kanban (Arrastrar)</span>
+           <h3 class="help-title">Act 11 · Estadios de Juego</h3>
+           <p class="help-desc">Evaluación según estadios de Westby (I–X) y tipos de juego social de Parten. El alumno ordena las secuencias con Drag & Drop.</p>
+           <span class="help-pill">Dimensión: Juego</span>
         </div>
      </div>
   </aside>

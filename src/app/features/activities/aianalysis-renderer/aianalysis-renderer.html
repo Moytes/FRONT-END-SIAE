@@ -2,40 +2,83 @@
 <div class="renderer-container bg-orange-50">
   <header class="renderer-header">
     <h2 class="title">{{ config()?.title || 'Análisis de Producción Espontánea' }}</h2>
-    <span class="badge">Motor IA</span>
+    <span class="badge">Motor IA · Act. 5</span>
   </header>
   
   <div class="renderer-content">
     <!-- Input Principal -->
     <div class="input-panel">
-      <p class="instruction">Transcribe lo que el alumno expone durante el juego libre o la descripción de la lámina:</p>
+      <p class="instruction">Transcribe la frase más larga que el alumno produjo espontáneamente:</p>
       <textarea 
         [(ngModel)]="transcription" 
-        placeholder="Ejemplo: 'E-el pe-perro e-tá co-co-miendo...'"
+        placeholder="Ejemplo: 'El perro grande está comiendo la comida porque tiene mucho hambre...'"
         class="ia-textarea">
       </textarea>
 
       <div class="analysis-actions">
-        <button class="analyze-btn" (click)="triggerAnalysis()" [disabled]="isAnalyzing()">
+        <button class="analyze-btn" (click)="triggerAnalysis()" [disabled]="isAnalyzing() || !transcription().trim()">
           <svg *ngIf="!isAnalyzing()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
           <svg *ngIf="isAnalyzing()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" class="spinner" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
           {{ isAnalyzing() ? 'Procesando Muestra...' : 'Analizar Muestra Morfosintáctica' }}
         </button>
       </div>
 
-      <!-- Resultados IA Mock -->
-      <div class="ai-results" *ngIf="analysisResult()">
-         <h4 class="res-title">Hallazgos Estructurales</h4>
-         <ul class="findings-list">
-           <li *ngFor="let item of analysisResult()?.findings" class="finding-item">
-             <span class="dot" [class.ok]="item.status === 'ok'" [class.warn]="item.status === 'warn'"></span>
-             {{ item.text }}
-           </li>
-         </ul>
+      <!-- Muestra insuficiente -->
+      <div class="insufficient-warning" *ngIf="analysisResult()?.insufficient">
+        <span class="warn-icon">⚠️</span>
+        <p>Muestra insuficiente para análisis completo. Se recomienda registrar una producción más larga en la próxima sesión.</p>
+      </div>
+
+      <!-- Resultados IA con formato del spec -->
+      <div class="ai-results" *ngIf="analysisResult() && !analysisResult()?.insufficient">
+        <div class="results-header">
+          <h3 class="res-title">ANÁLISIS MORFOSINTÁCTICO</h3>
+          <p class="analyzed-text">"{{ transcription() }}"</p>
+        </div>
+
+        <!-- Indicadores -->
+        <div class="indicators-section">
+          <h4>ELEMENTOS DETECTADOS:</h4>
+          <div class="indicator-list">
+            <div *ngFor="let ind of analysisResult()?.indicators" class="indicator-item" [ngClass]="'status-' + ind.status">
+              <span class="indicator-icon">{{ getStatusIcon(ind.status) }}</span>
+              <div class="indicator-content">
+                <span class="indicator-name">{{ ind.name }}</span>
+                <span class="indicator-detail">{{ ind.details }}</span>
+              </div>
+              <span class="indicator-status-label" [ngClass]="'label-' + ind.status">{{ getStatusLabel(ind.status) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteos -->
+        <div class="count-row">
+          <div class="count-item detected">
+            <span class="count-num">{{ detectedCount }}</span>
+            <span class="count-label">Presentes</span>
+          </div>
+          <div class="count-item in-process">
+            <span class="count-num">{{ inProcessCount }}</span>
+            <span class="count-label">En Proceso</span>
+          </div>
+          <div class="count-item not-observed">
+            <span class="count-num">{{ notObservedCount }}</span>
+            <span class="count-label">No Observados</span>
+          </div>
+        </div>
+
+        <!-- Áreas prioritarias -->
+        <div class="priorities-section" *ngIf="analysisResult()?.priorities && analysisResult()!.priorities.length > 0">
+          <h4>ÁREAS PRIORITARIAS PARA EL PLAN DE ACCIÓN:</h4>
+          <div *ngFor="let p of analysisResult()?.priorities; let i = index" class="priority-item">
+            <span class="priority-num">{{ i + 1 }}.</span>
+            <span class="priority-text">{{ p }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="evaluation-panel">
+    <div class="evaluation-panel" *ngIf="analysisResult() && !analysisResult()?.insufficient">
       <app-help-level-selector (levelChange)="helpLevel.set($any($event))"></app-help-level-selector>
       <div class="mt-4">
          <app-observation-input (noteSaved)="observation.set($any($event))"></app-observation-input>
