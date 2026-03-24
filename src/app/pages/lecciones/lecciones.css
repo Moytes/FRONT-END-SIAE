@@ -1,0 +1,112 @@
+.lecciones-container {
+  animation: fadeIn 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.page-header h1 { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0; }
+.page-header .subtitle { color: #64748b; margin: 0.25rem 0 0; font-weight: 500; }
+
+.progress-ring {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: conic-gradient(#10b981 var(--pct, 40%), #e2e8f0 0);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative;
+}
+.progress-ring::before {
+  content: ''; position: absolute; inset: 6px;
+  background: white; border-radius: 50%;
+}
+.ring-value { font-size: 1.1rem; font-weight: 800; color: #0f172a; position: relative; z-index: 1; }
+.ring-label { font-size: 0.6rem; color: #64748b; font-weight: 700; text-transform: uppercase; position: relative; z-index: 1; }
+
+/* Summary Cards */
+.summary-cards { display: flex; gap: 1rem; flex-wrap: wrap; }
+.summary-card {
+  flex: 1; min-width: 140px; padding: 1.25rem; border-radius: 12px;
+  display: flex; flex-direction: column; align-items: center;
+  border: 1px solid #e2e8f0; background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03); transition: all 0.2s;
+}
+.summary-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.06); }
+.summary-num { font-size: 2rem; font-weight: 900; }
+.summary-label { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.summary-card.completadas .summary-num { color: #10b981; }
+.summary-card.progreso .summary-num { color: #f59e0b; }
+.summary-card.pendientes .summary-num { color: #6366f1; }
+
+/* Section */
+.section-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0 0 1rem; }
+
+/* Leccion cards */
+.leccion-list { display: flex; flex-direction: column; gap: 1rem; }
+.leccion-card {
+  display: flex; justify-content: space-between; align-items: center;
+  background: white; border-radius: 12px; padding: 1.25rem 1.5rem;
+  border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  transition: all 0.2s; flex-wrap: wrap; gap: 1rem;
+}
+.leccion-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.06); }
+.leccion-card.en-progreso { border-left: 4px solid #f59e0b; }
+.leccion-card.pendiente { border-left: 4px solid #6366f1; }
+.leccion-card.completada { border-left: 4px solid #10b981; }
+
+.leccion-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.leccion-info h3 { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0; }
+.leccion-meta { font-size: 0.85rem; color: #94a3b8; margin: 0; }
+
+.leccion-right { display: flex; align-items: center; gap: 1rem; }
+
+.score-circle {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #475569; font-size: 0.9rem;
+  border: 2px solid #e2e8f0;
+}
+.score-circle.success { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+
+.continue-btn, .start-btn {
+  padding: 0.65rem 1.25rem; border: none; border-radius: 9999px;
+  font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+}
+.continue-btn { background: #f59e0b; color: white; box-shadow: 0 4px 0 #d97706; }
+.continue-btn:hover { background: #fbbf24; transform: translateY(1px); box-shadow: 0 2px 0 #d97706; }
+.start-btn { background: #6366f1; color: white; box-shadow: 0 4px 0 #4f46e5; }
+.start-btn:hover { background: #818cf8; transform: translateY(1px); box-shadow: 0 2px 0 #4f46e5; }
+
+.estado-label { font-size: 0.8rem; font-weight: 700; }
+.estado-completada { color: #15803d; }
+.estado-progreso { color: #d97706; }
+.estado-pendiente { color: #6366f1; }
+
+/* Dimension badges */
+.dimension-badge {
+  display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px;
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
+  width: fit-content;
+}
+.dimension-badge.FONOLOGIA { background: #dbeafe; color: #1d4ed8; }
+.dimension-badge.PRAGMATICA { background: #dcfce7; color: #15803d; }
+.dimension-badge.MORFOSINTAXIS { background: #ffedd5; color: #c2410c; }
+.dimension-badge.SEMANTICA { background: #fef9c3; color: #a16207; }
+.dimension-badge.DISCURSOS { background: #fee2e2; color: #b91c1c; }
+.dimension-badge.JUEGO { background: #f3e8ff; color: #7e22ce; }
+
+.access-denied {
+  background: #fef2f2; border: 1px solid #fecaca; padding: 3rem;
+  border-radius: 12px; text-align: center; color: #ef4444;
+  margin: 2rem auto; max-width: 600px; animation: fadeIn 0.4s ease;
+}
+.access-denied h2 { color: #b91c1c; margin: 0 0 1rem; }
+.access-denied p { color: #991b1b; }
+
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; text-align: center; }
+  .leccion-card { flex-direction: column; align-items: flex-start; }
+  .leccion-right { width: 100%; justify-content: space-between; }
+}

@@ -3,45 +3,52 @@
   <header class="welcome-banner">
     <div class="welcome-text">
       <h1>Bienvenido, <span class="highlight">{{ user.name }}</span></h1>
-      <p class="subtitle" *ngIf="user.type === 'maestro'">Panel de Control para Docentes - SIAE</p>
-      <p class="subtitle" *ngIf="user.type === 'alumno'">Panel de Control para Alumnos - SIAE</p>
+      <p class="subtitle" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')">Panel de Gestión Pedagógica - SIAE</p>
+      <p class="subtitle" *ngIf="!authService.hasPermission('GESTION_ACTIVIDADES')">Panel de Aprendizaje - SIAE</p>
     </div>
     <div class="welcome-illustration">
       <div class="circle-decoration"></div>
-      <svg *ngIf="user.type === 'maestro'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="illustration-icon"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-      <svg *ngIf="user.type === 'alumno'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="illustration-icon"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      <svg *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="illustration-icon"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      <svg *ngIf="!authService.hasPermission('GESTION_ACTIVIDADES')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="illustration-icon"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
     </div>
   </header>
 
   <!-- Contenido Maestro -->
-  <section class="dashboard-grid" *ngIf="authService.hasPermission('view_home_maestro')">
+  <section class="dashboard-grid" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')">
     <div class="card stat-card primary">
       <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
       <div class="card-info">
-        <h3>120</h3>
-        <p>Alumnos Activos</p>
+        <h3>12</h3>
+        <p>Alumnos en Seguimiento</p>
       </div>
     </div>
     <div class="card stat-card success">
       <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
       <div class="card-info">
-        <h3>4</h3>
-        <p>Cursos Impartidos</p>
+        <h3>{{ availableMissions.length }}</h3>
+        <p>Actividades Configuradas</p>
+      </div>
+    </div>
+    <div class="card stat-card warning">
+      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="card-info">
+        <h3>8</h3>
+        <p>Sesiones Completadas</p>
       </div>
     </div>
     
-    <div class="card tools-card" *ngIf="authService.hasPermission('manage_grades')">
+    <div class="card tools-card" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')">
       <h3>Acciones Rápidas</h3>
       <div class="action-buttons">
-        <button class="btn btn-outline">Subir Calificaciones</button>
-        <button class="btn btn-outline">Crear Nueva Tarea</button>
-        <button class="btn btn-outline">Asistencia</button>
+        <button class="btn btn-outline" (click)="router.navigate(['/actividades/builder'])">Crear Actividad</button>
+        <button class="btn btn-outline" (click)="router.navigate(['/gestion-user'])">Gestión Alumnos</button>
+        <button class="btn btn-outline" (click)="router.navigate(['/reportes'])">Ver Reportes</button>
       </div>
     </div>
   </section>
 
   <!-- Contenido Alumno (Tablero Infantil Interactivo) -->
-  <section class="student-dashboard" *ngIf="authService.hasPermission('VIEW_STUDENT_PANEL')">
+  <section class="student-dashboard" *ngIf="authService.hasPermission('APLICACION') && !authService.hasPermission('GESTION_ACTIVIDADES')">
     <div class="welcome-kid text-center">
       <h2>🚀 ¡Tus Misiones Espaciales! 🌍</h2>
       <p>Elige tu próxima aventura y gana estrellas mágicas respondiendo genial.</p>

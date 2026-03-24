@@ -1,1 +1,97 @@
-<p>reportes works!</p>
+<div class="reportes-container" *ngIf="authService.hasPermission('REPORTES')">
+  <header class="page-header">
+    <div class="header-text">
+      <h1>📊 Reportes de Sesiones</h1>
+      <p class="subtitle">Historial de evaluaciones y progresión de alumnos</p>
+    </div>
+    <button class="export-btn" (click)="exportarPDF()" [disabled]="exportando()">
+      <svg *ngIf="!exportando()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      {{ exportando() ? 'Generando...' : 'Exportar PDF' }}
+    </button>
+  </header>
+
+  <!-- Filtros por alumno -->
+  <div class="filter-bar">
+    <span class="filter-label">Filtrar por alumno:</span>
+    <button *ngFor="let al of alumnos"
+            class="filter-chip"
+            [class.active]="filtroAlumno() === al"
+            (click)="filtrar(al)">
+      {{ al }}
+    </button>
+    <button class="filter-chip clear" *ngIf="filtroAlumno()" (click)="filtrar(filtroAlumno())">✕ Limpiar</button>
+  </div>
+
+  <!-- Tabla de sesiones -->
+  <div class="table-wrapper">
+    <table class="sessions-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Alumno</th>
+          <th>Actividad</th>
+          <th>Dimensión</th>
+          <th>Fecha</th>
+          <th>Resultado</th>
+          <th>Nivel de Ayuda</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of filteredSessions; let i = index" class="session-row">
+          <td class="td-id">{{ s.id }}</td>
+          <td class="td-alumno">{{ s.alumno }}</td>
+          <td class="td-actividad">{{ s.actividad }}</td>
+          <td><span class="dimension-badge" [ngClass]="s.dimension">{{ s.dimension }}</span></td>
+          <td class="td-fecha">{{ s.fecha }}</td>
+          <td><span class="result-badge" [ngClass]="getResultadoClass(s.resultado)">{{ s.resultado }}</span></td>
+          <td class="td-ayuda">
+            <span class="help-badge">{{ s.nivelAyuda }}</span>
+            <span class="help-text">{{ getNivelAyudaLabel(s.nivelAyuda) }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Progresión visual simple -->
+  <section class="progression-section">
+    <h2>📈 Progresión por Dimensión</h2>
+    <div class="bars-container">
+      <div class="bar-row">
+        <span class="bar-label">Fonología</span>
+        <div class="bar-track"><div class="bar-fill fonologia" style="width: 75%;"></div></div>
+        <span class="bar-pct">75%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Pragmática</span>
+        <div class="bar-track"><div class="bar-fill pragmatica" style="width: 60%;"></div></div>
+        <span class="bar-pct">60%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Morfosintaxis</span>
+        <div class="bar-track"><div class="bar-fill morfosintaxis" style="width: 45%;"></div></div>
+        <span class="bar-pct">45%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Semántica</span>
+        <div class="bar-track"><div class="bar-fill semantica" style="width: 80%;"></div></div>
+        <span class="bar-pct">80%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Discursos</span>
+        <div class="bar-track"><div class="bar-fill discursos" style="width: 50%;"></div></div>
+        <span class="bar-pct">50%</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Juego</span>
+        <div class="bar-track"><div class="bar-fill juego" style="width: 90%;"></div></div>
+        <span class="bar-pct">90%</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="access-denied" *ngIf="!authService.hasPermission('REPORTES')">
+  <h2>🔒 Acceso Restringido</h2>
+  <p>Esta acción requiere un permiso que no está habilitado en tu cuenta. Contacta al administrador del sistema si necesitas acceso.</p>
+</div>

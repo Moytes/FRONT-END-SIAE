@@ -1,1 +1,86 @@
-<p>lecciones works!</p>
+<div class="lecciones-container" *ngIf="authService.hasPermission('LECTURA_ALUMNO')">
+  <header class="page-header">
+    <div class="header-text">
+      <h1>📚 Mis Lecciones</h1>
+      <p class="subtitle">Tu historial de actividades y avance</p>
+    </div>
+    <div class="progress-ring">
+      <div class="ring-value">{{ progresoTotal }}%</div>
+      <div class="ring-label">Progreso</div>
+    </div>
+  </header>
+
+  <!-- Resumen de progreso -->
+  <div class="summary-cards">
+    <div class="summary-card completadas">
+      <span class="summary-num">{{ completadas.length }}</span>
+      <span class="summary-label">Completadas</span>
+    </div>
+    <div class="summary-card progreso">
+      <span class="summary-num">{{ enProgreso.length }}</span>
+      <span class="summary-label">En Progreso</span>
+    </div>
+    <div class="summary-card pendientes">
+      <span class="summary-num">{{ pendientes.length }}</span>
+      <span class="summary-label">Pendientes</span>
+    </div>
+  </div>
+
+  <!-- Actividades en progreso -->
+  <section *ngIf="enProgreso.length > 0">
+    <h2 class="section-title">🔄 Continuar donde lo dejaste</h2>
+    <div class="leccion-list">
+      <div class="leccion-card en-progreso" *ngFor="let l of enProgreso">
+        <div class="leccion-info">
+          <span class="dimension-badge" [ngClass]="l.dimension">{{ l.dimension }}</span>
+          <h3>{{ l.titulo }}</h3>
+          <p class="leccion-meta">Iniciada el {{ l.fecha }}</p>
+        </div>
+        <div class="leccion-right">
+          <div class="score-circle">{{ l.puntaje }}%</div>
+          <button class="continue-btn" (click)="jugar(l.actividadId)">Continuar ▶️</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Actividades pendientes -->
+  <section *ngIf="pendientes.length > 0">
+    <h2 class="section-title">📋 Pendientes por realizar</h2>
+    <div class="leccion-list">
+      <div class="leccion-card pendiente" *ngFor="let l of pendientes">
+        <div class="leccion-info">
+          <span class="dimension-badge" [ngClass]="l.dimension">{{ l.dimension }}</span>
+          <h3>{{ l.titulo }}</h3>
+          <p class="leccion-meta">Sin iniciar</p>
+        </div>
+        <div class="leccion-right">
+          <button class="start-btn" (click)="jugar(l.actividadId)">¡Comenzar! 🚀</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Historial completado -->
+  <section *ngIf="completadas.length > 0">
+    <h2 class="section-title">✅ Completadas</h2>
+    <div class="leccion-list">
+      <div class="leccion-card completada" *ngFor="let l of completadas">
+        <div class="leccion-info">
+          <span class="dimension-badge" [ngClass]="l.dimension">{{ l.dimension }}</span>
+          <h3>{{ l.titulo }}</h3>
+          <p class="leccion-meta">Completada el {{ l.fecha }}</p>
+        </div>
+        <div class="leccion-right">
+          <div class="score-circle success">{{ l.puntaje }}%</div>
+          <span class="estado-label" [ngClass]="getEstadoClass(l.estado)">{{ getEstadoLabel(l.estado) }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="access-denied" *ngIf="!authService.hasPermission('LECTURA_ALUMNO')">
+  <h2>🔒 Acceso Restringido</h2>
+  <p>Esta acción requiere un permiso que no está habilitado en tu cuenta. Contacta al administrador del sistema si necesitas acceso.</p>
+</div>

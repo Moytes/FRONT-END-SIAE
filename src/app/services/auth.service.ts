@@ -1,5 +1,13 @@
 import { Injectable, signal } from '@angular/core';
 
+export type PermissionKey =
+  | 'GESTION_ACTIVIDADES'
+  | 'APLICACION'
+  | 'ANALISIS_IA'
+  | 'PLAN_ACCION'
+  | 'REPORTES'
+  | 'LECTURA_ALUMNO';
+
 export interface User {
   id: number;
   username: string;
@@ -8,7 +16,7 @@ export interface User {
   email: string;
   password?: string;
   avatar: string;
-  permissions: string[];
+  permissions: PermissionKey[];
 }
 
 const STATIC_USERS: User[] = [
@@ -21,14 +29,12 @@ const STATIC_USERS: User[] = [
     password: '123',
     avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Roberto+Gomez&backgroundColor=1a365d',
     permissions: [
-      'view_home_maestro',
-      'view_perfil',
-      'manage_grades',
-      'manage_courses',
-      'view_reports',
-      'VIEW_MASTER_PANEL',
-      'CREATE_ACTIVITY',
-      'EXECUTE_EVALUATION'
+      'GESTION_ACTIVIDADES',
+      'APLICACION',
+      'ANALISIS_IA',
+      'PLAN_ACCION',
+      'REPORTES',
+      'LECTURA_ALUMNO'
     ]
   },
   {
@@ -40,12 +46,8 @@ const STATIC_USERS: User[] = [
     password: '123',
     avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Ana+Lopez&backgroundColor=0ea5e9',
     permissions: [
-      'view_home_alumno',
-      'view_perfil',
-      'view_my_grades',
-      'view_my_courses',
-      'VIEW_STUDENT_PANEL',
-      'PLAY_ACTIVITY'
+      'APLICACION',
+      'LECTURA_ALUMNO'
     ]
   }
 ];
@@ -55,17 +57,16 @@ const STATIC_USERS: User[] = [
 })
 export class AuthService {
   
-  // Clave para guardar en el navegador
   private readonly STORAGE_KEY = 'SIAE_USER_SESSION';
 
-  // Estado inicial
+
   private currentUserSignal = signal<User | null>(null);
 
   constructor() {
     this.loadSession();
   }
 
-  // Recupera la sesión al refrescar la página
+  // Recupera la sesión al refrescar la
   private loadSession() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -97,7 +98,7 @@ export class AuthService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
-  hasPermission(permission: string): boolean {
+  hasPermission(permission: PermissionKey): boolean {
     const user = this.currentUserSignal();
     if (!user) return false;
     return user.permissions.includes(permission);

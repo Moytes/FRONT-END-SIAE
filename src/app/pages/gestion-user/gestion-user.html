@@ -1,1 +1,81 @@
-<p>gestion-user works!</p>
+<div class="gestion-container" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')">
+  <header class="page-header">
+    <div class="header-text">
+      <h1>👥 Gestión de Alumnos</h1>
+      <p class="subtitle">Administra los alumnos en seguimiento pedagógico</p>
+    </div>
+    <button class="add-btn" (click)="openNew()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo Alumno
+    </button>
+  </header>
+
+  <!-- Formulario -->
+  <div class="form-overlay" *ngIf="showForm()">
+    <div class="form-card">
+      <h2>{{ editingId() !== null ? '✏️ Editar Alumno' : '➕ Nuevo Alumno' }}</h2>
+      <div class="form-group">
+        <label>Nombre Completo</label>
+        <input type="text" [(ngModel)]="formNombre" placeholder="Nombre del alumno" class="form-input">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Edad</label>
+          <input type="number" [(ngModel)]="formEdad" min="3" max="18" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Nivel Educativo</label>
+          <select [(ngModel)]="formNivel" class="form-select">
+            <option value="Preescolar">Preescolar</option>
+            <option value="Primaria">Primaria</option>
+            <option value="Secundaria">Secundaria</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="cancelForm()">Cancelar</button>
+        <button class="btn-save" (click)="saveForm()" [disabled]="!formNombre.trim()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de alumnos -->
+  <div class="alumnos-grid">
+    <div class="alumno-card" *ngFor="let a of alumnos()">
+      <div class="alumno-header">
+        <img [src]="a.avatar" [alt]="a.nombre" class="alumno-avatar">
+        <div class="alumno-info">
+          <h3>{{ a.nombre }}</h3>
+          <span class="nivel-badge">{{ a.nivel }} · {{ a.edad }} años</span>
+        </div>
+      </div>
+      <div class="alumno-stats">
+        <div class="stat">
+          <span class="stat-value">{{ a.sesiones }}</span>
+          <span class="stat-label">Sesiones</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value text-sm">{{ a.ultimaSesion }}</span>
+          <span class="stat-label">Última Sesión</span>
+        </div>
+      </div>
+      <div class="alumno-actions">
+        <button class="action-btn edit" (click)="editAlumno(a)" title="Editar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <button class="action-btn delete" (click)="deleteAlumno(a.id)" title="Eliminar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="alumnos().length === 0">
+    <p>No hay alumnos registrados. Haz clic en "Nuevo Alumno" para comenzar.</p>
+  </div>
+</div>
+
+<div class="access-denied" *ngIf="!authService.hasPermission('GESTION_ACTIVIDADES')">
+  <h2>🔒 Acceso Restringido</h2>
+  <p>Esta acción requiere un permiso que no está habilitado en tu cuenta. Contacta al administrador del sistema si necesitas acceso.</p>
+</div>

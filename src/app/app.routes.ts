@@ -33,6 +33,21 @@ export const routes: Routes = [
                 path: 'actividades/engine/:id',
                 loadComponent: () =>
                     import('./features/activities/activity-engine/activity-engine.component').then(m => m.ActivityEngineComponent)
+            },
+            {
+                path: 'reportes',
+                loadComponent: () =>
+                    import('./pages/reportes/reportes').then(m => m.Reportes)
+            },
+            {
+                path: 'gestion-user',
+                loadComponent: () =>
+                    import('./pages/gestion-user/gestion-user').then(m => m.GestionUser)
+            },
+            {
+                path: 'lecciones',
+                loadComponent: () =>
+                    import('./pages/lecciones/lecciones').then(m => m.Lecciones)
             }
         ]
     },

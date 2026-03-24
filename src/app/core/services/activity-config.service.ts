@@ -95,6 +95,38 @@ const DEFAULT_ACTIVITIES: ActivityConfig[] = [
     dimension: 'JUEGO',
     config: { question: 'Ordena los pasos para hacer un sandwich', steps: ['Tomar dos panes', 'Poner jamón y queso', 'Cerrar y comer'] },
     createdAt: new Date()
+  },
+  {
+    id: 'mision-111',
+    title: 'Contraste Fonético',
+    activityType: 2,
+    dimension: 'FONOLOGIA',
+    config: { targetWord: 'FOCA', imageUrl: 'https://cdn-icons-png.flaticon.com/512/3069/3069172.png', pairWord: 'BOCA', pairImageUrl: 'https://cdn-icons-png.flaticon.com/512/2821/2821637.png' },
+    createdAt: new Date()
+  },
+  {
+    id: 'mision-112',
+    title: 'Mi Plan de Mejora',
+    activityType: 6,
+    dimension: 'MORFOSINTAXIS',
+    config: { title: 'Plan de Acción - Morfosintaxis' },
+    createdAt: new Date()
+  },
+  {
+    id: 'mision-113',
+    title: 'Conversación Espontánea',
+    activityType: 9,
+    dimension: 'DISCURSOS',
+    config: { question: '¿Qué hiciste el fin de semana?', options: ['Jugué con amigos', 'Fui al parque', 'Vi la tele', 'Estudié'], correctIndex: 0, educationalLevel: 'primaria' },
+    createdAt: new Date()
+  },
+  {
+    id: 'mision-114',
+    title: 'Debate: Mascotas',
+    activityType: 10,
+    dimension: 'DISCURSOS',
+    config: { question: '¿Son mejores los perros o los gatos como mascotas?', options: ['Los perros porque son leales', 'Los gatos porque son independientes', 'Ambos son buenos', 'Ninguno'], correctIndex: 2, educationalLevel: 'primaria' },
+    createdAt: new Date()
   }
 ];
 
@@ -140,8 +172,8 @@ export class ActivityConfigService {
   }
 
   saveActivity(config: ActivityConfig): boolean {
-    if (!this.authService.hasPermission('CREATE_ACTIVITY')) {
-      console.error('Acceso denegado: Faltan permisos de CREATE_ACTIVITY');
+    if (!this.authService.hasPermission('GESTION_ACTIVIDADES')) {
+      console.error('Acceso denegado: Faltan permisos de GESTION_ACTIVIDADES');
       return false;
     }
 
