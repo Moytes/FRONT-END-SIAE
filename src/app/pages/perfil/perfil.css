@@ -1,0 +1,234 @@
+.perfil-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-header {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+}
+
+.header-background {
+  height: 140px;
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+  position: relative;
+}
+
+.header-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+}
+
+.profile-main-info {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 2rem 2rem 2rem;
+  margin-top: -60px;
+  gap: 1.5rem;
+}
+
+.avatar-wrapper {
+  position: relative;
+  border-radius: 50%;
+  padding: 4px;
+  background-color: #ffffff;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #f1f5f9;
+  border: 2px solid #e2e8f0;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 18px;
+  height: 18px;
+  background-color: #10b981;
+  border: 4px solid #ffffff;
+  border-radius: 50%;
+}
+
+.user-titles {
+  padding-bottom: 0.5rem;
+}
+
+.user-titles h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.role-badge {
+  display: inline-flex;
+  padding: 0.35rem 0.85rem;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.bg-maestro {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+.bg-alumno {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.profile-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.card-icon {
+  width: 24px;
+  height: 24px;
+  color: #0ea5e9;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.info-group {
+  margin-bottom: 1.25rem;
+}
+
+.info-group:last-child {
+  margin-bottom: 0;
+}
+
+.info-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.info-group p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.section-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.permissions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.permissions-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #f8fafc;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.check-icon {
+  width: 18px;
+  height: 18px;
+  color: #10b981;
+}
+
+.permiso-text {
+  font-weight: 500;
+  color: #334155;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #0ea5e9;
+  border-radius: 50%;
+  animation: spinner 0.8s linear infinite;
+}
+@keyframes spinner { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .profile-main-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+  }
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+}

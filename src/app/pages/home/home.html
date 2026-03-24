@@ -1,1 +1,75 @@
-<p>home works!</p>
+<div class="home-container" *ngIf="user">
+  <!-- Banner de bienvenida -->
+  <header class="welcome-banner">
+    <div class="welcome-text">
+      <h1>Bienvenido, <span class="highlight">{{ user.name }}</span></h1>
+      <p class="subtitle" *ngIf="user.type === 'maestro'">Panel de Control para Docentes - SIAE</p>
+      <p class="subtitle" *ngIf="user.type === 'alumno'">Panel de Control para Alumnos - SIAE</p>
+    </div>
+    <div class="welcome-illustration">
+      <div class="circle-decoration"></div>
+      <svg *ngIf="user.type === 'maestro'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="illustration-icon"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      <svg *ngIf="user.type === 'alumno'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="illustration-icon"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+    </div>
+  </header>
+
+  <!-- Contenido Maestro -->
+  <section class="dashboard-grid" *ngIf="authService.hasPermission('view_home_maestro')">
+    <div class="card stat-card primary">
+      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+      <div class="card-info">
+        <h3>120</h3>
+        <p>Alumnos Activos</p>
+      </div>
+    </div>
+    <div class="card stat-card success">
+      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      <div class="card-info">
+        <h3>4</h3>
+        <p>Cursos Impartidos</p>
+      </div>
+    </div>
+    
+    <div class="card tools-card" *ngIf="authService.hasPermission('manage_grades')">
+      <h3>Acciones Rápidas</h3>
+      <div class="action-buttons">
+        <button class="btn btn-outline">Subir Calificaciones</button>
+        <button class="btn btn-outline">Crear Nueva Tarea</button>
+        <button class="btn btn-outline">Asistencia</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenido Alumno -->
+  <section class="dashboard-grid" *ngIf="authService.hasPermission('view_home_alumno')">
+    <div class="card stat-card info">
+      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="card-info">
+        <h3>9.5</h3>
+        <p>Promedio General</p>
+      </div>
+    </div>
+    <div class="card stat-card warning">
+      <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="card-info">
+        <h3>2</h3>
+        <p>Tareas Pendientes</p>
+      </div>
+    </div>
+
+    <div class="card tools-card" *ngIf="authService.hasPermission('view_my_courses')">
+      <h3>Mis Accesos</h3>
+      <div class="action-buttons">
+        <button class="btn btn-primary">Ver Horario</button>
+        <button class="btn btn-primary">Ir a Lecciones</button>
+        <button class="btn btn-outline">Consultar Calificaciones</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Si no hay usuario u ocurrió un problema -->
+<div class="loading-state" *ngIf="!user">
+  <div class="spinner"></div>
+  <p>Cargando información del sistema...</p>
+</div>

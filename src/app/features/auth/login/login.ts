@@ -1,5 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +16,9 @@ export class Login {
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
+
+  authService = inject(AuthService);
+  router = inject(Router);
 
   /** Simple email regex validation */
   get isEmailValid(): boolean {
@@ -36,16 +41,19 @@ export class Login {
     this.errorMessage.set('');
 
     try {
-      // TODO: Conectar con el backend ASP.NET
-      console.log('Login:', { email: this.email, password: this.password });
+      // Intentar iniciar sesión real
+      const success = await this.authService.login(this.email, this.password);
 
-      // Simulación de llamada al servidor
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simular un poco de espera para mostrar la animación
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Aquí irá la navegación al dashboard
-      console.log('Login exitoso');
+      if (success) {
+        this.router.navigate(['/']); // Navegar al home
+      } else {
+        this.errorMessage.set('Correo o contraseña incorrectos. Intenta de nuevo.');
+      }
     } catch (error) {
-      this.errorMessage.set('Credenciales incorrectas. Intenta de nuevo.');
+      this.errorMessage.set('Ocurrió un error inesperado al iniciar sesión.');
     } finally {
       this.isLoading.set(false);
     }

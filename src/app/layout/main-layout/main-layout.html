@@ -1,1 +1,24 @@
-<p>main-layout works!</p>
+<div class="layout-wrapper">
+  <!-- Navbar móvil, oculto en ordenadores -->
+  <header class="mobile-header">
+    <div class="mobile-logo">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      </div>
+      <span class="logo-text">SIAE</span>
+    </div>
+    <button class="mobile-toggle" (click)="sidebar.toggleMobile()" aria-label="Abrir Menú">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </header>
+
+  <app-sidebar #sidebar></app-sidebar>
+  <main class="main-content">
+    <div class="content-container">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Fondo oscuro al abrir sidebar en móvil -->
+  <div class="mobile-backdrop" *ngIf="sidebar.isMobileOpen" (click)="sidebar.closeMobile()"></div>
+</div>
