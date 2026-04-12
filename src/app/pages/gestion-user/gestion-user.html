@@ -1,4 +1,4 @@
-<div class="gestion-container" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')">
+<div class="gestion-container">
   <header class="page-header">
     <div class="header-text">
       <h1>👥 Gestión de Alumnos</h1>
@@ -10,72 +10,108 @@
     </button>
   </header>
 
-  <!-- Formulario -->
+  <!-- Buscador -->
+  <div class="search-bar">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Buscar alumno por nombre..."
+      class="search-input"
+      (keyup.enter)="onSearch()"
+    />
+    <button class="search-btn" (click)="onSearch()">Buscar</button>
+  </div>
+
+  <!-- Estado de carga -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner-ring"></div>
+    <p>Cargando alumnos...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error() && !loading()">
+    <p>⚠️ {{ error() }}</p>
+    <button class="retry-btn" (click)="loadStudents()">Reintentar</button>
+  </div>
+
+  <!-- Formulario modal -->
   <div class="form-overlay" *ngIf="showForm()">
     <div class="form-card">
       <h2>{{ editingId() !== null ? '✏️ Editar Alumno' : '➕ Nuevo Alumno' }}</h2>
-      <div class="form-group">
-        <label>Nombre Completo</label>
-        <input type="text" [(ngModel)]="formNombre" placeholder="Nombre del alumno" class="form-input">
-      </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label>Edad</label>
-          <input type="number" [(ngModel)]="formEdad" min="3" max="18" class="form-input">
+          <label>Nombre(s) *</label>
+          <input type="text" [(ngModel)]="formName" placeholder="Nombre" class="form-input">
         </div>
         <div class="form-group">
-          <label>Nivel Educativo</label>
-          <select [(ngModel)]="formNivel" class="form-select">
-            <option value="Preescolar">Preescolar</option>
-            <option value="Primaria">Primaria</option>
-            <option value="Secundaria">Secundaria</option>
+          <label>Apellido Paterno *</label>
+          <input type="text" [(ngModel)]="formFatherLastName" placeholder="Apellido paterno" class="form-input">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Apellido Materno</label>
+          <input type="text" [(ngModel)]="formMotherLastName" placeholder="Apellido materno (opcional)" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Género *</label>
+          <select [(ngModel)]="formGender" class="form-select">
+            <option *ngFor="let opt of genderOptions" [value]="opt.value">{{ opt.label }}</option>
           </select>
         </div>
       </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha de Nacimiento *</label>
+          <input type="date" [(ngModel)]="formBirthDate" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>CURP</label>
+          <input type="text" [(ngModel)]="formCurp" placeholder="CURP (opcional)" class="form-input" maxlength="18">
+        </div>
+      </div>
+
       <div class="form-actions">
         <button class="btn-cancel" (click)="cancelForm()">Cancelar</button>
-        <button class="btn-save" (click)="saveForm()" [disabled]="!formNombre.trim()">Guardar</button>
+        <button class="btn-save" (click)="saveForm()" [disabled]="!isFormValid()">
+          {{ editingId() ? 'Actualizar' : 'Guardar' }}
+        </button>
       </div>
     </div>
   </div>
 
   <!-- Lista de alumnos -->
-  <div class="alumnos-grid">
+  <div class="alumnos-grid" *ngIf="!loading() && !error()">
     <div class="alumno-card" *ngFor="let a of alumnos()">
       <div class="alumno-header">
-        <img [src]="a.avatar" [alt]="a.nombre" class="alumno-avatar">
+        <img [src]="getAvatarUrl(a.name, a.fatherLastName)" [alt]="getStudentFullName(a)" class="alumno-avatar">
         <div class="alumno-info">
-          <h3>{{ a.nombre }}</h3>
-          <span class="nivel-badge">{{ a.nivel }} · {{ a.edad }} años</span>
+          <h3>{{ getStudentFullName(a) }}</h3>
+          <span class="nivel-badge">{{ getGenderLabel(a.gender) }} · {{ getAge(a.birthDate) }} años</span>
         </div>
       </div>
       <div class="alumno-stats">
         <div class="stat">
-          <span class="stat-value">{{ a.sesiones }}</span>
-          <span class="stat-label">Sesiones</span>
+          <span class="stat-value">{{ a.curp || '—' }}</span>
+          <span class="stat-label">CURP</span>
         </div>
         <div class="stat">
-          <span class="stat-value text-sm">{{ a.ultimaSesion }}</span>
-          <span class="stat-label">Última Sesión</span>
+          <span class="stat-value text-sm">{{ a.birthDate | date:'dd/MM/yyyy' }}</span>
+          <span class="stat-label">Nacimiento</span>
         </div>
       </div>
       <div class="alumno-actions">
         <button class="action-btn edit" (click)="editAlumno(a)" title="Editar">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
-        <button class="action-btn delete" (click)="deleteAlumno(a.id)" title="Eliminar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        </button>
       </div>
     </div>
   </div>
 
-  <div class="empty-state" *ngIf="alumnos().length === 0">
-    <p>No hay alumnos registrados. Haz clic en "Nuevo Alumno" para comenzar.</p>
+  <div class="empty-state" *ngIf="!loading() && !error() && alumnos().length === 0">
+    <p>No se encontraron alumnos. Haz clic en "Nuevo Alumno" para comenzar.</p>
   </div>
-</div>
-
-<div class="access-denied" *ngIf="!authService.hasPermission('GESTION_ACTIVIDADES')">
-  <h2>🔒 Acceso Restringido</h2>
-  <p>Esta acción requiere un permiso que no está habilitado en tu cuenta. Contacta al administrador del sistema si necesitas acceso.</p>
 </div>

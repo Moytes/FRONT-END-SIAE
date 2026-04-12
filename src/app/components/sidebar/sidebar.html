@@ -69,10 +69,10 @@
 
   <div class="sidebar-footer">
     <div class="user-profile" *ngIf="authService.currentUser() as user">
-      <img [src]="user.avatar" alt="Avatar de {{user.name}}" class="avatar-img" />
+      <img [src]="user.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + user.name + '+' + user.fatherLastName" alt="Avatar de {{user.name}}" class="avatar-img" />
       <div class="user-info" *ngIf="!isCollapsed">
-        <span class="user-name">{{ user.name }}</span>
-        <span class="user-role">{{ user.type }}</span>
+        <span class="user-name">{{ user.name }} {{ user.fatherLastName }}</span>
+        <span class="user-role">{{ authService.getRoleName() }}</span>
       </div>
     </div>
     <button class="logout-btn" (click)="logout()" [title]="isCollapsed ? 'Cerrar Sesión' : ''" [class.collapsed]="isCollapsed">

@@ -4,13 +4,17 @@
     <div class="header-background"></div>
     <div class="profile-main-info">
       <div class="avatar-wrapper">
-        <img [src]="user.avatar" alt="Avatar {{ user.name }}" class="profile-avatar">
+        <img
+          [src]="user.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + user.name + '+' + user.fatherLastName"
+          alt="Avatar {{ user.name }}"
+          class="profile-avatar"
+        >
         <div class="status-indicator"></div>
       </div>
       <div class="user-titles">
-        <h1>{{ user.name }}</h1>
-        <p class="role-badge" [ngClass]="{'bg-maestro': user.type === 'maestro', 'bg-alumno': user.type === 'alumno'}">
-          {{ user.type | titlecase }} en SIAE
+        <h1>{{ user.name }} {{ user.fatherLastName }}</h1>
+        <p class="role-badge bg-maestro">
+          {{ authService.getRoleName() }}
         </p>
       </div>
     </div>
@@ -27,33 +31,41 @@
       <div class="card-body">
         <div class="info-group">
           <label>Nombre Completo</label>
-          <p>{{ user.name }}</p>
+          <p>{{ user.name }} {{ user.fatherLastName }} {{ user.motherLastName }}</p>
         </div>
         <div class="info-group">
-          <label>Correo Electrónico Institucional</label>
+          <label>Correo Electrónico</label>
           <p>{{ user.email }}</p>
         </div>
         <div class="info-group">
-          <label>Nombre de Usuario</label>
-          <p>{{ user.username }}</p>
+          <label>Rol en el Sistema</label>
+          <p>{{ authService.getRoleName() }}</p>
         </div>
         <div class="info-group">
-          <label>Matrícula / ID</label>
-          <p>SIAE-{{ user.id | number:'4.0-0' }}</p>
+          <label>ID de Usuario</label>
+          <p class="id-text">{{ user.id }}</p>
+        </div>
+        <div class="info-group" *ngIf="user.phoneNumber">
+          <label>Teléfono</label>
+          <p>{{ user.phoneNumber }}</p>
+        </div>
+        <div class="info-group">
+          <label>Cuenta Registrada</label>
+          <p>{{ user.createdAt | date:'dd/MM/yyyy' }}</p>
         </div>
       </div>
     </section>
 
-    <!-- Sección de Accesos y Permisos (Demostración Front-End) -->
+    <!-- Sección de permisos derivados del rol -->
     <section class="profile-card">
       <div class="card-header">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <h2>Mis Accesos Autorizados</h2>
+        <h2>Módulos con Acceso</h2>
       </div>
       <div class="card-body">
-        <p class="section-desc">Tienes asignado un acceso basado en permisos. Los módulos que puedes visualizar son:</p>
+        <p class="section-desc">Tienes acceso a los siguientes módulos según tu rol:</p>
         <ul class="permissions-list">
-          <li *ngFor="let permiso of user.permissions">
+          <li *ngFor="let permiso of authService.permissions()">
              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><polyline points="20 6 9 17 4 12"/></svg>
              <span class="permiso-text">{{ permiso }}</span>
           </li>

@@ -1,28 +1,43 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ApiResponse } from '../models/api-models';
+
+export const API_BASE_URL = 'https://siae-backend-v2-production.up.railway.app';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  private baseUrl = 'https://api.tudominio.com'; // Cambiar por la URL de tu backend ASP.NET
+  readonly baseUrl = API_BASE_URL;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  get<T>(endpoint: string): Observable<T> {
-    return this.http.get<T>(`${this.baseUrl}/${endpoint}`);
+  /** GET — returns the unwrapped data array */
+  get<T>(endpoint: string): Observable<T[]> {
+    return this.http
+      .get<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`)
+      .pipe(map(r => r.data));
   }
 
-  post<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.post<T>(`${this.baseUrl}/${endpoint}`, data);
+  /** GET — returns the full ApiResponse */
+  getRaw<T>(endpoint: string): Observable<ApiResponse<T>> {
+    return this.http.get<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`);
   }
 
-  put<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.put<T>(`${this.baseUrl}/${endpoint}`, data);
+  /** POST — returns the full ApiResponse */
+  post<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
+    return this.http.post<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, body);
   }
 
-  delete<T>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(`${this.baseUrl}/${endpoint}`);
+  /** PUT — returns the full ApiResponse */
+  put<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
+    return this.http.put<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, body);
+  }
+
+  /** DELETE — returns the full ApiResponse */
+  delete<T>(endpoint: string): Observable<ApiResponse<T>> {
+    return this.http.delete<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`);
   }
 }

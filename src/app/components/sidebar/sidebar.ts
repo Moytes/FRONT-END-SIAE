@@ -28,8 +28,8 @@ export class Sidebar {
     this.isMobileOpen = false;
   }
 
-  logout() {
-    this.authService.logout();
+  async logout() {
+    await this.authService.logout();
     this.router.navigate(['/login']);
   }
 }

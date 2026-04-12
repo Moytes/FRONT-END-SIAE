@@ -1,8 +1,8 @@
 <div class="reportes-container" *ngIf="authService.hasPermission('REPORTES')">
   <header class="page-header">
     <div class="header-text">
-      <h1>📊 Reportes de Sesiones</h1>
-      <p class="subtitle">Historial de evaluaciones y progresión de alumnos</p>
+      <h1>📊 Reportes SIAE</h1>
+      <p class="subtitle">Sábana de datos, evaluaciones CIE y alertas TEA</p>
     </div>
     <button class="export-btn" (click)="exportarPDF()" [disabled]="exportando()">
       <svg *ngIf="!exportando()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -10,88 +10,139 @@
     </button>
   </header>
 
-  <!-- Filtros por alumno -->
+  <!-- Filtros -->
   <div class="filter-bar">
-    <span class="filter-label">Filtrar por alumno:</span>
-    <button *ngFor="let al of alumnos"
-            class="filter-chip"
-            [class.active]="filtroAlumno() === al"
-            (click)="filtrar(al)">
-      {{ al }}
-    </button>
-    <button class="filter-chip clear" *ngIf="filtroAlumno()" (click)="filtrar(filtroAlumno())">✕ Limpiar</button>
+    <div class="filter-group">
+      <label>Ciclo Escolar</label>
+      <select [(ngModel)]="selectedSchoolYearId" (change)="onFilterChange()" class="filter-select">
+        <option value="">Todos los ciclos</option>
+        <option *ngFor="let sy of schoolYears()" [value]="sy.id">{{ sy.name }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Escuela</label>
+      <select [(ngModel)]="selectedSchoolId" (change)="onFilterChange()" class="filter-select">
+        <option value="">Todas las escuelas</option>
+        <option *ngFor="let s of schools()" [value]="s.id">{{ s.name }}</option>
+      </select>
+    </div>
   </div>
 
-  <!-- Tabla de sesiones -->
-  <div class="table-wrapper">
-    <table class="sessions-table">
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab() === 'sabana'" (click)="setTab('sabana')">
+      📋 Sábana de Datos
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'cie'" (click)="setTab('cie')">
+      📝 Resumen CIE
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'tea'" (click)="setTab('tea')">
+      🔍 Alertas TEA
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner-ring"></div>
+    <p>Cargando reportes...</p>
+  </div>
+
+  <!-- SÁBANA DE DATOS -->
+  <div class="table-wrapper" *ngIf="!loading() && activeTab() === 'sabana'">
+    <table class="sessions-table" *ngIf="dataSheet().length > 0; else emptyTpl">
       <thead>
         <tr>
-          <th>#</th>
           <th>Alumno</th>
-          <th>Actividad</th>
-          <th>Dimensión</th>
-          <th>Fecha</th>
-          <th>Resultado</th>
-          <th>Nivel de Ayuda</th>
+          <th>Escuela</th>
+          <th>Grupo</th>
+          <th>Grado</th>
+          <th>Discapacidades</th>
+          <th>Áreas de Atención</th>
+          <th>TEA Alert</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of filteredSessions; let i = index" class="session-row">
-          <td class="td-id">{{ s.id }}</td>
-          <td class="td-alumno">{{ s.alumno }}</td>
-          <td class="td-actividad">{{ s.actividad }}</td>
-          <td><span class="dimension-badge" [ngClass]="s.dimension">{{ s.dimension }}</span></td>
-          <td class="td-fecha">{{ s.fecha }}</td>
-          <td><span class="result-badge" [ngClass]="getResultadoClass(s.resultado)">{{ s.resultado }}</span></td>
-          <td class="td-ayuda">
-            <span class="help-badge">{{ s.nivelAyuda }}</span>
-            <span class="help-text">{{ getNivelAyudaLabel(s.nivelAyuda) }}</span>
+        <tr *ngFor="let row of dataSheet()" class="session-row">
+          <td class="td-alumno">{{ row.studentName }}</td>
+          <td>{{ row.schoolName }}</td>
+          <td>{{ row.groupName }}</td>
+          <td>{{ row.grade }}</td>
+          <td>{{ row.disabilities.join(', ') || '—' }}</td>
+          <td>{{ row.attentionAreas.join(', ') || '—' }}</td>
+          <td>
+            <span *ngIf="row.teaAlertLevel !== undefined" class="result-badge" [ngClass]="getAlertLevelClass(row.teaAlertLevel!)">
+              {{ getAlertLevelLabel(row.teaAlertLevel!) }}
+            </span>
+            <span *ngIf="row.teaAlertLevel === undefined">—</span>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Progresión visual simple -->
-  <section class="progression-section">
-    <h2>📈 Progresión por Dimensión</h2>
-    <div class="bars-container">
-      <div class="bar-row">
-        <span class="bar-label">Fonología</span>
-        <div class="bar-track"><div class="bar-fill fonologia" style="width: 75%;"></div></div>
-        <span class="bar-pct">75%</span>
-      </div>
-      <div class="bar-row">
-        <span class="bar-label">Pragmática</span>
-        <div class="bar-track"><div class="bar-fill pragmatica" style="width: 60%;"></div></div>
-        <span class="bar-pct">60%</span>
-      </div>
-      <div class="bar-row">
-        <span class="bar-label">Morfosintaxis</span>
-        <div class="bar-track"><div class="bar-fill morfosintaxis" style="width: 45%;"></div></div>
-        <span class="bar-pct">45%</span>
-      </div>
-      <div class="bar-row">
-        <span class="bar-label">Semántica</span>
-        <div class="bar-track"><div class="bar-fill semantica" style="width: 80%;"></div></div>
-        <span class="bar-pct">80%</span>
-      </div>
-      <div class="bar-row">
-        <span class="bar-label">Discursos</span>
-        <div class="bar-track"><div class="bar-fill discursos" style="width: 50%;"></div></div>
-        <span class="bar-pct">50%</span>
-      </div>
-      <div class="bar-row">
-        <span class="bar-label">Juego</span>
-        <div class="bar-track"><div class="bar-fill juego" style="width: 90%;"></div></div>
-        <span class="bar-pct">90%</span>
-      </div>
+  <!-- RESUMEN CIE -->
+  <div class="table-wrapper" *ngIf="!loading() && activeTab() === 'cie'">
+    <table class="sessions-table" *ngIf="cieSummary().length > 0; else emptyTpl">
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th>Dimensión</th>
+          <th>Indicadores Completados</th>
+          <th>Total</th>
+          <th>% Avance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of cieSummary()" class="session-row">
+          <td class="td-alumno">{{ row.studentName }}</td>
+          <td><span class="dimension-badge">{{ row.dimensionName }}</span></td>
+          <td>{{ row.completedIndicators }}</td>
+          <td>{{ row.totalIndicators }}</td>
+          <td>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="row.percentage"></div>
+              <span>{{ row.percentage | number:'1.0-0' }}%</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ALERTAS TEA -->
+  <div class="table-wrapper" *ngIf="!loading() && activeTab() === 'tea'">
+    <table class="sessions-table" *ngIf="teaAlerts().length > 0; else emptyTpl">
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th>Escuela</th>
+          <th>Nivel de Alerta</th>
+          <th>Fecha Screening</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of teaAlerts()" class="session-row">
+          <td class="td-alumno">{{ row.studentName }}</td>
+          <td>{{ row.schoolName }}</td>
+          <td>
+            <span class="result-badge" [ngClass]="getAlertLevelClass(row.alertLevel)">
+              {{ getAlertLevelLabel(row.alertLevel) }}
+            </span>
+          </td>
+          <td class="td-fecha">{{ row.screeningDate | date:'dd/MM/yyyy' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #emptyTpl>
+    <div class="empty-state">
+      <p>No hay datos disponibles para los filtros seleccionados.</p>
     </div>
-  </section>
+  </ng-template>
 </div>
 
 <div class="access-denied" *ngIf="!authService.hasPermission('REPORTES')">
   <h2>🔒 Acceso Restringido</h2>
-  <p>Esta acción requiere un permiso que no está habilitado en tu cuenta. Contacta al administrador del sistema si necesitas acceso.</p>
+  <p>No tienes permisos para ver los reportes. Contacta al administrador.</p>
 </div>
