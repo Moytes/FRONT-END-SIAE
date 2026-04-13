@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-models';
 
-export const API_BASE_URL = 'https://siae-backend-v2-production.up.railway.app';
+export const API_BASE_URL = 'https://siae-backend-v2.onrender.com';
 
 @Injectable({
   providedIn: 'root',
