@@ -1,0 +1,191 @@
+<!-- ===== FASE: EVALUACIÓN ===== -->
+<div class="pares-container" *ngIf="phase() === 'EVALUATING' && currentPar">
+
+  <header class="pares-header">
+    <div class="header-left">
+      <div class="group-badge">🎵 {{ config()?.pairSetLabel || 'Pares Mínimos' }}</div>
+      <div class="progress-text">Par {{ currentIndex() + 1 }} de {{ totalPairs }}</div>
+    </div>
+    <div class="timer-badge">
+      <span>⏱</span>
+      <span class="timer-val">{{ formattedTime() }}</span>
+    </div>
+  </header>
+
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" [style.width.%]="(currentIndex() / totalPairs) * 100"></div>
+  </div>
+
+  <div class="pares-content">
+
+    <!-- ESTÍMULOS: dos palabras lado a lado -->
+    <div class="stimuli-area">
+      <div class="stimulus-card">
+        <img *ngIf="currentPar.image1" [src]="currentPar.image1" class="stimulus-img" [alt]="currentPar.word1" />
+        <div class="stimulus-word">{{ currentPar.word1 }}</div>
+      </div>
+
+      <div class="vs-divider">VS</div>
+
+      <div class="stimulus-card">
+        <img *ngIf="currentPar.image2" [src]="currentPar.image2" class="stimulus-img" [alt]="currentPar.word2" />
+        <div class="stimulus-word">{{ currentPar.word2 }}</div>
+      </div>
+    </div>
+
+    <!-- PANEL DE REGISTRO -->
+    <div class="eval-panel">
+
+      <!-- Comprensión -->
+      <div>
+        <div class="section-label">Comprensión</div>
+        <div class="comprension-grid">
+          <button class="eval-btn comprende"
+            [class.active]="currentComprension() === 'COMPRENDE'"
+            (click)="setComprension('COMPRENDE')">
+            ✓ Comprende
+          </button>
+          <button class="eval-btn no-comprende"
+            [class.active]="currentComprension() === 'NO_COMPRENDE'"
+            (click)="setComprension('NO_COMPRENDE')">
+            ✗ No comprende
+          </button>
+        </div>
+      </div>
+
+      <!-- Articulación -->
+      <div>
+        <div class="section-label">Articulación</div>
+        <div class="articulacion-grid">
+          <button class="eval-btn correcta"
+            [class.active]="currentArticulacion() === 'CORRECTA'"
+            (click)="setArticulacion('CORRECTA')">
+            ✓ Correcta
+          </button>
+          <button class="eval-btn dificultad"
+            [class.active]="currentArticulacion() === 'CON_DIFICULTAD'"
+            (click)="setArticulacion('CON_DIFICULTAD')">
+            ~ Con dificultad
+          </button>
+          <button class="eval-btn no-articula"
+            [class.active]="currentArticulacion() === 'NO_ARTICULA'"
+            (click)="setArticulacion('NO_ARTICULA')">
+            ✗ No articula
+          </button>
+        </div>
+      </div>
+
+      <!-- Nivel de ayuda -->
+      <div>
+        <div class="section-label">Nivel de Ayuda</div>
+        <div class="help-grid">
+          <button
+            *ngFor="let i of helpLevelRange"
+            class="help-btn"
+            [class.active]="currentHelpLevel() === i"
+            (click)="setHelpLevel(i)">
+            <span class="help-num">{{ i }}</span>
+            <span class="help-label">{{ helpLevelLabels[i] }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div>
+        <div class="section-label">Observaciones</div>
+        <textarea
+          class="obs-input"
+          placeholder="Notas clínicas opcionales..."
+          [ngModel]="currentObservation()"
+          (ngModelChange)="currentObservation.set($event)"
+          rows="2">
+        </textarea>
+      </div>
+
+      <button class="proceed-btn" [disabled]="!canProceed()" (click)="proceed()">
+        <span *ngIf="currentIndex() + 1 < totalPairs">Siguiente Par →</span>
+        <span *ngIf="currentIndex() + 1 >= totalPairs">Ver Resumen →</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== FASE: RESUMEN ===== -->
+<div class="pares-container summary-phase" *ngIf="phase() === 'SUMMARY'">
+
+  <header class="pares-header">
+    <div>
+      <h2 class="summary-title">Resumen de Pares Mínimos</h2>
+      <p class="summary-subtitle">{{ config()?.pairSetLabel }} · {{ savedResults().length }} pares evaluados</p>
+    </div>
+  </header>
+
+  <!-- Tarjetas de estadísticas -->
+  <div class="stats-cards">
+    <div class="stat-card stat-ok">
+      <div class="stat-num">{{ stats.comprenden }}</div>
+      <div class="stat-label">Comprenden</div>
+    </div>
+    <div class="stat-card stat-err">
+      <div class="stat-num">{{ stats.noComprenden }}</div>
+      <div class="stat-label">No comprenden</div>
+    </div>
+    <div class="stat-card stat-ok">
+      <div class="stat-num">{{ stats.correctas }}</div>
+      <div class="stat-label">Articulación correcta</div>
+    </div>
+    <div class="stat-card stat-warn">
+      <div class="stat-num">{{ stats.dificultad }}</div>
+      <div class="stat-label">Con dificultad</div>
+    </div>
+    <div class="stat-card stat-err">
+      <div class="stat-num">{{ stats.noArticula }}</div>
+      <div class="stat-label">No articula</div>
+    </div>
+  </div>
+
+  <!-- Tabla detallada -->
+  <div class="results-table-wrapper">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Par</th>
+          <th>Comprensión</th>
+          <th>Articulación</th>
+          <th>Tiempo</th>
+          <th>Nivel de Ayuda</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of savedResults()">
+          <td><strong>{{ r.word1 }} / {{ r.word2 }}</strong></td>
+          <td>
+            <span class="badge" [ngClass]="r.comprension === 'COMPRENDE' ? 'badge-ok' : 'badge-err'">
+              {{ comprensionLabel(r.comprension) }}
+            </span>
+          </td>
+          <td>
+            <span class="badge"
+              [ngClass]="r.articulacion === 'CORRECTA' ? 'badge-ok' : r.articulacion === 'CON_DIFICULTAD' ? 'badge-warn' : 'badge-err'">
+              {{ articulacionLabel(r.articulacion) }}
+            </span>
+          </td>
+          <td>{{ r.timeSeconds }}s</td>
+          <td>{{ r.helpLevel }} – {{ helpLevelLabels[r.helpLevel] }}</td>
+          <td class="obs-cell">{{ r.observation || '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="finalize-row">
+    <button class="finalize-btn" (click)="finalize()">Guardar y Finalizar ✓</button>
+  </div>
+</div>
+
+<!-- Estado vacío -->
+<div class="empty-config" *ngIf="!currentPar && phase() === 'EVALUATING'">
+  <p>⚠️ No hay pares configurados para esta actividad.</p>
+</div>

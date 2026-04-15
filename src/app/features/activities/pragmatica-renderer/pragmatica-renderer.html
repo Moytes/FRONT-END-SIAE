@@ -1,0 +1,162 @@
+<!-- ===== FASE: EVALUACIÓN ===== -->
+<div class="prag-container" *ngIf="phase() === 'EVALUATING'">
+
+  <header class="prag-header">
+    <div class="header-left">
+      <div class="group-badge">✅ Pragmática · Formulario de Áreas de Apoyo</div>
+      <div class="progress-text">Categoría {{ catIndex() + 1 }} de {{ totalCats }}</div>
+    </div>
+    <div class="cat-progress-pills">
+      <span *ngFor="let cat of categories; let i = index"
+        class="cat-pill"
+        [class.active]="i === catIndex()"
+        [class.done]="i < catIndex()">
+        {{ i + 1 }}
+      </span>
+    </div>
+  </header>
+
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" [style.width.%]="(catIndex() / totalCats) * 100"></div>
+  </div>
+
+  <!-- Categoría actual -->
+  <div class="cat-card">
+    <div class="cat-title">
+      <span class="cat-icon">{{ currentCat.icon }}</span>
+      {{ currentCat.label }}
+    </div>
+
+    <!-- Escala de referencia -->
+    <div class="scale-legend">
+      <span *ngFor="let s of scaleRange" class="legend-chip" [ngClass]="'chip-' + scaleColors[s]">
+        {{ s }} – {{ scaleLabels[s] }}
+      </span>
+    </div>
+
+    <!-- Ítems -->
+    <div class="items-list">
+      <div class="item-row" *ngFor="let item of currentCat.items">
+        <div class="item-text">{{ item.text }}</div>
+        <div class="score-btns">
+          <button
+            *ngFor="let s of scaleRange"
+            class="score-btn"
+            [ngClass]="'btn-' + scaleColors[s]"
+            [class.active]="getScore(item.id) === s"
+            (click)="setScore(item.id, s)">
+            {{ s }}
+          </button>
+        </div>
+        <div class="item-score-label" *ngIf="getScore(item.id) !== null"
+          [ngClass]="'label-' + scaleColors[getScore(item.id)!]">
+          {{ scoreLabel(getScore(item.id)) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones de la categoría -->
+    <div class="obs-section">
+      <div class="section-label">Observaciones de esta categoría</div>
+      <textarea
+        class="obs-input"
+        rows="2"
+        placeholder="Notas cualitativas opcionales..."
+        [ngModel]="getObs(currentCat.id)"
+        (ngModelChange)="setObs(currentCat.id, $event)">
+      </textarea>
+    </div>
+
+    <!-- Alerta ítems pendientes -->
+    <div class="pending-alert" *ngIf="!catComplete()">
+      ⚠️ Califica todos los ítems para continuar
+    </div>
+
+    <button class="proceed-btn" [disabled]="!catComplete()" (click)="proceed()">
+      <span *ngIf="catIndex() + 1 < totalCats">Siguiente Categoría →</span>
+      <span *ngIf="catIndex() + 1 >= totalCats">Ver Perfil de Pragmática →</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== FASE: PERFIL ===== -->
+<div class="prag-container profile-phase" *ngIf="phase() === 'PROFILE'">
+
+  <header class="prag-header">
+    <div>
+      <h2 class="profile-title">Perfil de Pragmática</h2>
+      <p class="profile-subtitle">Comunicación · Áreas de Apoyo</p>
+    </div>
+    <div class="total-score-badge">
+      <span class="total-num">{{ totalScore }}</span>
+      <span class="total-denom">/ {{ totalMax }}</span>
+      <span class="total-pct">{{ totalPercent }}%</span>
+    </div>
+  </header>
+
+  <!-- Puntuación por categoría -->
+  <div class="cat-scores-grid">
+    <div class="cat-score-card" *ngFor="let cat of categories">
+      <div class="cat-score-icon">{{ cat.icon }}</div>
+      <div class="cat-score-label">{{ cat.label }}</div>
+      <div class="cat-score-bar-track">
+        <div class="cat-score-bar-fill" [style.width.%]="catPercent(cat)"
+          [ngClass]="catPercent(cat) >= 70 ? 'bar-ok' : catPercent(cat) >= 40 ? 'bar-warn' : 'bar-err'">
+        </div>
+      </div>
+      <div class="cat-score-nums">{{ catScore(cat) }} / {{ catMax(cat) }} ({{ catPercent(cat) }}%)</div>
+      <div class="cat-obs" *ngIf="getObs(cat.id)">
+        <em>{{ getObs(cat.id) }}</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prioridades de intervención -->
+  <div class="priorities-block">
+    <div class="priorities-title">🎯 Prioridades de Intervención (Top 2)</div>
+    <div class="priority-card" *ngFor="let p of priorities; let i = index">
+      <div class="priority-num">{{ i + 1 }}</div>
+      <div class="priority-content">
+        <div class="priority-text">{{ p.itemText }}</div>
+        <div class="priority-meta">
+          <span class="priority-cat">{{ p.catLabel }}</span>
+          <span class="priority-score" [ngClass]="'label-' + scoreColor(p.score)">
+            {{ p.score }} – {{ scoreLabel(p.score) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla completa -->
+  <div class="results-table-wrapper">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Categoría</th>
+          <th>Ítem</th>
+          <th>Puntaje</th>
+          <th>Nivel</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let cat of categories">
+          <tr *ngFor="let item of cat.items">
+            <td class="td-cat">{{ cat.icon }} {{ cat.label }}</td>
+            <td>{{ item.text }}</td>
+            <td class="td-score">{{ scores()[item.id] ?? '—' }}</td>
+            <td>
+              <span class="badge" [ngClass]="'badge-' + scoreColor(scores()[item.id] ?? null)">
+                {{ scoreLabel(scores()[item.id] ?? null) }}
+              </span>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="finalize-row">
+    <button class="finalize-btn" (click)="finalize()">Guardar y Finalizar ✓</button>
+  </div>
+</div>

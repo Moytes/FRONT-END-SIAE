@@ -127,6 +127,30 @@ const DEFAULT_ACTIVITIES: ActivityConfig[] = [
     dimension: 'DISCURSOS',
     config: { question: '¿Son mejores los perros o los gatos como mascotas?', options: ['Los perros porque son leales', 'Los gatos porque son independientes', 'Ambos son buenos', 'Ninguno'], correctIndex: 2, educationalLevel: 'primaria' },
     createdAt: new Date()
+  },
+  {
+    id: 'mision-115',
+    title: 'Amigos del Bosque',
+    activityType: 3,
+    dimension: 'PRAGMATICA',
+    config: { question: '¿Qué harías si encuentras un animal herido en el bosque?', options: ['Lo ignoro y sigo caminando', 'Aviso a un adulto para que ayude', 'Lo asusto para que se vaya'], correctIndex: 1 },
+    createdAt: new Date()
+  },
+  {
+    id: 'mision-116',
+    title: 'La Frase Perdida',
+    activityType: 5,
+    dimension: 'MORFOSINTAXIS',
+    config: { question: 'Inventa una oración usando las palabras: "perro", "corre" y "parque".' },
+    createdAt: new Date()
+  },
+  {
+    id: 'mision-117',
+    title: 'Colores y Sabores',
+    activityType: 3,
+    dimension: 'SEMANTICA',
+    config: { question: '¿Cuál de estas frutas es de color amarillo?', options: ['Fresa', 'Uva', 'Plátano'], correctIndex: 2 },
+    createdAt: new Date()
   }
 ];
 
@@ -142,17 +166,20 @@ export class ActivityConfigService {
     this.loadFromStorage();
   }
 
-  /** Carga las actividades desde localStorage, o usa las demo si no existe nada */
+  /** Carga las actividades desde localStorage y fusiona las demo que falten */
   private loadFromStorage(): void {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed: ActivityConfig[] = JSON.parse(raw);
-        // Restaurar objetos Date
         parsed.forEach(a => a.createdAt = new Date(a.createdAt));
-        this.activitiesSignal.set(parsed);
+        // Fusionar: agregar demo que aún no existan en el caché
+        const existingIds = new Set(parsed.map(a => a.id));
+        const missing = DEFAULT_ACTIVITIES.filter(a => !existingIds.has(a.id));
+        const merged = [...parsed, ...missing];
+        this.activitiesSignal.set(merged);
+        if (missing.length > 0) this.persistToStorage();
       } else {
-        // Primera carga → guardar las demo
         this.activitiesSignal.set(DEFAULT_ACTIVITIES);
         this.persistToStorage();
       }
@@ -174,6 +201,7 @@ export class ActivityConfigService {
   saveActivity(config: ActivityConfig): boolean {
     if (!this.authService.hasPermission('GESTION_ACTIVIDADES')) {
       console.error('Acceso denegado: Faltan permisos de GESTION_ACTIVIDADES');
+      alert('No tienes permiso para crear actividades. Contacta al administrador.');
       return false;
     }
 
@@ -185,5 +213,12 @@ export class ActivityConfigService {
 
   getActivity(id: string): ActivityConfig | undefined {
     return this.activitiesSignal().find(a => a.id === id);
+  }
+
+  deleteActivity(id: string): boolean {
+    if (!this.authService.hasPermission('GESTION_ACTIVIDADES')) return false;
+    this.activitiesSignal.update(list => list.filter(a => a.id !== id));
+    this.persistToStorage();
+    return true;
   }
 }

@@ -8,27 +8,51 @@ import { ChecklistRenderer } from '../checklist-renderer/checklist-renderer';
 import { AianalysisRenderer } from '../aianalysis-renderer/aianalysis-renderer';
 import { ActionPlanRenderer } from '../action-plan-renderer/action-plan-renderer';
 import { StepByStepRenderer } from '../step-by-step-renderer/step-by-step-renderer';
+import { FonemaRendererComponent } from '../fonema-renderer/fonema-renderer';
+import { ParesRendererComponent } from '../pares-renderer/pares-renderer';
+import { PragmaticaRendererComponent } from '../pragmatica-renderer/pragmatica-renderer';
 
 @Component({
   selector: 'app-activity-engine',
   standalone: true,
   imports: [
-    CommonModule, 
-    FlashcardRenderer, 
-    ChecklistRenderer, 
-    AianalysisRenderer, 
-    ActionPlanRenderer, 
+    CommonModule,
+    FonemaRendererComponent,
+    ParesRendererComponent,
+    PragmaticaRendererComponent,
+    FlashcardRenderer,
+    ChecklistRenderer,
+    AianalysisRenderer,
+    ActionPlanRenderer,
     StepByStepRenderer
   ],
   template: `
     <div class="engine-wrapper" *ngIf="loadedConfig()">
       <!-- Header general o barra de progreso opcional podría ir aquí -->
-      
+
       <!-- Switch dinámico de Renderers dependiente del JSON (activityType) -->
       <ng-container [ngSwitch]="getRendererType(loadedConfig()!.activityType)">
-        
-        <app-flashcard-renderer 
-           *ngSwitchCase="'FLASHCARD'" 
+
+        <app-fonema-renderer
+           *ngSwitchCase="'FONEMA'"
+           [config]="loadedConfig()!.config"
+           (resultSaved)="handleSave($event)">
+        </app-fonema-renderer>
+
+        <app-pares-renderer
+           *ngSwitchCase="'PARES'"
+           [config]="loadedConfig()!.config"
+           (resultSaved)="handleSave($event)">
+        </app-pares-renderer>
+
+        <app-pragmatica-renderer
+           *ngSwitchCase="'PRAGMATICA'"
+           [config]="loadedConfig()!.config"
+           (resultSaved)="handleSave($event)">
+        </app-pragmatica-renderer>
+
+        <app-flashcard-renderer
+           *ngSwitchCase="'FLASHCARD'"
            [config]="loadedConfig()!.config"
            (resultSaved)="handleSave($event)">
         </app-flashcard-renderer>
@@ -112,10 +136,16 @@ export class ActivityEngineComponent implements OnInit {
   }
 
   getRendererType(activityType: number): string {
-     // FlashcardRenderer Act. 1, 2, 4, 7, 8
-     if ([1, 2, 4, 7, 8].includes(activityType)) return 'FLASHCARD';
-     // ChecklistRenderer Act. 3, 9, 10
-     if ([3, 9, 10].includes(activityType)) return 'CHECKLIST';
+     // FonemaRenderer Act. 1
+     if (activityType === 1) return 'FONEMA';
+     // ParesRenderer Act. 2
+     if (activityType === 2) return 'PARES';
+     // FlashcardRenderer Act. 4, 7, 8
+     if ([4, 7, 8].includes(activityType)) return 'FLASHCARD';
+     // PragmaticaRenderer Act. 3
+     if (activityType === 3) return 'PRAGMATICA';
+     // ChecklistRenderer Act. 9, 10
+     if ([9, 10].includes(activityType)) return 'CHECKLIST';
      // IARenderer Act. 5
      if (activityType === 5) return 'IA';
      // ActionPlanRenderer Act. 6

@@ -1,0 +1,168 @@
+<!-- ===== FASE: EVALUACIÓN ===== -->
+<div class="fonema-container" *ngIf="phase() === 'EVALUATING' && currentItem">
+
+  <header class="fonema-header">
+    <div class="header-left">
+      <div class="group-badge">🔊 {{ config()?.phonemeGroup || 'Producción de Fonemas' }}</div>
+      <div class="progress-text">Palabra {{ currentIndex() + 1 }} de {{ totalItems }}</div>
+    </div>
+    <div class="timer-badge">
+      <span>⏱</span>
+      <span class="timer-val">{{ formattedTime() }}</span>
+    </div>
+  </header>
+
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" [style.width.%]="(currentIndex() / totalItems) * 100"></div>
+  </div>
+
+  <div class="fonema-content">
+
+    <!-- ESTÍMULO VISUAL -->
+    <div class="stimulus-card">
+      <div class="fonema-tag">{{ currentItem.fonema }}</div>
+      <img *ngIf="currentItem.imageUrl" [src]="currentItem.imageUrl" class="stimulus-img" [alt]="currentItem.word" />
+      <div class="stimulus-word">{{ currentItem.word }}</div>
+      <div class="position-badge">Posición del fonema: <strong>{{ currentItem.wordPosition }}</strong></div>
+    </div>
+
+    <!-- PANEL DE REGISTRO -->
+    <div class="eval-panel">
+
+      <!-- Resultado de producción -->
+      <div>
+        <div class="section-label">Resultado de Producción</div>
+        <div class="eval-grid">
+          <button class="eval-btn ok" [class.active]="currentEval() === 'SIN_ERROR'" (click)="setEval('SIN_ERROR')">
+            <span class="eval-icon">✓</span> Sin Error
+          </button>
+          <button class="eval-btn omision" [class.active]="currentEval() === 'OMISION'" (click)="setEval('OMISION')">
+            <span class="eval-icon">○</span> Omisión
+          </button>
+          <button class="eval-btn sust" [class.active]="currentEval() === 'SUSTITUCION'" (click)="setEval('SUSTITUCION')">
+            <span class="eval-icon">↔</span> Sustitución
+          </button>
+          <button class="eval-btn dist" [class.active]="currentEval() === 'DISTORSION'" (click)="setEval('DISTORSION')">
+            <span class="eval-icon">~</span> Distorsión
+          </button>
+        </div>
+      </div>
+
+      <!-- Posición del error (sólo si hay error) -->
+      <div class="error-pos-section" *ngIf="needsErrorPos()">
+        <div class="section-label">Posición del Error</div>
+        <div class="pos-grid">
+          <button class="pos-btn" [class.active]="currentErrorPos() === 'INICIAL'" (click)="setErrorPos('INICIAL')">Inicial</button>
+          <button class="pos-btn" [class.active]="currentErrorPos() === 'MEDIA'" (click)="setErrorPos('MEDIA')">Media</button>
+          <button class="pos-btn" [class.active]="currentErrorPos() === 'FINAL'" (click)="setErrorPos('FINAL')">Final</button>
+        </div>
+      </div>
+
+      <!-- Nivel de ayuda -->
+      <div>
+        <div class="section-label">Nivel de Ayuda</div>
+        <div class="help-grid">
+          <button
+            *ngFor="let i of helpLevelRange"
+            class="help-btn"
+            [class.active]="currentHelpLevel() === i"
+            (click)="setHelpLevel(i)">
+            <span class="help-num">{{ i }}</span>
+            <span class="help-label">{{ helpLevelLabels[i] }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Observaciones -->
+      <div>
+        <div class="section-label">Observaciones</div>
+        <textarea
+          class="obs-input"
+          placeholder="Notas clínicas opcionales..."
+          [ngModel]="currentObservation()"
+          (ngModelChange)="currentObservation.set($event)"
+          rows="2">
+        </textarea>
+      </div>
+
+      <!-- Botón acción -->
+      <button class="proceed-btn" [disabled]="!canProceed()" (click)="proceed()">
+        <span *ngIf="currentIndex() + 1 < totalItems">Siguiente Palabra →</span>
+        <span *ngIf="currentIndex() + 1 >= totalItems">Ver Perfil Fonológico →</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== FASE: PERFIL FONOLÓGICO ===== -->
+<div class="fonema-container profile-phase" *ngIf="phase() === 'PROFILE'">
+
+  <header class="fonema-header">
+    <div>
+      <h2 class="profile-title">Perfil Fonológico</h2>
+      <p class="profile-subtitle">{{ config()?.phonemeGroup }} · {{ savedResults().length }} fonemas evaluados</p>
+    </div>
+  </header>
+
+  <!-- Tarjetas resumen -->
+  <div class="profile-cards">
+    <div class="profile-card card-ok">
+      <div class="card-count">{{ profile.consolidados.length }}</div>
+      <div class="card-label">Consolidados</div>
+      <div class="fonema-chips">
+        <span class="chip chip-ok" *ngFor="let f of profile.consolidados">{{ f }}</span>
+        <span class="no-items" *ngIf="profile.consolidados.length === 0">Ninguno</span>
+      </div>
+    </div>
+    <div class="profile-card card-error">
+      <div class="card-count">{{ profile.requierenIntervencion.length }}</div>
+      <div class="card-label">Requieren Intervención</div>
+      <div class="fonema-chips">
+        <span class="chip chip-error" *ngFor="let f of profile.requierenIntervencion">{{ f }}</span>
+        <span class="no-items" *ngIf="profile.requierenIntervencion.length === 0">Ninguno</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla detallada -->
+  <div class="results-table-wrapper">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Fonema</th>
+          <th>Palabra</th>
+          <th>Resultado</th>
+          <th>Posición Error</th>
+          <th>Tiempo</th>
+          <th>Nivel de Ayuda</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of savedResults()">
+          <td><strong>{{ r.fonema }}</strong></td>
+          <td>{{ r.word }}</td>
+          <td>
+            <span class="result-badge" [ngClass]="'badge-' + r.result.toLowerCase()">
+              {{ resultLabel(r.result) }}
+            </span>
+          </td>
+          <td>{{ r.errorPosition || '—' }}</td>
+          <td>{{ r.timeSeconds }}s</td>
+          <td>{{ r.helpLevel }} – {{ helpLevelLabels[r.helpLevel] }}</td>
+          <td class="obs-cell">{{ r.observation || '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="finalize-row">
+    <button class="finalize-btn" (click)="finalize()">Guardar y Finalizar ✓</button>
+  </div>
+</div>
+
+<!-- Estado vacío -->
+<div class="empty-config" *ngIf="!currentItem && phase() === 'EVALUATING'">
+  <p>⚠️ No hay palabras configuradas para esta actividad.</p>
+</div>

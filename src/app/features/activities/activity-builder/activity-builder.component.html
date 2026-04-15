@@ -9,12 +9,12 @@
      
      <div class="form-group">
         <label>Título de la Misión</label>
-        <input type="text" [(ngModel)]="activityTitle" placeholder="Ej. El Bosque Mágico..." class="form-input">
+        <input type="text" [ngModel]="activityTitle()" (ngModelChange)="activityTitle.set($event)" placeholder="Ej. El Bosque Mágico..." class="form-input">
      </div>
 
      <div class="form-group">
         <label>Dimensión Lingüística</label>
-        <select [(ngModel)]="dimension" class="form-select">
+        <select [ngModel]="dimension()" (ngModelChange)="dimension.set($event)" class="form-select">
            <option value="FONOLOGIA">Fonología</option>
            <option value="PRAGMATICA">Pragmática</option>
            <option value="MORFOSINTAXIS">Morfosintaxis</option>
@@ -95,59 +95,94 @@
 
      <div class="workspace-card" *ngIf="activityType()">
 
-        <!-- Flashcard types: Act 1, 4, 7, 8 -->
-        <ng-container *ngIf="activityType() === 1 || activityType() === 4 || activityType() === 7 || activityType() === 8">
+        <!-- Act 1: Producción de Fonemas -->
+        <ng-container *ngIf="activityType() === 1">
            <div class="form-group">
-              <label>Palabra o Estímulo Principal</label>
-              <input type="text" [(ngModel)]="flashcardWord" placeholder="Ej: PATO" class="form-input" style="font-size: 1.5rem;">
+              <label>Grupo de Fonemas a Evaluar</label>
+              <select [ngModel]="phonemeGroup()" (ngModelChange)="phonemeGroup.set($event)" class="form-select">
+                <option *ngFor="let key of phonemeCatalogKeys" [value]="key">
+                  {{ phonemeCatalog[key].label }}
+                </option>
+              </select>
            </div>
-           <div class="form-group mt-4" style="margin-top: 2rem;">
-              <label>URL de la Imagen (Ilustración)</label>
-              <div class="flex-row">
-                 <input type="text" [(ngModel)]="flashcardImageUrl" placeholder="Ej: https://.../imagen.png" class="form-input">
+           <div class="phoneme-preview" *ngIf="phonemeGroup()">
+              <p class="hint-text" style="margin-bottom: 0.75rem;">
+                <strong>{{ phonemeCatalog[phonemeGroup()].items.length }} palabras</strong> se evaluarán en esta sesión:
+              </p>
+              <div class="phoneme-word-chips">
+                <span class="phoneme-chip" *ngFor="let item of phonemeCatalog[phonemeGroup()].items">
+                  <span class="chip-fonema">{{ item.fonema }}</span>
+                  <span class="chip-word">{{ item.word }}</span>
+                  <span class="chip-pos">{{ item.wordPosition }}</span>
+                </span>
               </div>
            </div>
         </ng-container>
 
-        <!-- Act 2: Pares Mínimos (two words) -->
-        <ng-container *ngIf="activityType() === 2">
-           <p class="hint-text">Ingresa las dos palabras del par mínimo con sus imágenes.</p>
-           <div class="pair-container">
-             <div class="pair-col">
-               <div class="form-group">
-                  <label>Palabra 1</label>
-                  <input type="text" [(ngModel)]="flashcardWord" placeholder="Ej: FOCA" class="form-input" style="font-size: 1.3rem;">
-               </div>
-               <div class="form-group">
-                  <label>Imagen Palabra 1</label>
-                  <input type="text" [(ngModel)]="flashcardImageUrl" placeholder="URL imagen..." class="form-input">
-               </div>
-             </div>
-             <div class="pair-divider">VS</div>
-             <div class="pair-col">
-               <div class="form-group">
-                  <label>Palabra 2</label>
-                  <input type="text" [(ngModel)]="flashcardWord2" placeholder="Ej: BOCA" class="form-input" style="font-size: 1.3rem;">
-               </div>
-               <div class="form-group">
-                  <label>Imagen Palabra 2</label>
-                  <input type="text" [(ngModel)]="flashcardImageUrl2" placeholder="URL imagen..." class="form-input">
-               </div>
-             </div>
+        <!-- Flashcard types: Act 4, 7, 8 -->
+        <ng-container *ngIf="activityType() === 4 || activityType() === 7 || activityType() === 8">
+           <div class="form-group">
+              <label>Palabra o Estímulo Principal</label>
+              <input type="text" [ngModel]="flashcardWord()" (ngModelChange)="flashcardWord.set($event)" placeholder="Ej: PATO" class="form-input" style="font-size: 1.5rem;">
+           </div>
+           <div class="form-group mt-4" style="margin-top: 2rem;">
+              <label>URL de la Imagen (Ilustración)</label>
+              <div class="flex-row">
+                 <input type="text" [ngModel]="flashcardImageUrl()" (ngModelChange)="flashcardImageUrl.set($event)" placeholder="Ej: https://.../imagen.png" class="form-input">
+              </div>
            </div>
         </ng-container>
 
-        <!-- Checklist types: Act 3, 9, 10 -->
+        <!-- Act 2: Pares Mínimos -->
+        <ng-container *ngIf="activityType() === 2">
+           <div class="form-group">
+              <label>Grupo de Pares a Evaluar</label>
+              <select [ngModel]="pairsGroup()" (ngModelChange)="pairsGroup.set($event)" class="form-select">
+                <option *ngFor="let key of pairsCatalogKeys" [value]="key">
+                  {{ pairsCatalog[key].label }}
+                </option>
+              </select>
+           </div>
+           <div class="phoneme-preview" *ngIf="pairsGroup()">
+              <p class="hint-text" style="margin-bottom: 0.75rem;">
+                <strong>{{ pairsCatalog[pairsGroup()].pairs.length }} pares</strong> se evaluarán en esta sesión:
+              </p>
+              <div class="phoneme-word-chips">
+                <span class="phoneme-chip" *ngFor="let par of pairsCatalog[pairsGroup()].pairs">
+                  <span class="chip-word">{{ par.word1 }}</span>
+                  <span class="chip-fonema">vs</span>
+                  <span class="chip-word">{{ par.word2 }}</span>
+                </span>
+              </div>
+           </div>
+        </ng-container>
+
+        <!-- Act 3: Checklist Pragmática (ítems fijos del instrumento) -->
+        <ng-container *ngIf="activityType() === 3">
+           <div class="info-panel">
+             <h3>✅ Checklist de Pragmática</h3>
+             <p>Esta actividad aplica el <strong>Formulario de Áreas de Apoyo — sección Comunicación/Pragmática</strong> con ítems estandarizados del instrumento.</p>
+             <p>Evalúa <strong>24 ítems</strong> organizados en 4 categorías con escala 0–3 (No observado → Logrado). Al finalizar calcula el perfil por categoría e identifica automáticamente las <strong>2 prioridades de intervención</strong>.</p>
+             <ul style="margin: 0.5rem 0 0 1.2rem; font-size: 0.9rem; color:#475569;">
+               <li>Deixis y Gestos (6 ítems)</li>
+               <li>Aspectos Paralingüísticos (5 ítems)</li>
+               <li>Intenciones Comunicativas Primitivas (6 ítems)</li>
+               <li>Intenciones Comunicativas basadas en Forma Gramatical (7 ítems)</li>
+             </ul>
+           </div>
+        </ng-container>
+
+        <!-- Checklist types: Act 9, 10 -->
         <ng-container *ngIf="isChecklistType()">
            <div class="form-group">
               <label>Pregunta para el Alumno</label>
-              <input type="text" [(ngModel)]="checklistMainQ" placeholder="Ej: ¿Cuál es un animal doméstico?" class="form-input" style="margin-bottom: 1.5rem;">
+              <input type="text" [ngModel]="checklistMainQ()" (ngModelChange)="checklistMainQ.set($event)" placeholder="Ej: ¿Cuál es un animal doméstico?" class="form-input" style="margin-bottom: 1.5rem;">
            </div>
 
            <!-- Nivel educativo para Act 9/10 -->
            <div class="form-group" *ngIf="activityType() === 9 || activityType() === 10">
               <label>Nivel Educativo del Alumno</label>
-              <select [(ngModel)]="educationalLevel" class="form-select">
+              <select [ngModel]="educationalLevel()" (ngModelChange)="educationalLevel.set($event)" class="form-select">
                  <option value="preescolar">Preescolar</option>
                  <option value="primaria">Primaria</option>
                  <option value="secundaria">Secundaria</option>
@@ -157,7 +192,7 @@
            <div class="form-group">
               <label>Alternativas de Respuesta</label>
               <div class="flex-row">
-                <input type="text" [(ngModel)]="newQuestionText" placeholder="Escribe una opción..." class="form-input" (keyup.enter)="addQuestion()">
+                <input type="text" [ngModel]="newQuestionText()" (ngModelChange)="newQuestionText.set($event)" placeholder="Escribe una opción..." class="form-input" (keyup.enter)="addQuestion()">
                 <button class="btn-secondary" (click)="addQuestion()">Añadir +</button>
               </div>
            </div>
@@ -181,7 +216,7 @@
         <ng-container *ngIf="activityType() === 5">
            <div class="form-group">
               <label>Tema del Párrafo o Cuento</label>
-              <textarea [(ngModel)]="iaPrompt" class="form-input" rows="4" placeholder="Ej: Escribe un cuento sobre un dragón en el espacio..."></textarea>
+              <textarea [ngModel]="iaPrompt()" (ngModelChange)="iaPrompt.set($event)" class="form-input" rows="4" placeholder="Ej: Escribe un cuento sobre un dragón en el espacio..."></textarea>
            </div>
         </ng-container>
 
@@ -198,7 +233,7 @@
         <ng-container *ngIf="activityType() === 11">
            <div class="form-group">
               <label>Instrucción de Secuencia</label>
-              <input type="text" [(ngModel)]="sequenceMainQ" placeholder="Ej: Ordena los pasos para plantar un árbol" class="form-input" style="margin-bottom: 1.5rem;">
+              <input type="text" [ngModel]="sequenceMainQ()" (ngModelChange)="sequenceMainQ.set($event)" placeholder="Ej: Ordena los pasos para plantar un árbol" class="form-input" style="margin-bottom: 1.5rem;">
            </div>
 
            <p class="hint-text">Agrega los pasos en el <strong>ORDEN CORRECTO</strong>. El sistema los revolverá para que el alumno los ordene.</p>
@@ -206,7 +241,7 @@
            <div class="form-group">
               <label>Nuevo Paso</label>
               <div class="flex-row">
-                <input type="text" [(ngModel)]="newSequenceStepText" placeholder="Paso..." class="form-input" (keyup.enter)="addSequenceStep()">
+                <input type="text" [ngModel]="newSequenceStepText()" (ngModelChange)="newSequenceStepText.set($event)" placeholder="Paso..." class="form-input" (keyup.enter)="addSequenceStep()">
                 <button class="btn-secondary" (click)="addSequenceStep()">Añadir Paso +</button>
               </div>
            </div>

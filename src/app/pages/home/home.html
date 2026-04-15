@@ -88,7 +88,14 @@
     </div>
 
     <div class="missions-grid">
-      <div class="mission-card bounce-hover" *ngFor="let m of availableMissions; let i = index">
+      <div class="mission-card bounce-hover" *ngFor="let m of availableMissions">
+        <!-- Botón eliminar (solo para gestores) -->
+        <button
+          *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')"
+          class="delete-card-btn"
+          (click)="deleteMission(m.id, $event)"
+          title="Eliminar actividad">✕</button>
+
         <div class="mission-icon">
           <img [src]="m.config?.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3208/3208536.png'" alt="Misión Icono">
         </div>
@@ -96,11 +103,11 @@
           <span class="dimension-badge" [ngClass]="m.dimension">{{ m.dimension }}</span>
           <h3 class="mission-title">{{ m.title }}</h3>
         </div>
-        <button class="play-btn" (click)="playMission(m.id)">¡Jugar Ahora! ▶️</button>
+        <button class="play-btn" (click)="playMission(m.id)">¡JUGAR AHORA!</button>
       </div>
 
       <div class="empty-missions" *ngIf="availableMissions.length === 0">
-        <p>No tienes misiones pendientes por ahora. ¡Descansa campeón! 🎉</p>
+        <p>No tienes misiones pendientes por ahora. ¡Descansa campeón!</p>
       </div>
     </div>
   </section>

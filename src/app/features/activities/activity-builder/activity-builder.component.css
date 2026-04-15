@@ -177,3 +177,30 @@
 .font-bold { font-weight: 700; }
 .text-center { text-align: center; }
 
+/* ===== Phoneme preview chips (Act 1) ===== */
+.phoneme-preview {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+.phoneme-word-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.phoneme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: white;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+.chip-fonema { font-weight: 800; color: #1e40af; }
+.chip-word   { font-weight: 600; color: #0f172a; }
+.chip-pos    { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+

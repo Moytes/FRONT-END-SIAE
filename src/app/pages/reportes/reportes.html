@@ -1,7 +1,7 @@
 <div class="reportes-container" *ngIf="authService.hasPermission('REPORTES')">
   <header class="page-header">
     <div class="header-text">
-      <h1>📊 Reportes SIAE</h1>
+      <h1>Reportes SIAE</h1>
       <p class="subtitle">Sábana de datos, evaluaciones CIE y alertas TEA</p>
     </div>
     <button class="export-btn" (click)="exportarPDF()" [disabled]="exportando()">
@@ -31,13 +31,13 @@
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab-btn" [class.active]="activeTab() === 'sabana'" (click)="setTab('sabana')">
-      📋 Sábana de Datos
+      Sábana de Datos
     </button>
     <button class="tab-btn" [class.active]="activeTab() === 'cie'" (click)="setTab('cie')">
-      📝 Resumen CIE
+      Resumen CIE
     </button>
     <button class="tab-btn" [class.active]="activeTab() === 'tea'" (click)="setTab('tea')">
-      🔍 Alertas TEA
+      Alertas TEA
     </button>
   </div>
 
