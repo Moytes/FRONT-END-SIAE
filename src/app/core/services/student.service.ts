@@ -16,7 +16,7 @@ import {
 export class StudentService {
   constructor(private api: ApiService) {}
 
-  /** GET /api/alumnos?search=&schoolId= */
+
   getStudents(search?: string, schoolId?: string): Observable<StudentListItem[]> {
     const params: string[] = [];
     if (search) params.push(`search=${encodeURIComponent(search)}`);
@@ -25,7 +25,7 @@ export class StudentService {
     return this.api.get<StudentListItem>(`api/alumnos${qs}`);
   }
 
-  /** GET /api/alumnos/{id} */
+
   getStudentRecord(id: string): Observable<StudentRecord[]> {
     return this.api.get<StudentRecord>(`api/alumnos/${id}`);
   }
