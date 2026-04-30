@@ -1,12 +1,13 @@
 import { Component, signal, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -48,7 +49,8 @@ export class Login {
       await new Promise(resolve => setTimeout(resolve, 800));
 
       if (success) {
-        this.router.navigate(['/']); // Navegar al home
+        const defaultRoute = this.authService.getDefaultRoute();
+        this.router.navigate([defaultRoute]);
       } else {
         this.errorMessage.set('Correo o contraseña incorrectos. Intenta de nuevo.');
       }

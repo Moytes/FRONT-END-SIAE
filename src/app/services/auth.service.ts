@@ -64,6 +64,8 @@ export class AuthService {
       }
     } catch (e) {
       console.error('Error leyendo sesión:', e);
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     }
   }
 
@@ -155,5 +157,26 @@ export class AuthService {
       [UserRole.DOCENTE]: 'Docente'
     };
     return roleNames[user.role] ?? 'Usuario';
+  }
+
+  getDefaultRoute(): string {
+    const user = this.currentUserSignal();
+    if (!user) return '/login';
+
+    switch (user.role) {
+      case UserRole.ADMIN:
+        return '/admin';
+      case UserRole.SUPERVISOR:
+      case UserRole.DIRECTOR_USAER:
+      case UserRole.ESPECIALISTA_COM:
+      case UserRole.ESPECIALISTA_PSI:
+      case UserRole.ESPECIALISTA_APR:
+      case UserRole.TRABAJO_SOCIAL:
+        return '/especialista';
+      case UserRole.DOCENTE:
+        return '/docente';
+      default:
+        return '/';
+    }
   }
 }

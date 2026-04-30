@@ -217,10 +217,27 @@ export interface SchoolYear {
   isActive: boolean;
 }
 
+export interface AddSchoolYearRequest {
+  name: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
 export interface SchoolZone {
   id: string;
   name: string;
   code?: string;
+  number?: string;
+  cct?: string;
+  description?: string;
+}
+
+export interface AddSchoolZoneRequest {
+  number: string;
+  cct: string;
+  name?: string;
+  description?: string;
 }
 
 export interface School {
@@ -231,12 +248,25 @@ export interface School {
   schoolZoneName?: string;
 }
 
+export interface AddSchoolRequest {
+  name: string;
+  cct: string;
+  schoolZoneId: string;
+}
+
 export interface Group {
   id: string;
   name: string;
   grade: number;
   schoolId: string;
   schoolName?: string;
+}
+
+export interface AddGroupRequest {
+  section: string;
+  grade: number;
+  schoolId: string;
+  schoolYearId: string;
 }
 
 export interface DisabilityCatalog {

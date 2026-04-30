@@ -34,9 +34,9 @@ export class Home implements OnInit {
   }
 
   ngOnInit(): void {
-    // Docentes van directamente a Mis Lecciones
-    if (this.authService.currentUser()?.role === UserRole.DOCENTE) {
-      this.router.navigate(['/lecciones']);
+    const defaultRoute = this.authService.getDefaultRoute();
+    if (defaultRoute !== '/') {
+      this.router.navigate([defaultRoute]);
       return;
     }
 

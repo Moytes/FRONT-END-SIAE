@@ -22,6 +22,39 @@
       <span class="nav-label" *ngIf="!isCollapsed">Inicio</span>
     </a>
 
+    <!-- SECCIÓN ADMINISTRACIÓN -->
+    <div class="nav-divider" *ngIf="authService.hasPermission('ADMIN')"></div>
+    <p class="nav-section-title" *ngIf="!isCollapsed && authService.hasPermission('ADMIN')">Administración</p>
+    
+    <a routerLink="/admin" routerLinkActive="active-link" class="nav-item" *ngIf="authService.hasPermission('ADMIN')" title="Panel Admin" (click)="closeMobile()">
+      <div class="nav-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+      </div>
+      <span class="nav-label" *ngIf="!isCollapsed">Panel Admin</span>
+    </a>
+
+    <!-- SECCIÓN DOCENTE -->
+    <div class="nav-divider" *ngIf="authService.currentUser()?.role === 8"></div>
+    <p class="nav-section-title" *ngIf="!isCollapsed && authService.currentUser()?.role === 8">Docente</p>
+
+    <a routerLink="/docente" routerLinkActive="active-link" class="nav-item" *ngIf="authService.currentUser()?.role === 8" title="Panel Docente" (click)="closeMobile()">
+      <div class="nav-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      </div>
+      <span class="nav-label" *ngIf="!isCollapsed">Panel Docente</span>
+    </a>
+
+    <!-- SECCIÓN ESPECIALISTA -->
+    <div class="nav-divider" *ngIf="authService.currentUser()?.role && authService.currentUser()!.role >= 2 && authService.currentUser()!.role <= 7"></div>
+    <p class="nav-section-title" *ngIf="!isCollapsed && authService.currentUser()?.role && authService.currentUser()!.role >= 2 && authService.currentUser()!.role <= 7">Especialista</p>
+
+    <a routerLink="/especialista" routerLinkActive="active-link" class="nav-item" *ngIf="authService.currentUser()?.role && authService.currentUser()!.role >= 2 && authService.currentUser()!.role <= 7" title="Panel Especialista" (click)="closeMobile()">
+      <div class="nav-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      </div>
+      <span class="nav-label" *ngIf="!isCollapsed">Panel Especialista</span>
+    </a>
+
     <a routerLink="/perfil" routerLinkActive="active-link" class="nav-item" title="Mi Perfil" (click)="closeMobile()">
       <div class="nav-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -29,18 +62,18 @@
       <span class="nav-label" *ngIf="!isCollapsed">Mi Perfil</span>
     </a>
 
-    <!-- SECCIÓN MAESTRO: Gestión Pedagógica -->
+    <!-- SECCIÓN MAESTRO: Gestión Pedagógica (Para Admin y Especialistas que crean contenido) -->
     <div class="nav-divider" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')"></div>
-    <p class="nav-section-title" *ngIf="!isCollapsed && authService.hasPermission('GESTION_ACTIVIDADES')">Gestión Pedagógica</p>
+    <p class="nav-section-title" *ngIf="!isCollapsed && authService.hasPermission('GESTION_ACTIVIDADES')">Contenido y Alumnos</p>
 
     <a routerLink="/actividades/builder" routerLinkActive="active-link" class="nav-item mvp-master-item" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')" title="Panel Maestro" (click)="closeMobile()">
       <div class="nav-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon" style="color: #a855f7;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
-      <span class="nav-label" style="font-weight: 700; color: #e9d5ff;" *ngIf="!isCollapsed">Panel Maestro</span>
+      <span class="nav-label" style="font-weight: 700; color: #e9d5ff;" *ngIf="!isCollapsed">Creador Actividades</span>
     </a>
 
-    <a routerLink="/gestion-user" routerLinkActive="active-link" class="nav-item" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES')" title="Gestión de Alumnos" (click)="closeMobile()">
+    <a routerLink="/gestion-user" routerLinkActive="active-link" class="nav-item" *ngIf="authService.hasPermission('GESTION_ACTIVIDADES') || authService.currentUser()?.role === 8" title="Gestión de Alumnos" (click)="closeMobile()">
       <div class="nav-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
       </div>
@@ -59,7 +92,7 @@
     <div class="nav-divider" *ngIf="authService.hasPermission('LECTURA_ALUMNO') && !authService.hasPermission('GESTION_ACTIVIDADES')"></div>
     <p class="nav-section-title" *ngIf="!isCollapsed && authService.hasPermission('LECTURA_ALUMNO') && !authService.hasPermission('GESTION_ACTIVIDADES')">Mi Aprendizaje</p>
 
-    <a routerLink="/lecciones" routerLinkActive="active-link" class="nav-item" *ngIf="authService.hasPermission('LECTURA_ALUMNO') && !authService.hasPermission('GESTION_ACTIVIDADES')" title="Mis Lecciones" (click)="closeMobile()">
+    <a routerLink="/lecciones" routerLinkActive="active-link" class="nav-item" *ngIf="authService.hasPermission('LECTURA_ALUMNO')" title="Mis Lecciones" (click)="closeMobile()">
       <div class="nav-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
       </div>

@@ -4,6 +4,7 @@ import { PwaInstallBanner } from './shared/components/pwa-install-banner/pwa-ins
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet, PwaInstallBanner],
   templateUrl: './app.html',
   styleUrl: './app.css',

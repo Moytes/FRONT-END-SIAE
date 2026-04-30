@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-models';
 
-export const API_BASE_URL = 'https://siae-backend-v2.onrender.com';
+// En desarrollo, el proxy configurado en angular.json redirigirá las peticiones /api a Render.
+// En producción (Vercel/Render), se puede configurar la URL base real o usar rutas relativas si están en el mismo dominio.
+export const API_BASE_URL = ''; 
 
 @Injectable({
   providedIn: 'root',

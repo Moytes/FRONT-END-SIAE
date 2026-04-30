@@ -1,0 +1,445 @@
+<div class="admin-wrapper">
+  <!-- Master Header -->
+  <header class="admin-header">
+    <div class="header-title">
+      <h1>Panel Maestro</h1>
+      <p>Control y gestión global del ecosistema institucional</p>
+    </div>
+    <div class="header-actions" [ngSwitch]="activeTab()">
+      <button *ngSwitchCase="'years'" class="btn btn-primary" (click)="openModal('year')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Nuevo Ciclo
+      </button>
+      <button *ngSwitchCase="'zones'" class="btn btn-primary" (click)="openModal('zone')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        Nueva Zona
+      </button>
+      <button *ngSwitchCase="'schools'" class="btn btn-primary" (click)="openModal('school')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Registrar Escuela
+      </button>
+      <button *ngSwitchCase="'groups'" class="btn btn-primary" (click)="openModal('group')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Aperturar Grupo
+      </button>
+      <button *ngSwitchCase="'users'" class="btn btn-primary" (click)="openModal('user')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+        Nuevo Colaborador
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation System -->
+  <nav class="admin-nav">
+    <button class="nav-item" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Resumen
+    </button>
+    <button class="nav-item" [class.active]="activeTab() === 'years'" (click)="setTab('years')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Ciclos
+    </button>
+    <button class="nav-item" [class.active]="activeTab() === 'zones'" (click)="setTab('zones')">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+      Zonas
+    </button>
+    <button class="nav-item" [class.active]="activeTab() === 'schools'" (click)="setTab('schools')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+      Escuelas
+    </button>
+    <button class="nav-item" [class.active]="activeTab() === 'groups'" (click)="setTab('groups')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      Grupos
+    </button>
+    <button class="nav-item" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      Usuarios
+    </button>
+  </nav>
+
+  <!-- Statistics Grid -->
+  <div class="stats-container" *ngIf="activeTab() === 'overview'">
+    <div class="stat-card" (click)="setTab('users')">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+      </div>
+      <div class="stat-info">
+        <span class="value">{{ users().length }}</span>
+        <span class="label">Usuarios</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="setTab('schools')">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </div>
+      <div class="stat-info">
+        <span class="value">{{ schools().length }}</span>
+        <span class="label">Escuelas</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="setTab('groups')">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+      </div>
+      <div class="stat-info">
+        <span class="value">{{ groups().length }}</span>
+        <span class="label">Grupos</span>
+      </div>
+    </div>
+    <div class="stat-card" (click)="setTab('zones')">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+      </div>
+      <div class="stat-info">
+        <span class="value">{{ zones().length }}</span>
+        <span class="label">Zonas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Management -->
+  <div class="content-area">
+    <div class="table-header">
+      <h2 [ngSwitch]="activeTab()">
+        <span *ngSwitchCase="'overview'">Personal Reciente</span>
+        <span *ngSwitchCase="'years'">Ciclos Escolares</span>
+        <span *ngSwitchCase="'zones'">Zonas Escolares</span>
+        <span *ngSwitchCase="'schools'">Instituciones Registradas</span>
+        <span *ngSwitchCase="'groups'">Oferta Académica</span>
+        <span *ngSwitchCase="'users'">Directorio de Usuarios</span>
+      </h2>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table" [ngSwitch]="activeTab()">
+        
+        <!-- School Years Table -->
+        <tbody *ngSwitchCase="'years'">
+          <tr *ngFor="let year of schoolYears()">
+            <td>
+              <div style="font-weight: 700; font-size: 1.1rem;">{{ year.name }}</div>
+              <div style="font-size: 0.85rem; color: var(--admin-text-muted);">{{ year.startDate | date:'mediumDate' }} - {{ year.endDate | date:'mediumDate' }}</div>
+            </td>
+            <td>
+              <span [class.badge-active]="year.isActive" [style.color]="year.isActive ? 'var(--admin-success)' : 'var(--admin-text-muted)'">
+                {{ year.isActive ? 'Ciclo Vigente' : 'Ciclo Pasado' }}
+              </span>
+            </td>
+            <td style="text-align: right; color: var(--admin-text-muted);">ID: {{ year.id }}</td>
+          </tr>
+        </tbody>
+
+        <!-- Zones Table -->
+        <tbody *ngSwitchCase="'zones'">
+          <tr *ngFor="let zone of zones()" (click)="viewZone(zone)" style="cursor: pointer;">
+            <td>
+              <div style="font-weight: 700; font-size: 1.1rem;">Zona {{ zone.number }}</div>
+              <div style="font-size: 0.85rem; color: var(--admin-text-muted);">{{ zone.name || 'Sin nombre' }}</div>
+            </td>
+            <td><code>{{ zone.cct }}</code></td>
+            <td style="color: var(--admin-text-secondary);">{{ zone.description || 'Sin descripción' }}</td>
+          </tr>
+        </tbody>
+        
+        <!-- Overview & Users Table -->
+        <tbody *ngSwitchCase="'overview'">
+          <tr *ngFor="let user of users().slice(0, 6)">
+            <td>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--admin-primary-light);">
+                  {{ user.name[0] }}{{ user.fatherLastName[0] }}
+                </div>
+                <div>
+                  <div style="font-weight: 700;">{{ user.name }} {{ user.fatherLastName }}</div>
+                  <div style="font-size: 0.8rem; color: var(--admin-text-muted);">{{ user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge">{{ getRoleLabel(user.role) }}</span></td>
+            <td><span class="badge-active">Activo</span></td>
+            <td style="text-align: right; color: var(--admin-text-secondary);">{{ user.createdAt | date:'short' }}</td>
+          </tr>
+        </tbody>
+
+        <tbody *ngSwitchCase="'users'">
+          <tr *ngFor="let user of users()">
+            <td><strong>{{ user.name }} {{ user.fatherLastName }}</strong></td>
+            <td>{{ user.email }}</td>
+            <td><span class="role-badge">{{ getRoleLabel(user.role) }}</span></td>
+            <td>{{ user.schoolZoneId || 'Acceso Global' }}</td>
+          </tr>
+        </tbody>
+
+        <!-- Schools Table -->
+        <tbody *ngSwitchCase="'schools'">
+          <tr *ngFor="let school of schools()">
+            <td>
+              <div style="font-weight: 700; font-size: 1.1rem;">{{ school.name }}</div>
+              <div style="font-size: 0.85rem; color: var(--admin-text-muted);">ID: {{ school.id }}</div>
+            </td>
+            <td><code>{{ school.cct }}</code></td>
+            <td>{{ school.schoolZoneName }}</td>
+          </tr>
+        </tbody>
+
+        <!-- Groups Table -->
+        <tbody *ngSwitchCase="'groups'">
+          <tr *ngFor="let group of groups()">
+            <td><div style="font-weight: 700;">{{ group.name }}</div></td>
+            <td>{{ group.grade }}° Grado</td>
+            <td>{{ group.schoolName }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MASTER MODALS SYSTEM -->
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay" *ngIf="showModal() !== 'none'">
+    
+    <!-- SCHOOL YEAR MODAL -->
+    <div class="modal-box" *ngIf="showModal() === 'year'">
+      <div class="modal-header">
+        <h3>Nuevo Ciclo Escolar</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createYear()">
+          <div class="input-group">
+            <label>Nombre del Ciclo</label>
+            <input type="text" name="yname" [(ngModel)]="yearForm.name" class="admin-input" placeholder="Ej: 2025-2026" required>
+          </div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Fecha de Inicio</label>
+              <input type="date" name="ystart" [(ngModel)]="yearForm.startDate" class="admin-input" required>
+            </div>
+            <div class="input-group">
+              <label>Fecha de Fin</label>
+              <input type="date" name="yend" [(ngModel)]="yearForm.endDate" class="admin-input" required>
+            </div>
+          </div>
+          <div class="input-group" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem;">
+            <input type="checkbox" name="yactive" [(ngModel)]="yearForm.isActive" id="yactive" style="width: 1.2rem; height: 1.2rem;">
+            <label for="yactive" style="margin-bottom: 0; cursor: pointer;">Establecer como ciclo vigente (desactivará el anterior)</label>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" style="flex: 1" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 2">Aperturar Ciclo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW ZONE DETAILS MODAL -->
+    <div class="modal-box" *ngIf="showModal() === 'view-zone' && selectedZone()">
+      <div class="modal-header">
+        <h3>Detalles de la Zona</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+              <label style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 800;">Número oficial</label>
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--admin-primary-light);">{{ selectedZone()?.number }}</div>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 800;">Clave CCT</label>
+              <div style="font-size: 1.25rem; font-weight: 600; font-family: monospace;">{{ selectedZone()?.cct }}</div>
+            </div>
+          </div>
+          
+          <div>
+            <label style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 800;">Nombre de la Zona</label>
+            <div style="font-size: 1.1rem; color: var(--admin-text-primary); margin-top: 0.5rem;">{{ selectedZone()?.name || 'No especificado' }}</div>
+          </div>
+
+          <div style="background: rgba(129, 140, 248, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(129, 140, 248, 0.1);">
+            <label style="font-size: 0.75rem; color: var(--admin-text-muted); text-transform: uppercase; font-weight: 800;">Descripción / Notas</label>
+            <div style="font-size: 1rem; color: var(--admin-text-secondary); margin-top: 0.75rem; line-height: 1.6;">
+              {{ selectedZone()?.description || 'Esta zona no cuenta con observaciones registradas en el sistema actualmente.' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" style="width: 100%" (click)="closeModal()">Cerrar Vista</button>
+      </div>
+    </div>
+
+    <!-- ZONE MODAL (Creation) -->
+    <div class="modal-box" *ngIf="showModal() === 'zone'">
+      <div class="modal-header">
+        <h3>Nueva Zona Escolar</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createZone()">
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Número de Zona</label>
+              <input type="text" name="znum" [(ngModel)]="zoneForm.number" class="admin-input" placeholder="Ej: 014" required>
+            </div>
+            <div class="input-group">
+              <label>CCT de la Zona</label>
+              <input type="text" name="zcct" [(ngModel)]="zoneForm.cct" class="admin-input" placeholder="15FJS..." required>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Nombre Descriptivo</label>
+            <input type="text" name="zname" [(ngModel)]="zoneForm.name" class="admin-input" placeholder="Ej: Zona Sur - Educación Especial">
+          </div>
+          <div class="input-group">
+            <label>Descripción / Observaciones</label>
+            <textarea name="zdesc" [(ngModel)]="zoneForm.description" class="admin-input" rows="3"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" style="flex: 1" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 2">Guardar Zona</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- SCHOOL MODAL -->
+    <div class="modal-box" *ngIf="showModal() === 'school'">
+      <div class="modal-header">
+        <h3>Nueva Escuela</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createSchool()">
+          <div class="input-group">
+            <label>Nombre de la Institución</label>
+            <input type="text" name="name" [(ngModel)]="schoolForm.name" class="admin-input" placeholder="Ej: Primaria Miguel Hidalgo" required>
+          </div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Clave CCT</label>
+              <input type="text" name="cct" [(ngModel)]="schoolForm.cct" class="admin-input" placeholder="15EPR..." required>
+            </div>
+            <div class="input-group">
+              <label>Zona Escolar</label>
+              <select name="zone" [(ngModel)]="schoolForm.schoolZoneId" class="admin-input" required>
+                <option value="" disabled>Seleccione...</option>
+                <option *ngFor="let zone of zones()" [value]="zone.id">{{ zone.name }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" style="flex: 1" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 2">Guardar Institución</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- GROUP MODAL -->
+    <div class="modal-box" *ngIf="showModal() === 'group'">
+      <div class="modal-header">
+        <h3>Apertura de Grupo</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createGroup()">
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Identificador de Grupo (Sección)</label>
+              <input type="text" name="gsection" [(ngModel)]="groupForm.section" class="admin-input" placeholder="Ej: A, B, Matutino" required>
+            </div>
+            <div class="input-group">
+              <label>Grado Escolar</label>
+              <select name="grade" [ngModel]="groupForm.grade" (ngModelChange)="groupForm.grade = +$event" class="admin-input" required>
+                <option *ngFor="let g of [1,2,3,4,5,6]" [value]="g">{{ g }}° Grado</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Centro de Trabajo (Escuela)</label>
+              <select name="school" [(ngModel)]="groupForm.schoolId" class="admin-input" required>
+                <option value="" disabled>Vincular a escuela...</option>
+                <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Ciclo Escolar</label>
+              <select name="year" [(ngModel)]="groupForm.schoolYearId" class="admin-input" required>
+                <option value="" disabled>Seleccione ciclo...</option>
+                <option *ngFor="let year of schoolYears()" [value]="year.id">{{ year.name }}</option>
+              </select>
+              <div *ngIf="schoolYears().length === 0" style="color: var(--admin-error); font-size: 0.8rem; margin-top: 0.5rem; font-weight: 700;">
+                ⚠️ ALERTA: Debes crear un Ciclo Escolar primero.
+              </div>
+              <div *ngIf="groupForm.schoolYearId === '' && schoolYears().length > 0" style="color: var(--admin-warning); font-size: 0.8rem; margin-top: 0.5rem;">
+                ⚠️ Por favor selecciona un ciclo de la lista.
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" style="flex: 1" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 2">Crear Grupo Académico</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- USER MODAL -->
+    <div class="modal-box" *ngIf="showModal() === 'user'">
+      <div class="modal-header">
+        <h3>Nuevo Colaborador</h3>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createUser()">
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Nombre(s)</label>
+              <input type="text" name="uname" [(ngModel)]="userForm.name" class="admin-input" required>
+            </div>
+            <div class="input-group">
+              <label>Apellido Paterno</label>
+              <input type="text" name="uap" [(ngModel)]="userForm.fatherLastName" class="admin-input" required>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Correo Institucional</label>
+            <input type="email" name="uemail" [(ngModel)]="userForm.email" class="admin-input" placeholder="usuario@siae.edu.mx" required>
+          </div>
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Contraseña Acceso</label>
+              <input type="password" name="upass" [(ngModel)]="userForm.password" class="admin-input" required>
+            </div>
+            <div class="input-group">
+              <label>Rol de Sistema</label>
+              <select name="urole" [(ngModel)]="userForm.role" class="admin-input" required>
+                <option *ngFor="let role of roles()" [value]="role.key">{{ role.label }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" style="flex: 1" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="flex: 2">Dar de Alta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
