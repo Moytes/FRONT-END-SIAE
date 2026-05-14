@@ -14,7 +14,7 @@ export class CieService {
 
   /** GET /api/cie/catalogos/dimensiones */
   getDimensions(): Observable<CIEDimensionCatalog[]> {
-    return this.api.get<CIEDimensionCatalog>('api/cie/catalogos/dimensiones');
+    return this.api.get<CIEDimensionCatalog[]>('api/cie/catalogos/dimensiones');
   }
 
   /** GET /api/cie/evaluaciones?studentId=&schoolYearId=&dimensionId= */
@@ -24,7 +24,7 @@ export class CieService {
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     if (dimensionId) params.push(`dimensionId=${dimensionId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<CIEEvaluationListItem>(`api/cie/evaluaciones${qs}`);
+    return this.api.get<CIEEvaluationListItem[]>(`api/cie/evaluaciones${qs}`);
   }
 
   /** POST /api/cie/evaluaciones */

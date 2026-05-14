@@ -14,7 +14,7 @@ export class TeaService {
 
   /** GET /api/tea/indicadores */
   getIndicators(): Observable<TEAIndicatorCatalog[]> {
-    return this.api.get<TEAIndicatorCatalog>('api/tea/indicadores');
+    return this.api.get<TEAIndicatorCatalog[]>('api/tea/indicadores');
   }
 
   /** GET /api/tea/screenings?studentId=&schoolYearId=&alertLevel= */
@@ -24,7 +24,7 @@ export class TeaService {
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     if (alertLevel !== undefined) params.push(`alertLevel=${alertLevel}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<TEAScreeningListItem>(`api/tea/screenings${qs}`);
+    return this.api.get<TEAScreeningListItem[]>(`api/tea/screenings${qs}`);
   }
 
   /** POST /api/tea/screenings */

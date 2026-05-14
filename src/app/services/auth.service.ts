@@ -1,7 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { API_BASE_URL } from '../core/services/api';
 import {
   CurrentUser,
   LoginRequest,
@@ -82,11 +81,11 @@ export class AuthService {
     try {
       const body: LoginRequest = { email, password };
       const res = await firstValueFrom(
-        this.http.post<ApiResponse<LoginResponse>>(`${API_BASE_URL}/api/auth/login`, body)
+        this.http.post<ApiResponse<LoginResponse>>('api/auth/login', body)
       );
 
-      if (res.statusCode === 200 && res.data.length > 0) {
-        const { token } = res.data[0];
+      if (res.statusCode === 200 && res.data) {
+        const { token } = res.data;
         localStorage.setItem(TOKEN_KEY, token);
 
         // Fetch full user profile
@@ -104,10 +103,10 @@ export class AuthService {
   async loadMe(): Promise<void> {
     try {
       const res = await firstValueFrom(
-        this.http.get<ApiResponse<CurrentUser>>(`${API_BASE_URL}/api/auth/me`)
+        this.http.get<ApiResponse<CurrentUser>>('api/auth/me')
       );
-      if (res.statusCode === 200 && res.data.length > 0) {
-        const user = res.data[0];
+      if (res.statusCode === 200 && res.data) {
+        const user = res.data;
         this.currentUserSignal.set(user);
         this.permissionsSignal.set(rolesPermissions(user.role));
         localStorage.setItem(SESSION_KEY, JSON.stringify(user));
@@ -121,7 +120,7 @@ export class AuthService {
   async logout(): Promise<void> {
     try {
       await firstValueFrom(
-        this.http.post<ApiResponse<any>>(`${API_BASE_URL}/api/auth/logout`, {})
+        this.http.post<ApiResponse<any>>('api/auth/logout', {})
       );
     } catch { /* ignore */ } finally {
       localStorage.removeItem(TOKEN_KEY);

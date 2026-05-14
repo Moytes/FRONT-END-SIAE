@@ -3,43 +3,44 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-models';
+import { environment } from '../../../environments/environment';
 
-// En desarrollo, el proxy configurado en angular.json redirigirá las peticiones /api a Render.
-// En producción (Vercel/Render), se puede configurar la URL base real o usar rutas relativas si están en el mismo dominio.
-export const API_BASE_URL = ''; 
+export const API_BASE_URL = environment.apiUrl;
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  readonly baseUrl = API_BASE_URL;
-
   constructor(private http: HttpClient) {}
 
-  /** GET — returns the unwrapped data array */
-  get<T>(endpoint: string): Observable<T[]> {
+  /** 
+   * GET — Retorna directamente los datos (data) del JSchema.
+   */
+  get<T>(endpoint: string): Observable<T> {
     return this.http
-      .get<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`)
+      .get<ApiResponse<T>>(endpoint)
       .pipe(map(r => r.data));
   }
 
-  /** GET — returns the full ApiResponse */
+  /** 
+   * GET RAW — Retorna el ApiResponse completo.
+   */
   getRaw<T>(endpoint: string): Observable<ApiResponse<T>> {
-    return this.http.get<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`);
+    return this.http.get<ApiResponse<T>>(endpoint);
   }
 
-  /** POST — returns the full ApiResponse */
+  /** POST — Retorna el ApiResponse completo */
   post<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
-    return this.http.post<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, body);
+    return this.http.post<ApiResponse<T>>(endpoint, body);
   }
 
-  /** PUT — returns the full ApiResponse */
+  /** PUT — Retorna el ApiResponse completo */
   put<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
-    return this.http.put<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`, body);
+    return this.http.put<ApiResponse<T>>(endpoint, body);
   }
 
-  /** DELETE — returns the full ApiResponse */
+  /** DELETE — Retorna el ApiResponse completo */
   delete<T>(endpoint: string): Observable<ApiResponse<T>> {
-    return this.http.delete<ApiResponse<T>>(`${this.baseUrl}/${endpoint}`);
+    return this.http.delete<ApiResponse<T>>(endpoint);
   }
 }

@@ -22,7 +22,7 @@ export class CatalogService {
   /** GET /api/catalogos/ciclos-escolares?onlyActive= */
   getSchoolYears(onlyActive?: boolean): Observable<SchoolYear[]> {
     const qs = onlyActive !== undefined ? `?onlyActive=${onlyActive}` : '';
-    return this.api.get<SchoolYear>(`api/catalogos/ciclos-escolares${qs}`);
+    return this.api.get<SchoolYear[]>(`api/catalogos/ciclos-escolares${qs}`);
   }
 
   /** POST /api/catalogos/ciclos-escolares */
@@ -32,18 +32,18 @@ export class CatalogService {
 
   /** GET /api/catalogos/zonas-escolares */
   getSchoolZones(): Observable<SchoolZone[]> {
-    return this.api.get<SchoolZone>('api/catalogos/zonas-escolares');
+    return this.api.get<SchoolZone[]>('api/catalogos/zonas-escolares');
   }
 
   /** GET /api/catalogos/escuelas?schoolZoneId= */
   getSchools(schoolZoneId?: string): Observable<School[]> {
     const qs = schoolZoneId ? `?schoolZoneId=${schoolZoneId}` : '';
-    return this.api.get<School>(`api/catalogos/escuelas${qs}`);
+    return this.api.get<School[]>(`api/catalogos/escuelas${qs}`);
   }
 
   /** GET /api/catalogos/grados */
   getGrades(): Observable<EnumOption[]> {
-    return this.api.get<EnumOption>('api/catalogos/grados');
+    return this.api.get<EnumOption[]>('api/catalogos/grados');
   }
 
   /** GET /api/catalogos/grupos?schoolId=&schoolYearId= */
@@ -52,22 +52,22 @@ export class CatalogService {
     if (schoolId) params.push(`schoolId=${schoolId}`);
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<Group>(`api/catalogos/grupos${qs}`);
+    return this.api.get<Group[]>(`api/catalogos/grupos${qs}`);
   }
 
   /** GET /api/catalogos/discapacidades */
   getDisabilities(): Observable<DisabilityCatalog[]> {
-    return this.api.get<DisabilityCatalog>('api/catalogos/discapacidades');
+    return this.api.get<DisabilityCatalog[]>('api/catalogos/discapacidades');
   }
 
   /** GET /api/catalogos/areas-atencion */
   getAttentionAreas(): Observable<AttentionArea[]> {
-    return this.api.get<AttentionArea>('api/catalogos/areas-atencion');
+    return this.api.get<AttentionArea[]>('api/catalogos/areas-atencion');
   }
 
   /** GET /api/catalogos/tipos-material */
   getMaterialTypes(): Observable<MaterialType[]> {
-    return this.api.get<MaterialType>('api/catalogos/tipos-material');
+    return this.api.get<MaterialType[]>('api/catalogos/tipos-material');
   }
 
   /** POST /api/catalogos/zonas-escolares */

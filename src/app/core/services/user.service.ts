@@ -24,7 +24,7 @@ export class UserService {
     if (schoolZoneId) params.push(`schoolZoneId=${schoolZoneId}`);
     if (schoolId) params.push(`schoolId=${schoolId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<UserListItem>(`api/usuarios${qs}`);
+    return this.api.get<UserListItem[]>(`api/usuarios${qs}`);
   }
 
   /** POST /api/usuarios */
@@ -39,7 +39,7 @@ export class UserService {
 
   /** GET /api/roles */
   getRoles(): Observable<EnumOption[]> {
-    return this.api.get<EnumOption>('api/roles');
+    return this.api.get<EnumOption[]>('api/roles');
   }
 
   /** POST /api/usuarios/{id}/grupos */

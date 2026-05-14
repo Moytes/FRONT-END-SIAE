@@ -24,7 +24,7 @@ export class CanalizationService {
     if (requesterId) params.push(`requesterId=${requesterId}`);
     if (receiverId) params.push(`receiverId=${receiverId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<CanalizationListItem>(`api/canalizaciones${qs}`);
+    return this.api.get<CanalizationListItem[]>(`api/canalizaciones${qs}`);
   }
 
   /** POST /api/canalizaciones */

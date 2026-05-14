@@ -13,7 +13,7 @@ export class NotificationService {
 
   /** GET /api/notificaciones */
   getMyNotifications(): Observable<NotificationItem[]> {
-    return this.api.get<NotificationItem>('api/notificaciones');
+    return this.api.get<NotificationItem[]>('api/notificaciones');
   }
 
   /** POST /api/notificaciones */

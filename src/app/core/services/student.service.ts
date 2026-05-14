@@ -22,11 +22,11 @@ export class StudentService {
     if (search) params.push(`search=${encodeURIComponent(search)}`);
     if (schoolId) params.push(`schoolId=${schoolId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<StudentListItem>(`api/alumnos${qs}`);
+    return this.api.get<StudentListItem[]>(`api/alumnos${qs}`);
   }
 
 
-  getStudentRecord(id: string): Observable<StudentRecord[]> {
+  getStudentRecord(id: string): Observable<StudentRecord> {
     return this.api.get<StudentRecord>(`api/alumnos/${id}`);
   }
 
@@ -42,7 +42,7 @@ export class StudentService {
 
   /** GET /api/alumnos/{id}/tutores */
   getTutors(studentId: string): Observable<TutorListItem[]> {
-    return this.api.get<TutorListItem>(`api/alumnos/${studentId}/tutores`);
+    return this.api.get<TutorListItem[]>(`api/alumnos/${studentId}/tutores`);
   }
 
   /** POST /api/alumnos/{id}/tutores */

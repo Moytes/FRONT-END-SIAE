@@ -19,7 +19,7 @@ export class AssignmentService {
 
   /** GET /api/alumnos/{id}/asignaciones */
   getAssignmentsByStudent(studentId: string): Observable<StudentAssignmentListItem[]> {
-    return this.api.get<StudentAssignmentListItem>(`api/alumnos/${studentId}/asignaciones`);
+    return this.api.get<StudentAssignmentListItem[]>(`api/alumnos/${studentId}/asignaciones`);
   }
 
   /** POST /api/asignaciones-alumnos/{id}/completar */

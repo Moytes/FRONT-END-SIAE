@@ -16,7 +16,7 @@ export class PsychoService {
     if (studentId) params.push(`studentId=${studentId}`);
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<PsychoeducationalAssessmentListItem>(`api/evaluaciones-psicopedagogicas${qs}`);
+    return this.api.get<PsychoeducationalAssessmentListItem[]>(`api/evaluaciones-psicopedagogicas${qs}`);
   }
 
   /** POST /api/evaluaciones-psicopedagogicas */

@@ -19,7 +19,7 @@ export class MaterialService {
     if (dimensionId) params.push(`dimensionId=${dimensionId}`);
     if (grade !== undefined) params.push(`grade=${grade}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<MaterialListItem>(`api/materiales${qs}`);
+    return this.api.get<MaterialListItem[]>(`api/materiales${qs}`);
   }
 
   /** POST /api/materiales */
@@ -35,7 +35,7 @@ export class MaterialService {
   /** GET /api/dialogos?materialId= */
   getDialogs(materialId?: string): Observable<any[]> {
     const qs = materialId ? `?materialId=${materialId}` : '';
-    return this.api.get<any>(`api/dialogos${qs}`);
+    return this.api.get<any[]>(`api/dialogos${qs}`);
   }
 
   /** POST /api/dialogos */
@@ -45,6 +45,6 @@ export class MaterialService {
 
   /** GET /api/cie/catalogos/dimensiones */
   getCIEDimensions(): Observable<CIEDimensionCatalog[]> {
-    return this.api.get<CIEDimensionCatalog>('api/cie/catalogos/dimensiones');
+    return this.api.get<CIEDimensionCatalog[]>('api/cie/catalogos/dimensiones');
   }
 }
