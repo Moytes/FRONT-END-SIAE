@@ -13,8 +13,8 @@
   </header>
 
   <app-sidebar #sidebar></app-sidebar>
-  <main class="main-content">
-    <div class="content-container">
+  <main class="main-content" [class.admin-layout]="isAdminRoute()">
+    <div class="content-container" [class.admin-container]="isAdminRoute()">
       <router-outlet></router-outlet>
     </div>
   </main>

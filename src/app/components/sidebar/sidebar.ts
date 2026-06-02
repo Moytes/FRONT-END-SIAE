@@ -15,6 +15,11 @@ export class Sidebar {
   router = inject(Router);
   isCollapsed = false;
   isMobileOpen = false;
+  showLogoutModal = false;
+
+  get currentUser() {
+    return this.authService.currentUser();
+  }
 
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
@@ -28,7 +33,16 @@ export class Sidebar {
     this.isMobileOpen = false;
   }
 
-  async logout() {
+  confirmLogout() {
+    this.showLogoutModal = true;
+  }
+
+  cancelLogout() {
+    this.showLogoutModal = false;
+  }
+
+  async executeLogout() {
+    this.showLogoutModal = false;
     await this.authService.logout();
     this.router.navigate(['/login']);
   }

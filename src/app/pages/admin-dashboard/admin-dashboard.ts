@@ -1,8 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { CatalogService } from '../../core/services/catalog.service';
+import { StudentService } from '../../core/services/student.service';
 import {
   UserListItem,
   School,
@@ -10,27 +12,30 @@ import {
   Group,
   SchoolYear,
   UserRole,
+  StudentListItem,
   AddSchoolRequest,
   AddGroupRequest,
   AddUserRequest,
   AddSchoolZoneRequest,
   AddSchoolYearRequest,
+  BulkAddRegistrationRequest,
   EnumOption
 } from '../../core/models/api-models';
 
-type AdminTab = 'overview' | 'years' | 'zones' | 'schools' | 'groups' | 'users';
-type ModalType = 'none' | 'year' | 'zone' | 'view-zone' | 'school' | 'group' | 'user';
+type AdminTab = 'overview' | 'years' | 'zones' | 'schools' | 'groups' | 'users' | 'students';
+type ModalType = 'none' | 'year' | 'zone' | 'view-zone' | 'school' | 'group' | 'user' | 'bulk-registration';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
 export class AdminDashboard implements OnInit {
   private userService = inject(UserService);
   private catalogService = inject(CatalogService);
+  private studentService = inject(StudentService);
 
   // State
   activeTab = signal<AdminTab>('overview');
@@ -38,11 +43,15 @@ export class AdminDashboard implements OnInit {
   loading = signal(false);
   selectedZone = signal<SchoolZone | null>(null);
 
+  // Selection for bulk actions
+  selectedStudentIds = signal<Set<string>>(new Set());
+
   // Data
   users = signal<UserListItem[]>([]);
   schools = signal<School[]>([]);
   zones = signal<SchoolZone[]>([]);
   groups = signal<Group[]>([]);
+  students = signal<StudentListItem[]>([]);
   schoolYears = signal<SchoolYear[]>([]);
   roles = signal<EnumOption[]>([]);
 
@@ -59,6 +68,11 @@ export class AdminDashboard implements OnInit {
     role: UserRole.ESPECIALISTA_APR,
     schoolZoneId: ''
   };
+  registrationForm: BulkAddRegistrationRequest = {
+    studentIds: [],
+    groupId: '',
+    schoolYearId: ''
+  };
 
   ngOnInit() {
     this.loadData();
@@ -71,15 +85,17 @@ export class AdminDashboard implements OnInit {
     this.catalogService.getSchoolZones().subscribe(res => this.zones.set(res));
     this.catalogService.getSchools().subscribe(res => this.schools.set(res));
     this.catalogService.getGroups().subscribe(res => this.groups.set(res));
+    this.studentService.getStudents().subscribe(res => this.students.set(res));
     this.loading.set(false);
   }
 
   loadCatalogs() {
     this.catalogService.getSchoolYears().subscribe(res => {
       this.schoolYears.set(res);
-      if (res.length > 0 && !this.groupForm.schoolYearId) {
-        const active = res.find(y => y.isActive) || res[0];
-        this.groupForm.schoolYearId = active.id;
+      const active = res.find(y => y.isActive) || res[0];
+      if (active) {
+        if (!this.groupForm.schoolYearId) this.groupForm.schoolYearId = active.id;
+        if (!this.registrationForm.schoolYearId) this.registrationForm.schoolYearId = active.id;
       }
     });
     this.userService.getRoles().subscribe(res => this.roles.set(res));
@@ -90,6 +106,9 @@ export class AdminDashboard implements OnInit {
   }
 
   openModal(type: ModalType) {
+    if (type === 'bulk-registration') {
+      this.registrationForm.studentIds = Array.from(this.selectedStudentIds());
+    }
     this.showModal.set(type);
   }
 
@@ -104,15 +123,23 @@ export class AdminDashboard implements OnInit {
     this.showModal.set('view-zone');
   }
 
+  toggleStudentSelection(id: string) {
+    const set = new Set(this.selectedStudentIds());
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    this.selectedStudentIds.set(set);
+  }
+
   resetForms() {
     this.yearForm = { name: '', startDate: '', endDate: '', isActive: true };
     this.zoneForm = { number: '', cct: '', name: '', description: '' };
     this.schoolForm = { name: '', cct: '', schoolZoneId: '' };
+    const activeYearId = this.schoolYears().find(y => y.isActive)?.id || this.schoolYears()[0]?.id || '';
     this.groupForm = { 
       section: '', 
       grade: 1, 
       schoolId: '', 
-      schoolYearId: this.schoolYears()[0]?.id || '' 
+      schoolYearId: activeYearId
     };
     this.userForm = {
       email: '',
@@ -121,6 +148,11 @@ export class AdminDashboard implements OnInit {
       fatherLastName: '',
       role: UserRole.ESPECIALISTA_APR,
       schoolZoneId: ''
+    };
+    this.registrationForm = {
+      studentIds: [],
+      groupId: '',
+      schoolYearId: activeYearId
     };
   }
 
@@ -164,7 +196,6 @@ export class AdminDashboard implements OnInit {
       return;
     }
 
-    // Asegurar envío de datos limpios
     const payload = {
       ...this.groupForm,
       grade: Number(this.groupForm.grade)
@@ -190,6 +221,22 @@ export class AdminDashboard implements OnInit {
         this.closeModal();
       },
       error: (err) => alert(err.error?.message || 'Error al crear usuario')
+    });
+  }
+
+  bulkRegister() {
+    if (!this.registrationForm.groupId || this.registrationForm.studentIds.length === 0) {
+      alert('Seleccione un grupo y al menos un alumno.');
+      return;
+    }
+    this.studentService.bulkAddRegistration(this.registrationForm).subscribe({
+      next: () => {
+        alert('Alumnos inscritos correctamente.');
+        this.selectedStudentIds.set(new Set());
+        this.loadData();
+        this.closeModal();
+      },
+      error: (err) => alert(err.error?.message || 'Error al inscribir alumnos')
     });
   }
 

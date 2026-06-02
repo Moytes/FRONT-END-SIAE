@@ -69,6 +69,8 @@ export interface CurrentUser {
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
+  schoolIds?: string[];
+  schoolZoneId?: string;
 }
 
 // ================================================================
@@ -85,6 +87,7 @@ export interface UserListItem {
   status: BoolStatus;
   avatarUrl?: string;
   schoolZoneId?: string;
+  schoolName?: string;
   createdAt: string;
 }
 
@@ -96,6 +99,8 @@ export interface AddUserRequest {
   motherLastName?: string;
   role: UserRole;
   schoolZoneId?: string;
+  schoolId?: string;
+  schoolYearId?: string;
   phoneNumber?: string;
   avatarUrl?: string;
 }
@@ -143,7 +148,12 @@ export interface StudentListItem {
   photoUrl?: string;
   status: BoolStatus;
   age?: number;
+  schoolId?: string;
   schoolName?: string;
+  groupId?: string;
+  groupName?: string;
+  schoolYearId?: string;
+  schoolYearName?: string;
 }
 
 export interface StudentRecord {
@@ -207,6 +217,12 @@ export interface AddRegistrationRequest {
   schoolYearId: string;
 }
 
+export interface BulkAddRegistrationRequest {
+  studentIds: string[];
+  groupId: string;
+  schoolYearId: string;
+}
+
 // ================================================================
 // CATALOGS
 // ================================================================
@@ -257,10 +273,13 @@ export interface AddSchoolRequest {
 
 export interface Group {
   id: string;
-  name: string;
+  displayName: string;
   grade: number;
+  section: string;
   schoolId: string;
-  schoolName?: string;
+  schoolName: string;
+  schoolYearId: string;
+  schoolYearName?: string;
 }
 
 export interface AddGroupRequest {

@@ -16,22 +16,25 @@ export type PermissionKey =
   | 'PLAN_ACCION'
   | 'REPORTES'
   | 'LECTURA_ALUMNO'
+  | 'GESTION_GRUPOS'
+  | 'GESTION_ESCUELAS'
   | 'ADMIN';
 
 // Map backend roles → frontend permission keys
 function rolesPermissions(role: UserRole): PermissionKey[] {
   switch (role) {
     case UserRole.ADMIN:
-      return ['GESTION_ACTIVIDADES', 'APLICACION', 'ANALISIS_IA', 'PLAN_ACCION', 'REPORTES', 'LECTURA_ALUMNO', 'ADMIN'];
+      return ['GESTION_ACTIVIDADES', 'APLICACION', 'ANALISIS_IA', 'PLAN_ACCION', 'REPORTES', 'LECTURA_ALUMNO', 'GESTION_GRUPOS', 'GESTION_ESCUELAS', 'ADMIN'];
     case UserRole.SUPERVISOR:
       return ['GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'ANALISIS_IA'];
     case UserRole.DIRECTOR_USAER:
-      return ['GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
+      return ['GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION', 'GESTION_GRUPOS', 'GESTION_ESCUELAS'];
     case UserRole.ESPECIALISTA_COM:
     case UserRole.ESPECIALISTA_PSI:
     case UserRole.ESPECIALISTA_APR:
-    case UserRole.TRABAJO_SOCIAL:
       return ['GESTION_ACTIVIDADES', 'APLICACION', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
+    case UserRole.TRABAJO_SOCIAL:
+      return ['GESTION_GRUPOS', 'LECTURA_ALUMNO', 'GESTION_ESCUELAS'];
     case UserRole.DOCENTE:
       return ['APLICACION', 'LECTURA_ALUMNO'];
     default:
@@ -170,12 +173,13 @@ export class AuthService {
       case UserRole.ESPECIALISTA_COM:
       case UserRole.ESPECIALISTA_PSI:
       case UserRole.ESPECIALISTA_APR:
-      case UserRole.TRABAJO_SOCIAL:
         return '/especialista';
+      case UserRole.TRABAJO_SOCIAL:
+        return '/gestion-grupos';
       case UserRole.DOCENTE:
         return '/docente';
       default:
-        return '/';
+        return '/login';
     }
   }
 }

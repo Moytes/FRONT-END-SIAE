@@ -269,6 +269,22 @@
   background: rgba(129, 140, 248, 0.04);
 }
 
+.admin-table tr.selected td {
+  background: rgba(99, 102, 241, 0.1);
+  border-bottom-color: var(--admin-primary-light);
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-blue { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+.badge-pink { background-color: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
 .role-badge {
   display: inline-flex;
   padding: 0.35rem 0.85rem;

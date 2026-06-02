@@ -66,11 +66,32 @@ export const routes: Routes = [
                     import('./pages/reportes/reportes').then(m => m.Reportes)
             },
             {
+                path: 'gestion-personal',
+                canActivate: [authGuard, roleGuard],
+                data: { roles: [1] },
+                loadComponent: () =>
+                    import('./pages/gestion-personal/gestion-personal').then(m => m.GestionPersonal)
+            },
+            {
                 path: 'gestion-user',
                 canActivate: [roleGuard],
                 data: { permission: 'LECTURA_ALUMNO' },
                 loadComponent: () =>
                     import('./pages/gestion-user/gestion-user').then(m => m.GestionUser)
+            },
+            {
+                path: 'gestion-grupos',
+                canActivate: [roleGuard],
+                data: { permission: 'GESTION_GRUPOS' },
+                loadComponent: () =>
+                    import('./pages/gestion-grupos/gestion-grupos').then(m => m.GestionGrupos)
+            },
+            {
+                path: 'gestion-escuelas',
+                canActivate: [roleGuard],
+                data: { permission: 'GESTION_ESCUELAS' },
+                loadComponent: () =>
+                    import('./pages/gestion-escuelas/gestion-escuelas').then(m => m.GestionEscuelas)
             },
             {
                 path: 'lecciones',

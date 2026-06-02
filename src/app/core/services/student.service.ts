@@ -17,10 +17,11 @@ export class StudentService {
   constructor(private api: ApiService) {}
 
 
-  getStudents(search?: string, schoolId?: string): Observable<StudentListItem[]> {
+  getStudents(search?: string, schoolId?: string, groupId?: string): Observable<StudentListItem[]> {
     const params: string[] = [];
     if (search) params.push(`search=${encodeURIComponent(search)}`);
     if (schoolId) params.push(`schoolId=${schoolId}`);
+    if (groupId) params.push(`groupId=${groupId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
     return this.api.get<StudentListItem[]>(`api/alumnos${qs}`);
   }
@@ -53,5 +54,10 @@ export class StudentService {
   /** POST /api/inscripciones */
   addRegistration(request: AddRegistrationRequest): Observable<ApiResponse<string>> {
     return this.api.post<string>('api/inscripciones', request);
+  }
+
+  /** POST /api/inscripciones/masiva */
+  bulkAddRegistration(request: any): Observable<ApiResponse<any>> {
+    return this.api.post<any>('api/inscripciones/masiva', request);
   }
 }

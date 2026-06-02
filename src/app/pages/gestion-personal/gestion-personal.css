@@ -4,18 +4,18 @@
   --admin-primary-dark: var(--primary-600, #4f46e5);
   --admin-primary-light: var(--primary-400, #818cf8);
   --admin-primary-glow: rgba(99, 102, 241, 0.25);
-  
+
   --admin-bg: #0b0f19; /* Deeper navy background */
   --admin-surface: #111827; /* Surface */
   --admin-surface-light: #1f2937; /* Lighter surface for hover/borders */
-  
+
   --admin-border: rgba(129, 140, 248, 0.12);
   --admin-border-focus: var(--admin-primary-light);
-  
+
   --admin-text-primary: #f8fafc; /* High contrast white */
   --admin-text-secondary: #94a3b8; /* Slate text */
   --admin-text-muted: #64748b;
-  
+
   --admin-success: #10b981;
   --admin-error: #ef4444;
   --admin-warning: #f59e0b;
@@ -124,16 +124,34 @@
   border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
-.badge {
+.role-badge {
   display: inline-flex;
-  padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 700;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--admin-primary-light);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  text-transform: uppercase;
 }
 
-.badge-blue { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
-.badge-pink { background-color: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+.school-tag {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--admin-success);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.school-tag.global {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.2);
+}
 
 .status-badge { font-size: 0.75rem; font-weight: 800; color: var(--admin-text-muted); text-transform: uppercase; }
 .status-badge.active { color: var(--admin-success); }
@@ -225,3 +243,4 @@ code { background: rgba(15, 23, 42, 0.6); color: var(--admin-primary-light); pad
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes modalSlideUp { from { opacity: 0; transform: scale(0.95) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+

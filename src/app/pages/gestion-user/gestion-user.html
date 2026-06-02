@@ -4,114 +4,170 @@
       <h1>👥 Gestión de Alumnos</h1>
       <p class="subtitle">Administra los alumnos en seguimiento pedagógico</p>
     </div>
-    <button class="add-btn" (click)="openNew()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nuevo Alumno
-    </button>
+    <div class="header-actions">
+      <button class="btn-secondary" *ngIf="selectedStudentIds().size > 0" (click)="openBulkRegistration()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Asignar a Grupo ({{selectedStudentIds().size}})
+      </button>
+      <button class="btn-primary" (click)="openNew()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo Alumno
+      </button>
+    </div>
   </header>
 
-  <!-- Buscador -->
-  <div class="search-bar">
+  <!-- Buscador (Standardized) -->
+  <div class="search-bar" style="margin-bottom: 2rem; display: flex; gap: 1rem;">
     <input
       type="text"
       [(ngModel)]="searchTerm"
       placeholder="Buscar alumno por nombre..."
-      class="search-input"
+      class="form-input"
+      style="max-width: 400px;"
       (keyup.enter)="onSearch()"
     />
-    <button class="search-btn" (click)="onSearch()">Buscar</button>
+    <button class="btn-primary" (click)="onSearch()" style="padding: 0.5rem 2rem;">Buscar</button>
   </div>
 
-  <!-- Estado de carga -->
-  <div class="loading-state" *ngIf="loading()">
-    <div class="spinner-ring"></div>
-    <p>Cargando alumnos...</p>
+  <div class="loading-state" *ngIf="loading()" style="padding: 5rem; text-align: center;">
+    <div class="spinner" style="margin: 0 auto 1rem;"></div>
+    <p style="color: var(--admin-text-secondary);">Cargando alumnos...</p>
   </div>
 
-  <!-- Error -->
-  <div class="error-state" *ngIf="error() && !loading()">
-    <p>⚠️ {{ error() }}</p>
-    <button class="retry-btn" (click)="loadStudents()">Reintentar</button>
+  <div class="table-card" *ngIf="!loading() && alumnos().length > 0">
+    <div class="table-wrapper">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Nombre Completo</th>
+            <th>CURP</th>
+            <th>Género / Edad</th>
+            <th>Academia</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of alumnos()" class="student-row" [class.selected]="selectedStudentIds().has(a.id)" (click)="toggleSelection(a.id)">
+            <td>
+              <div class="user-info" style="display: flex; align-items: center; gap: 1rem;">
+                <div class="avatar-mini">{{ a.name[0] }}{{ a.fatherLastName[0] }}</div>
+                <div style="display: flex; flex-direction: column;">
+                  <strong style="color: var(--admin-text-primary);">{{ getStudentFullName(a) }}</strong>
+                  <span style="font-size: 0.75rem; color: var(--admin-text-muted);">{{ a.email || 'Sin correo asignado' }}</span>
+                </div>
+              </div>
+            </td>
+            <td><code>{{ a.curp || '—' }}</code></td>
+            <td>
+              <span class="badge" [ngClass]="a.gender === 1 ? 'badge-blue' : 'badge-pink'">
+                {{ getGenderLabel(a.gender) }} · {{ getAge(a.birthDate) }} años
+              </span>
+            </td>
+            <td>{{ a.schoolName || 'Sin asignar' }}</td>
+            <td>
+              <button class="btn-ghost" style="padding: 0.5rem;" (click)="$event.stopPropagation(); editAlumno(a)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Formulario modal -->
-  <div class="form-overlay" *ngIf="showForm()">
-    <div class="form-card">
-      <h2>{{ editingId() !== null ? 'Editar Alumno' : 'Nuevo Alumno' }}</h2>
+  <div class="empty-state-container" *ngIf="!loading() && alumnos().length === 0" style="background: var(--admin-surface); padding: 5rem; text-align: center; border-radius: var(--admin-radius-lg); border: 2px dashed var(--admin-border);">
+    <p style="color: var(--admin-text-secondary); font-size: 1.1rem;">No se encontraron alumnos registrados en tu jurisdicción.</p>
+  </div>
+</div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nombre(s) *</label>
-          <input type="text" [(ngModel)]="formName" placeholder="Nombre" class="form-input">
+<!-- Modal de Alumno -->
+<div class="modal-overlay" *ngIf="showForm()">
+  <div class="modal-box" style="max-width: 700px;">
+    <div class="modal-header">
+      <h3>{{ editingId() !== null ? 'Actualizar Expediente' : 'Registro de Nuevo Alumno' }}</h3>
+      <button class="close-btn" (click)="cancelForm()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section">
+        <h4>Información del Estudiante</h4>
+        <div class="form-row">
+          <div class="form-group" style="padding: 0;">
+            <label>Nombre(s) *</label>
+            <input type="text" [(ngModel)]="formName" class="form-input" required>
+          </div>
+          <div class="form-group" style="padding: 0;">
+            <label>Apellido Paterno *</label>
+            <input type="text" [(ngModel)]="formFatherLastName" class="form-input" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Apellido Paterno *</label>
-          <input type="text" [(ngModel)]="formFatherLastName" placeholder="Apellido paterno" class="form-input">
+        <div class="form-row">
+          <div class="form-group" style="padding: 0;">
+            <label>Apellido Materno</label>
+            <input type="text" [(ngModel)]="formMotherLastName" class="form-input">
+          </div>
+          <div class="form-group" style="padding: 0;">
+            <label>Género *</label>
+            <select [(ngModel)]="formGender" class="form-select">
+              <option *ngFor="let opt of genderOptions" [value]="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="padding: 0;">
+            <label>Fecha de Nacimiento *</label>
+            <input type="date" [(ngModel)]="formBirthDate" class="form-input" required>
+          </div>
+          <div class="form-group" style="padding: 0;">
+            <label>CURP</label>
+            <input type="text" [(ngModel)]="formCurp" class="form-input" maxlength="18">
+          </div>
         </div>
       </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Apellido Materno</label>
-          <input type="text" [(ngModel)]="formMotherLastName" placeholder="Apellido materno (opcional)" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>Género *</label>
-          <select [(ngModel)]="formGender" class="form-select">
-            <option *ngFor="let opt of genderOptions" [value]="opt.value">{{ opt.label }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Fecha de Nacimiento *</label>
-          <input type="date" [(ngModel)]="formBirthDate" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>CURP</label>
-          <input type="text" [(ngModel)]="formCurp" placeholder="CURP (opcional)" class="form-input" maxlength="18">
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button class="btn-cancel" (click)="cancelForm()">Cancelar</button>
-        <button class="btn-save" (click)="saveForm()" [disabled]="!isFormValid()">
-          {{ editingId() ? 'Actualizar' : 'Guardar' }}
+      <div class="modal-footer" style="padding: 1rem 0 0;">
+        <button type="button" class="btn-ghost" (click)="cancelForm()">Cancelar</button>
+        <button type="button" class="btn-primary" (click)="saveForm()" [disabled]="!isFormValid()">
+          {{ editingId() ? 'Actualizar Datos' : 'Guardar Alumno' }}
         </button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Lista de alumnos -->
-  <div class="alumnos-grid" *ngIf="!loading() && !error()">
-    <div class="alumno-card" *ngFor="let a of alumnos()">
-      <div class="alumno-header">
-        <img [src]="getAvatarUrl(a.name, a.fatherLastName)" [alt]="getStudentFullName(a)" class="alumno-avatar">
-        <div class="alumno-info">
-          <h3>{{ getStudentFullName(a) }}</h3>
-          <span class="nivel-badge">{{ getGenderLabel(a.gender) }} · {{ getAge(a.birthDate) }} años</span>
-        </div>
+<!-- Modal de Inscripción -->
+<div class="modal-overlay" *ngIf="showRegistrationModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Inscripción a Grupo Académico</h3>
+      <button class="close-btn" (click)="closeRegistrationModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 2rem; color: var(--admin-text-secondary);">
+        Asignando <strong>{{ registrationForm.studentIds.length }}</strong> alumnos seleccionados.
+      </p>
+
+      <div class="form-group" style="padding: 0;">
+        <label>Grupo Destino</label>
+        <select [(ngModel)]="registrationForm.groupId" class="form-select" required>
+          <option value="" disabled>Seleccione el grupo...</option>
+          <option *ngFor="let g of groups()" [value]="g.id">
+            {{ g.displayName }} - {{ g.schoolName }}
+          </option>
+        </select>
       </div>
-      <div class="alumno-stats">
-        <div class="stat">
-          <span class="stat-value">{{ a.curp || '—' }}</span>
-          <span class="stat-label">CURP</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value text-sm">{{ a.birthDate | date:'dd/MM/yyyy' }}</span>
-          <span class="stat-label">Nacimiento</span>
-        </div>
+
+      <div class="form-group" style="padding: 0;">
+        <label>Ciclo Escolar</label>
+        <select [(ngModel)]="registrationForm.schoolYearId" class="form-select" required>
+          <option *ngFor="let year of schoolYears()" [value]="year.id">{{ year.name }}</option>
+        </select>
       </div>
-      <div class="alumno-actions">
-        <button class="action-btn edit" (click)="editAlumno(a)" title="Editar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+
+      <div class="modal-footer" style="padding: 2rem 0 0;">
+        <button class="btn-ghost" (click)="closeRegistrationModal()">Cancelar</button>
+        <button class="btn-primary" (click)="bulkRegister()" [disabled]="!registrationForm.groupId">
+          Confirmar Inscripción
         </button>
       </div>
     </div>
-  </div>
-
-  <div class="empty-state" *ngIf="!loading() && !error() && alumnos().length === 0">
-    <p>No se encontraron alumnos. Haz clic en "Nuevo Alumno" para comenzar.</p>
   </div>
 </div>

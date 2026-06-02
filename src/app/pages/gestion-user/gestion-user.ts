@@ -9,7 +9,9 @@ import {
   AddStudentRequest,
   UpdateStudentRequest,
   Gender,
-  SchoolYear
+  SchoolYear,
+  Group,
+  BulkAddRegistrationRequest
 } from '../../core/models/api-models';
 
 @Component({
@@ -26,11 +28,16 @@ export class GestionUser implements OnInit {
 
   alumnos = signal<StudentListItem[]>([]);
   schoolYears = signal<SchoolYear[]>([]);
+  groups = signal<Group[]>([]);
   loading = signal(true);
   error = signal('');
   showForm = signal(false);
+  showRegistrationModal = signal(false);
   editingId = signal<string | null>(null);
   searchTerm = '';
+
+  // Selection
+  selectedStudentIds = signal<Set<string>>(new Set());
 
   // Form fields aligned with AddStudentRequest / UpdateStudentRequest
   formName = '';
@@ -40,6 +47,13 @@ export class GestionUser implements OnInit {
   formBirthDate = '';
   formCurp = '';
 
+  // Registration Form
+  registrationForm: BulkAddRegistrationRequest = {
+    studentIds: [],
+    groupId: '',
+    schoolYearId: ''
+  };
+
   readonly Gender = Gender;
   readonly genderOptions = [
     { value: Gender.M, label: 'Masculino' },
@@ -47,7 +61,12 @@ export class GestionUser implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
     this.loadStudents();
+    this.loadCatalogs();
   }
 
   loadStudents(search?: string): void {
@@ -55,7 +74,14 @@ export class GestionUser implements OnInit {
     this.error.set('');
     this.studentService.getStudents(search).subscribe({
       next: (data) => {
-        this.alumnos.set(data);
+        const user = this.authService.currentUser();
+        // Filtrado por pertenencia para Trabajo Social (Rol 7)
+        if (user && user.role === 7 && user.schoolIds) {
+          const mySchoolIds = new Set(user.schoolIds);
+          this.alumnos.set(data.filter(a => a.schoolId && mySchoolIds.has(a.schoolId)));
+        } else {
+          this.alumnos.set(data);
+        }
         this.loading.set(false);
       },
       error: (err) => {
@@ -66,8 +92,56 @@ export class GestionUser implements OnInit {
     });
   }
 
+  loadCatalogs(): void {
+    this.catalogService.getSchoolYears().subscribe(res => {
+      this.schoolYears.set(res);
+      const active = res.find(y => y.isActive) || res[0];
+      if (active && !this.registrationForm.schoolYearId) {
+        this.registrationForm.schoolYearId = active.id;
+      }
+    });
+    this.catalogService.getGroups().subscribe(res => this.groups.set(res));
+  }
+
   onSearch(): void {
     this.loadStudents(this.searchTerm || undefined);
+  }
+
+  toggleSelection(id: string): void {
+    const set = new Set(this.selectedStudentIds());
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    this.selectedStudentIds.set(set);
+  }
+
+  openBulkRegistration(): void {
+    if (this.selectedStudentIds().size === 0) return;
+    this.registrationForm.studentIds = Array.from(this.selectedStudentIds());
+    this.showRegistrationModal.set(true);
+  }
+
+  closeRegistrationModal(): void {
+    this.showRegistrationModal.set(false);
+    this.registrationForm.groupId = '';
+  }
+
+  bulkRegister(): void {
+    if (!this.registrationForm.groupId || this.registrationForm.studentIds.length === 0) {
+      alert('Seleccione un grupo y al menos un alumno.');
+      return;
+    }
+
+    this.studentService.bulkAddRegistration(this.registrationForm).subscribe({
+      next: () => {
+        alert('Alumnos inscritos correctamente en el grupo.');
+        this.selectedStudentIds.set(new Set());
+        this.loadStudents();
+        this.closeRegistrationModal();
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Error al inscribir alumnos');
+      }
+    });
   }
 
   getStudentFullName(a: StudentListItem): string {

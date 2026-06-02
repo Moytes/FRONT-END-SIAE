@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, Router } from '@angular/router';
 import { Sidebar } from '../../components/sidebar/sidebar';
 import { CommonModule } from '@angular/common';
 
@@ -10,4 +10,10 @@ import { CommonModule } from '@angular/common';
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
-export class MainLayout { }
+export class MainLayout {
+  private router = inject(Router);
+
+  isAdminRoute(): boolean {
+    return this.router.url.startsWith('/admin');
+  }
+}
