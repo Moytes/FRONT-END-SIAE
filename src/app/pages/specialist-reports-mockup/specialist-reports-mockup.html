@@ -1,0 +1,217 @@
+<div class="reports-layout">
+  <!-- Sidebar del Módulo de Reportes -->
+  <aside class="reports-sidebar">
+    <div class="sidebar-header">
+      <div class="module-badge">Especialista</div>
+      <h2>Centro de Reportes</h2>
+    </div>
+    
+    <nav class="reports-nav">
+      <button 
+        *ngFor="let item of reports" 
+        class="nav-btn" 
+        [class.active]="activeTab === item.id"
+        (click)="setTab(item.id)">
+        <span class="icon-box">
+          <!-- Placeholder para iconos (usando SVG simples) -->
+          <svg *ngIf="item.icon === 'activity'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <svg *ngIf="item.icon === 'users'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg *ngIf="item.icon === 'file-text'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <svg *ngIf="item.icon === 'alert-triangle'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg *ngIf="item.icon === 'award'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        </span>
+        <span class="label">{{ item.name }}</span>
+      </button>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <button class="export-all-btn">
+        Descargar Pack Mensual
+      </button>
+    </div>
+  </aside>
+
+  <!-- Contenido Principal -->
+  <main class="reports-content">
+    <header class="content-header">
+      <div class="title-group">
+        <h1 *ngIf="activeTab === 'overview'">Vista General del Sistema</h1>
+        <h1 *ngIf="activeTab === 'students'">Seguimiento Individual de Alumnos</h1>
+        <h1 *ngIf="activeTab === 'cie'">Resumen de Evaluaciones CIE</h1>
+        <h1 *ngIf="activeTab === 'tea'">Monitor de Alertas TEA</h1>
+        <h1 *ngIf="activeTab === 'activities'">Rendimiento en Actividades</h1>
+        <p class="subtitle">Análisis detallado y métricas de desempeño</p>
+      </div>
+      
+      <div class="action-group">
+        <div class="date-picker">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Junio 2026</span>
+        </div>
+        <button class="primary-btn">Generar PDF</button>
+      </div>
+    </header>
+
+    <!-- Vista: Overview -->
+    <div class="view-container" *ngIf="activeTab === 'overview'">
+      <div class="stats-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Alumnos Atendidos</span>
+            <span class="kpi-trend positive">+12%</span>
+          </div>
+          <div class="kpi-value">1,248</div>
+          <div class="kpi-footer">vs. mes anterior</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Evaluaciones CIE</span>
+            <span class="kpi-trend">Estable</span>
+          </div>
+          <div class="kpi-value">342</div>
+          <div class="kpi-footer">Completadas este ciclo</div>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-header">
+            <span class="kpi-title">Alertas TEA Críticas</span>
+            <span class="kpi-trend negative">+3</span>
+          </div>
+          <div class="kpi-value">18</div>
+          <div class="kpi-footer">Requieren atención inmediata</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-container">
+          <h3>Distribución por Áreas</h3>
+          <div class="chart-mockup doughnut">
+            <!-- Representación visual de un gráfico -->
+            <div class="pie-slice p1"></div>
+            <div class="pie-slice p2"></div>
+            <div class="pie-slice p3"></div>
+            <div class="chart-center">
+              <span class="total">100%</span>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><span class="dot d1"></span> Motricidad</div>
+            <div class="legend-item"><span class="dot d2"></span> Lenguaje</div>
+            <div class="legend-item"><span class="dot d3"></span> Social</div>
+          </div>
+        </div>
+
+        <div class="chart-container grow">
+          <h3>Actividad Reciente</h3>
+          <div class="chart-mockup line">
+            <svg class="line-svg" viewBox="0 0 400 100">
+              <path d="M0,80 Q50,60 100,70 T200,30 T300,50 T400,20" fill="none" stroke="#6366f1" stroke-width="3" />
+              <circle cx="100" cy="70" r="4" fill="#6366f1" />
+              <circle cx="200" cy="30" r="4" fill="#6366f1" />
+              <circle cx="300" cy="50" r="4" fill="#6366f1" />
+            </svg>
+          </div>
+          <div class="chart-axis">
+            <span>Lun</span><span>Mar</span><span>Mie</span><span>Jue</span><span>Vie</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista: Students Table -->
+    <div class="view-container" *ngIf="activeTab === 'students'">
+      <div class="filter-strip">
+        <input type="text" placeholder="Buscar por nombre o CURP..." class="search-input">
+        <select class="form-select"><option>Todos los Grados</option></select>
+        <select class="form-select"><option>Estado: Todos</option></select>
+      </div>
+
+      <div class="data-card">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Progreso</th>
+              <th>Última Evaluación</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar-mini">AA</div>
+                  <div class="user-meta">
+                    <span class="name">Alejandro Arreola</span>
+                    <span class="sub">3º Primaria - Benito Juárez</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="progress-container">
+                  <div class="progress-track"><div class="progress-bar" style="width: 75%"></div></div>
+                  <span class="pct">75%</span>
+                </div>
+              </td>
+              <td>12/06/2026</td>
+              <td><span class="status-tag active">En Proceso</span></td>
+              <td><button class="icon-btn">Ver</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="avatar-mini bg-indigo">MR</div>
+                  <div class="user-meta">
+                    <span class="name">Mariana Rodríguez</span>
+                    <span class="sub">1º Primaria - Francisco I. Madero</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="progress-container">
+                  <div class="progress-track"><div class="progress-bar" style="width: 100%"></div></div>
+                  <span class="pct">100%</span>
+                </div>
+              </td>
+              <td>10/06/2026</td>
+              <td><span class="status-tag completed">Completado</span></td>
+              <td><button class="icon-btn">Ver</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Vista: TEA Alerts -->
+    <div class="view-container" *ngIf="activeTab === 'tea'">
+      <div class="alert-grid">
+        <div class="alert-card critical">
+          <div class="alert-header">
+            <span class="alert-level">ALERTA ALTA</span>
+            <span class="alert-date">Hace 2 horas</span>
+          </div>
+          <h3 class="student-name">Rodrigo Sánchez P.</h3>
+          <p class="alert-desc">Se detectaron 8 indicadores críticos en el último screening de interacción social.</p>
+          <div class="alert-actions">
+            <button class="btn-outline">Ver Detalle</button>
+            <button class="btn-solid-danger">Agendar Cita</button>
+          </div>
+        </div>
+        
+        <div class="alert-card medium">
+          <div class="alert-header">
+            <span class="alert-level">ALERTA MEDIA</span>
+            <span class="alert-date">Ayer</span>
+          </div>
+          <h3 class="student-name">Karla V. Gómez</h3>
+          <p class="alert-desc">Leve retraso detectado en comunicación no verbal y contacto visual.</p>
+          <div class="alert-actions">
+            <button class="btn-outline">Ver Detalle</button>
+            <button class="btn-solid-warning">Notificar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

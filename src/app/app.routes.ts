@@ -66,6 +66,13 @@ export const routes: Routes = [
                     import('./pages/reportes/reportes').then(m => m.Reportes)
             },
             {
+                path: 'reportes-especialista',
+                canActivate: [roleGuard],
+                data: { permission: 'PLAN_ACCION' },
+                loadComponent: () =>
+                    import('./pages/specialist-reports-mockup/specialist-reports-mockup').then(m => m.SpecialistReportsMockup)
+            },
+            {
                 path: 'gestion-personal',
                 canActivate: [authGuard, roleGuard],
                 data: { roles: [1] },
