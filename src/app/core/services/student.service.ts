@@ -56,8 +56,11 @@ export class StudentService {
     return this.api.post<string>('api/inscripciones', request);
   }
 
-  /** POST /api/inscripciones/masiva */
+  // /** POST /api/inscripciones/masiva */
   bulkAddRegistration(request: any): Observable<ApiResponse<any>> {
-    return this.api.post<any>('api/inscripciones/masiva', request);
+    // return this.api.post<any>('api/inscripciones/masiva', request);
+    return new Observable(subscriber => {
+      subscriber.error(new Error('bulkAddRegistration no está implementado en SAE V3'));
+    });
   }
 }

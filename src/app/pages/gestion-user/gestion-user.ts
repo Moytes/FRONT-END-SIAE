@@ -138,7 +138,7 @@ export class GestionUser implements OnInit {
         this.loadStudents();
         this.closeRegistrationModal();
       },
-      error: (err) => {
+      error: (err: any) => {
         alert(err.error?.message || 'Error al inscribir alumnos');
       }
     });

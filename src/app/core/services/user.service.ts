@@ -20,16 +20,41 @@ export class UserService {
   /** GET /api/usuarios */
   getUsers(role?: UserRole, schoolZoneId?: string, schoolId?: string): Observable<UserListItem[]> {
     const params: string[] = [];
-    if (role !== undefined) params.push(`role=${role}`);
+    if (role !== undefined) params.push(`roleId=${role}`);
     if (schoolZoneId) params.push(`schoolZoneId=${schoolZoneId}`);
     if (schoolId) params.push(`schoolId=${schoolId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<UserListItem[]>(`api/usuarios${qs}`);
+    return this.api.get<any[]>(`api/usuarios${qs}`).pipe(
+      map(users => users.map(u => ({
+        ...u,
+        role: u.roleId ?? u.role,
+        status: u.activo ? 1 : 0,
+        phoneNumber: u.phone ?? u.phoneNumber
+      })))
+    );
   }
 
   /** POST /api/usuarios */
   createUser(request: AddUserRequest): Observable<ApiResponse<string>> {
-    return this.api.post<string>('api/usuarios', request);
+    const payload = {
+      email: request.email,
+      password: request.password,
+      name: request.name,
+      fatherLastName: request.fatherLastName,
+      motherLastName: request.motherLastName,
+      roleId: Number(request.role),
+      schoolZoneId: request.schoolZoneId ? Number(request.schoolZoneId) : null,
+      phone: request.phoneNumber || null,
+      avatarUrl: request.avatarUrl || null
+    };
+    return this.api.post<string>('api/usuarios', payload);
+  }
+
+  /** POST /api/usuarios/{id}/supervisor-escuela */
+  assignSupervisorToSchool(userId: string, schoolId: string): Observable<ApiResponse<string>> {
+    return this.api.post<string>(`api/usuarios/${userId}/supervisor-escuela`, {
+      schoolId: Number(schoolId)
+    });
   }
 
   /** PUT /api/usuarios/{id} */
@@ -39,7 +64,13 @@ export class UserService {
 
   /** GET /api/roles */
   getRoles(): Observable<EnumOption[]> {
-    return this.api.get<EnumOption[]>('api/roles');
+    return this.api.get<any[]>('api/roles').pipe(
+      map(roles => (roles || []).map(r => ({
+        key: r.id || r.Id,
+        value: r.clave || r.Clave,
+        label: r.nombre || r.Nombre
+      })))
+    );
   }
 
   /** POST /api/usuarios/{id}/grupos */

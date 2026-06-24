@@ -10,33 +10,45 @@ import {
 } from '../core/models/api-models';
 
 export type PermissionKey =
+  | 'GESTION_ZONA'
+  | 'GESTION_TRABAJO_SOCIAL'
   | 'GESTION_ACTIVIDADES'
   | 'APLICACION'
   | 'ANALISIS_IA'
   | 'PLAN_ACCION'
+  | 'PSICOLOGIA'
+  | 'APRENDIZAJE'
+  | 'COMUNICACION'
   | 'REPORTES'
   | 'LECTURA_ALUMNO'
   | 'GESTION_GRUPOS'
   | 'GESTION_ESCUELAS'
-  | 'ADMIN';
+  | 'ADMIN'
+  | 'PORTAL_ALUMNO';
 
 // Map backend roles → frontend permission keys
 function rolesPermissions(role: UserRole): PermissionKey[] {
   switch (role) {
     case UserRole.ADMIN:
-      return ['GESTION_ACTIVIDADES', 'APLICACION', 'ANALISIS_IA', 'PLAN_ACCION', 'REPORTES', 'LECTURA_ALUMNO', 'GESTION_GRUPOS', 'GESTION_ESCUELAS', 'ADMIN'];
+      return ['ADMIN'];
     case UserRole.SUPERVISOR:
-      return ['GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'ANALISIS_IA'];
+      return ['GESTION_ZONA'];
     case UserRole.DIRECTOR_USAER:
       return ['GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION', 'GESTION_GRUPOS', 'GESTION_ESCUELAS'];
     case UserRole.ESPECIALISTA_COM:
+      return ['COMUNICACION', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
     case UserRole.ESPECIALISTA_PSI:
+      return ['PSICOLOGIA', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
     case UserRole.ESPECIALISTA_APR:
-      return ['GESTION_ACTIVIDADES', 'APLICACION', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
+      return ['APRENDIZAJE', 'GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
     case UserRole.TRABAJO_SOCIAL:
-      return ['GESTION_GRUPOS', 'LECTURA_ALUMNO', 'GESTION_ESCUELAS'];
+      return ['GESTION_TRABAJO_SOCIAL'];
     case UserRole.DOCENTE:
       return ['APLICACION', 'LECTURA_ALUMNO'];
+    case UserRole.TUTOR:
+      return ['PORTAL_ALUMNO'];
+    case UserRole.ALUMNO:
+      return ['PORTAL_ALUMNO'];
     default:
       return ['APLICACION'];
   }
@@ -44,6 +56,10 @@ function rolesPermissions(role: UserRole): PermissionKey[] {
 
 const TOKEN_KEY = 'SIAE_JWT_TOKEN';
 const SESSION_KEY = 'SIAE_USER_SESSION';
+
+function normalizeRole(role: UserRole | string | number): UserRole {
+  return Number(role) as UserRole;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -59,16 +75,30 @@ export class AuthService {
   private loadSession() {
     try {
       const stored = localStorage.getItem(SESSION_KEY);
-      if (stored) {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (stored && token) {
         const user: CurrentUser = JSON.parse(stored);
+        user.role = normalizeRole(user.role);
+        if (!user.role || isNaN(user.role) || user.role < 1 || user.role > 10) {
+          this.clearSession();
+          return;
+        }
         this.currentUserSignal.set(user);
         this.permissionsSignal.set(rolesPermissions(user.role));
+      } else if (!token) {
+        this.clearSession();
       }
     } catch (e) {
       console.error('Error leyendo sesión:', e);
-      localStorage.removeItem(SESSION_KEY);
-      localStorage.removeItem(TOKEN_KEY);
+      this.clearSession();
     }
+  }
+
+  private clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    this.currentUserSignal.set(null);
+    this.permissionsSignal.set([]);
   }
 
   get currentUser() {
@@ -109,7 +139,13 @@ export class AuthService {
         this.http.get<ApiResponse<CurrentUser>>('api/auth/me')
       );
       if (res.statusCode === 200 && res.data) {
-        const user = res.data;
+        const raw = res.data as any;
+        const user: CurrentUser = {
+          ...raw,
+          role: normalizeRole(raw.roleId ?? raw.role),
+          phoneNumber: raw.phone ?? raw.phoneNumber,
+          status: raw.activo ? 1 : 0
+        };
         this.currentUserSignal.set(user);
         this.permissionsSignal.set(rolesPermissions(user.role));
         localStorage.setItem(SESSION_KEY, JSON.stringify(user));
@@ -148,6 +184,7 @@ export class AuthService {
   getRoleName(): string {
     const user = this.currentUserSignal();
     if (!user) return '';
+    const role = normalizeRole(user.role);
     const roleNames: Record<UserRole, string> = {
       [UserRole.ADMIN]: 'Administrador',
       [UserRole.SUPERVISOR]: 'Supervisor de Zona',
@@ -156,28 +193,38 @@ export class AuthService {
       [UserRole.ESPECIALISTA_PSI]: 'Especialista en Psicología',
       [UserRole.ESPECIALISTA_APR]: 'Especialista en Aprendizaje',
       [UserRole.TRABAJO_SOCIAL]: 'Trabajo Social',
-      [UserRole.DOCENTE]: 'Docente'
+      [UserRole.DOCENTE]: 'Docente',
+      [UserRole.TUTOR]: 'Tutor',
+      [UserRole.ALUMNO]: 'Alumno'
     };
-    return roleNames[user.role] ?? 'Usuario';
+    return roleNames[role] ?? 'Usuario';
   }
 
   getDefaultRoute(): string {
     const user = this.currentUserSignal();
     if (!user) return '/login';
 
-    switch (user.role) {
+    switch (normalizeRole(user.role)) {
       case UserRole.ADMIN:
         return '/admin';
       case UserRole.SUPERVISOR:
+        return '/supervisordezona';
       case UserRole.DIRECTOR_USAER:
-      case UserRole.ESPECIALISTA_COM:
-      case UserRole.ESPECIALISTA_PSI:
-      case UserRole.ESPECIALISTA_APR:
         return '/especialista';
+      case UserRole.ESPECIALISTA_COM:
+        return '/comunicacion';
+      case UserRole.ESPECIALISTA_PSI:
+        return '/psicologia';
+      case UserRole.ESPECIALISTA_APR:
+        return '/aprendizaje';
       case UserRole.TRABAJO_SOCIAL:
-        return '/gestion-grupos';
+        return '/trabajadorsocial';
       case UserRole.DOCENTE:
         return '/docente';
+      case UserRole.TUTOR:
+        return '/alumno';
+      case UserRole.ALUMNO:
+        return '/alumno';
       default:
         return '/login';
     }

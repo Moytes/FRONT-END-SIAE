@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from './api';
 import {
   SchoolYear,
@@ -44,6 +45,17 @@ export class CatalogService {
   /** GET /api/catalogos/grados */
   getGrades(): Observable<EnumOption[]> {
     return this.api.get<EnumOption[]>('api/catalogos/grados');
+  }
+
+  /** GET /api/catalogos/niveles-educativos */
+  getEducationLevels(): Observable<EnumOption[]> {
+    return this.api.get<any[]>('api/catalogos/niveles-educativos').pipe(
+      map(levels => (levels || []).map(l => ({
+        key: l.id || l.Id,
+        value: l.clave || l.Clave,
+        label: l.nombre || l.Nombre
+      } as EnumOption)))
+    );
   }
 
   /** GET /api/catalogos/grupos?schoolId=&schoolYearId= */

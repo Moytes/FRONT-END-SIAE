@@ -1,0 +1,159 @@
+<section class="psych-page">
+  <div class="toast" *ngIf="alert() as currentAlert" [class]="currentAlert.type">
+    <strong>{{ currentAlert.title }}</strong>
+    <span>{{ currentAlert.message }}</span>
+    <button type="button" (click)="alert.set(null)">×</button>
+  </div>
+
+  <header class="hero">
+    <div>
+      <span class="eyebrow">Especialista en Psicología</span>
+      <h1>Seguimiento psicopedagógico</h1>
+      <p>Consulta alumnos, evaluaciones y reportes únicamente de tus escuelas asignadas.</p>
+    </div>
+    <div class="scope-pill">
+      <span>Escuela activa</span>
+      <strong>{{ activeSchool()?.name || 'Sin escuela seleccionada' }}</strong>
+    </div>
+  </header>
+
+  <div class="empty-access" *ngIf="!loading() && schools().length === 0">
+    <h2>No tienes escuelas asignadas</h2>
+    <p>Solicita a supervisión que vincule tu cuenta de psicología a una escuela para consultar reportes.</p>
+  </div>
+
+  <ng-container *ngIf="schools().length > 0">
+    <section class="metric-grid">
+      <article>
+        <span>Escuelas</span>
+        <strong>{{ schoolsCount() }}</strong>
+      </article>
+      <article>
+        <span>Alumnos visibles</span>
+        <strong>{{ studentsCount() }}</strong>
+      </article>
+      <article>
+        <span>Evaluaciones</span>
+        <strong>{{ assessmentsCount() }}</strong>
+      </article>
+      <article>
+        <span>Alertas altas</span>
+        <strong>{{ highTeaAlertsCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="filters-card">
+      <label>
+        Escuela
+        <select [ngModel]="selectedSchoolId()" (ngModelChange)="selectedSchoolId.set($event); refreshScope()">
+          <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
+        </select>
+      </label>
+      <label>
+        Ciclo escolar
+        <select [ngModel]="selectedYearId()" (ngModelChange)="selectedYearId.set($event); refreshScope()">
+          <option *ngFor="let year of years()" [value]="year.id">{{ year.name }}</option>
+        </select>
+      </label>
+      <label>
+        Grupo
+        <select [ngModel]="selectedGroupId()" (ngModelChange)="selectedGroupId.set($event); loadStudents()">
+          <option value="">Todos los grupos</option>
+          <option *ngFor="let group of groups()" [value]="group.id">{{ group.displayName }} · {{ group.schoolYearName }}</option>
+        </select>
+      </label>
+      <label>
+        Buscar alumno
+        <input type="search" placeholder="Nombre o CURP" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" />
+      </label>
+    </section>
+
+    <main class="dashboard-grid">
+      <section class="panel students-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Alumnos en alcance</h2>
+            <p>{{ filteredStudents().length }} alumnos coinciden con los filtros actuales.</p>
+          </div>
+          <button class="ghost-button" type="button" (click)="loadStudents()">Actualizar</button>
+        </div>
+
+        <div class="state" *ngIf="loading()">Cargando alumnos...</div>
+        <div class="state" *ngIf="!loading() && filteredStudents().length === 0">No hay alumnos para este filtro.</div>
+
+        <div class="table-wrapper" *ngIf="!loading() && filteredStudents().length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Alumno</th>
+                <th>Edad</th>
+                <th>Escuela</th>
+                <th>Grupo</th>
+                <th>CURP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let student of filteredStudents()">
+                <td>
+                  <div class="person-cell">
+                    <div class="avatar">{{ student.name.charAt(0) }}{{ student.fatherLastName.charAt(0) }}</div>
+                    <strong>{{ getStudentName(student) }}</strong>
+                  </div>
+                </td>
+                <td>{{ getAge(student.birthDate) }} años</td>
+                <td>{{ student.schoolName || 'Sin escuela' }}</td>
+                <td>{{ student.groupName || 'Sin grupo' }}</td>
+                <td>{{ student.curp || 'Sin CURP' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <h2>Evaluaciones recientes</h2>
+              <p>Registros psicopedagógicos del ciclo seleccionado.</p>
+            </div>
+          </div>
+          <div class="state" *ngIf="reportLoading()">Cargando reportes...</div>
+          <div class="report-list" *ngIf="!reportLoading() && recentAssessments().length > 0">
+            <article *ngFor="let assessment of recentAssessments()">
+              <strong>{{ assessment.studentName || assessment.studentId }}</strong>
+              <span>{{ assessment.status || 'Sin estado' }}</span>
+              <small>{{ assessment.schoolYearName || assessment.schoolYearId }}</small>
+            </article>
+          </div>
+          <p class="muted" *ngIf="!reportLoading() && recentAssessments().length === 0">
+            Aún no hay evaluaciones disponibles desde el microservicio clínico.
+          </p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <div>
+              <h2>Alertas y CIE</h2>
+              <p>Resumen clínico para priorizar intervención.</p>
+            </div>
+          </div>
+          <div class="clinical-summary">
+            <article>
+              <span>Alertas TEA</span>
+              <strong>{{ teaAlerts().length }}</strong>
+            </article>
+            <article>
+              <span>Resumen CIE</span>
+              <strong>{{ cieSummary().length }}</strong>
+            </article>
+            <article>
+              <span>Sábana de datos</span>
+              <strong>{{ dataSheet().length }}</strong>
+            </article>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </ng-container>
+</section>

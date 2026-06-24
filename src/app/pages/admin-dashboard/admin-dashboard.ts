@@ -1,104 +1,92 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { UserService } from '../../core/services/user.service';
 import { CatalogService } from '../../core/services/catalog.service';
-import { StudentService } from '../../core/services/student.service';
+import { UserService } from '../../core/services/user.service';
 import {
-  UserListItem,
+  AddSchoolRequest,
+  AddSchoolZoneRequest,
+  AddUserRequest,
+  EnumOption,
   School,
   SchoolZone,
-  Group,
-  SchoolYear,
-  UserRole,
-  StudentListItem,
-  AddSchoolRequest,
-  AddGroupRequest,
-  AddUserRequest,
-  AddSchoolZoneRequest,
-  AddSchoolYearRequest,
-  BulkAddRegistrationRequest,
-  EnumOption
+  UserListItem,
+  UserRole
 } from '../../core/models/api-models';
 
-type AdminTab = 'overview' | 'years' | 'zones' | 'schools' | 'groups' | 'users' | 'students';
-type ModalType = 'none' | 'year' | 'zone' | 'view-zone' | 'school' | 'group' | 'user' | 'bulk-registration';
+type AdminTab = 'users' | 'zones' | 'schools';
+type ModalType = 'none' | 'user' | 'assign-supervisor' | 'zone' | 'school';
+type ToastType = 'success' | 'error' | 'info';
+
+interface ToastMessage {
+  type: ToastType;
+  title: string;
+  message: string;
+}
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
 export class AdminDashboard implements OnInit {
   private userService = inject(UserService);
   private catalogService = inject(CatalogService);
-  private studentService = inject(StudentService);
 
-  // State
-  activeTab = signal<AdminTab>('overview');
+  activeTab = signal<AdminTab>('users');
   showModal = signal<ModalType>('none');
   loading = signal(false);
-  selectedZone = signal<SchoolZone | null>(null);
+  toast = signal<ToastMessage | null>(null);
 
-  // Selection for bulk actions
-  selectedStudentIds = signal<Set<string>>(new Set());
-
-  // Data
   users = signal<UserListItem[]>([]);
-  schools = signal<School[]>([]);
   zones = signal<SchoolZone[]>([]);
-  groups = signal<Group[]>([]);
-  students = signal<StudentListItem[]>([]);
-  schoolYears = signal<SchoolYear[]>([]);
-  roles = signal<EnumOption[]>([]);
+  schools = signal<School[]>([]);
+  educationLevels = signal<EnumOption[]>([]);
 
-  // Form Models
-  yearForm: AddSchoolYearRequest = { name: '', startDate: '', endDate: '', isActive: true };
-  zoneForm: AddSchoolZoneRequest = { number: '', cct: '', name: '', description: '' };
-  schoolForm: AddSchoolRequest = { name: '', cct: '', schoolZoneId: '' };
-  groupForm: AddGroupRequest = { section: '', grade: 1, schoolId: '', schoolYearId: '' };
-  userForm: AddUserRequest = {
-    email: '',
-    password: '',
-    name: '',
-    fatherLastName: '',
-    role: UserRole.ESPECIALISTA_APR,
-    schoolZoneId: ''
-  };
-  registrationForm: BulkAddRegistrationRequest = {
-    studentIds: [],
-    groupId: '',
-    schoolYearId: ''
-  };
+  selectedExistingUserId = signal('');
+
+  supervisors = computed(() =>
+    this.users().filter(user => Number(user.role) === UserRole.SUPERVISOR)
+  );
+
+  userForm: AddUserRequest = this.emptyUserForm();
+  zoneForm: AddSchoolZoneRequest = this.emptyZoneForm();
+  schoolForm: AddSchoolRequest = this.emptySchoolForm();
 
   ngOnInit() {
-    this.loadData();
     this.loadCatalogs();
+    this.loadData();
   }
 
-  async loadData() {
+  loadData() {
     this.loading.set(true);
-    this.userService.getUsers().subscribe(res => this.users.set(res));
-    this.catalogService.getSchoolZones().subscribe(res => this.zones.set(res));
-    this.catalogService.getSchools().subscribe(res => this.schools.set(res));
-    this.catalogService.getGroups().subscribe(res => this.groups.set(res));
-    this.studentService.getStudents().subscribe(res => this.students.set(res));
-    this.loading.set(false);
+    this.userService.getUsers().subscribe({
+      next: users => this.users.set(users),
+      error: () => this.notify('error', 'Usuarios no disponibles', 'No se pudieron cargar los supervisores. Intente nuevamente.'),
+      complete: () => this.loading.set(false)
+    });
+
+    this.catalogService.getSchoolZones().subscribe({
+      next: zones => this.zones.set(zones),
+      error: () => this.notify('error', 'Zonas no disponibles', 'No se pudieron cargar las zonas escolares.')
+    });
+
+    this.catalogService.getSchools().subscribe({
+      next: schools => this.schools.set(schools),
+      error: () => this.notify('error', 'Escuelas no disponibles', 'No se pudieron cargar las escuelas registradas.')
+    });
   }
 
   loadCatalogs() {
-    this.catalogService.getSchoolYears().subscribe(res => {
-      this.schoolYears.set(res);
-      const active = res.find(y => y.isActive) || res[0];
-      if (active) {
-        if (!this.groupForm.schoolYearId) this.groupForm.schoolYearId = active.id;
-        if (!this.registrationForm.schoolYearId) this.registrationForm.schoolYearId = active.id;
-      }
+    this.catalogService.getEducationLevels().subscribe({
+      next: levels => {
+        this.educationLevels.set(levels);
+        this.schoolForm.educationLevelId = levels[0]?.key || 0;
+      },
+      error: () => this.notify('error', 'Catalogo no disponible', 'No se pudieron cargar los niveles educativos.')
     });
-    this.userService.getRoles().subscribe(res => this.roles.set(res));
   }
 
   setTab(tab: AdminTab) {
@@ -106,141 +94,135 @@ export class AdminDashboard implements OnInit {
   }
 
   openModal(type: ModalType) {
-    if (type === 'bulk-registration') {
-      this.registrationForm.studentIds = Array.from(this.selectedStudentIds());
-    }
     this.showModal.set(type);
   }
 
   closeModal() {
     this.showModal.set('none');
-    this.selectedZone.set(null);
-    this.resetForms();
+    this.selectedExistingUserId.set('');
+    this.userForm = this.emptyUserForm();
+    this.zoneForm = this.emptyZoneForm();
+    this.schoolForm = this.emptySchoolForm();
+    this.schoolForm.educationLevelId = this.educationLevels()[0]?.key || 0;
   }
 
-  viewZone(zone: SchoolZone) {
-    this.selectedZone.set(zone);
-    this.showModal.set('view-zone');
-  }
+  createSupervisor() {
+    if (!this.userForm.email || !this.userForm.password || !this.userForm.name || !this.userForm.fatherLastName) {
+      this.notify('info', 'Datos incompletos', 'Complete nombre, apellido, correo y contrasena temporal.');
+      return;
+    }
 
-  toggleStudentSelection(id: string) {
-    const set = new Set(this.selectedStudentIds());
-    if (set.has(id)) set.delete(id);
-    else set.add(id);
-    this.selectedStudentIds.set(set);
-  }
-
-  resetForms() {
-    this.yearForm = { name: '', startDate: '', endDate: '', isActive: true };
-    this.zoneForm = { number: '', cct: '', name: '', description: '' };
-    this.schoolForm = { name: '', cct: '', schoolZoneId: '' };
-    const activeYearId = this.schoolYears().find(y => y.isActive)?.id || this.schoolYears()[0]?.id || '';
-    this.groupForm = { 
-      section: '', 
-      grade: 1, 
-      schoolId: '', 
-      schoolYearId: activeYearId
-    };
-    this.userForm = {
-      email: '',
-      password: '',
-      name: '',
-      fatherLastName: '',
-      role: UserRole.ESPECIALISTA_APR,
-      schoolZoneId: ''
-    };
-    this.registrationForm = {
-      studentIds: [],
-      groupId: '',
-      schoolYearId: activeYearId
-    };
-  }
-
-  // Actions
-  createYear() {
-    if (!this.yearForm.name || !this.yearForm.startDate || !this.yearForm.endDate) return;
-    this.catalogService.createSchoolYear(this.yearForm).subscribe({
+    this.userService.createUser({ ...this.userForm, role: UserRole.SUPERVISOR }).subscribe({
       next: () => {
-        this.loadCatalogs();
+        this.loadData();
         this.closeModal();
+        this.notify('success', 'Supervisor registrado', 'El usuario ya puede ser asignado a una escuela.');
       },
-      error: (err) => alert(err.error?.message || 'Error al crear ciclo escolar')
+      error: err => this.notify('error', 'No se pudo registrar', this.getErrorMessage(err, 'Revise los datos e intente nuevamente.'))
+    });
+  }
+
+  assignSupervisorToSchool() {
+    const userId = this.selectedExistingUserId();
+    const schoolId = this.userForm.schoolId;
+    if (!userId || !schoolId) {
+      this.notify('info', 'Seleccione los datos', 'Elija un supervisor y la escuela donde trabajara.');
+      return;
+    }
+
+    this.userService.assignSupervisorToSchool(userId, schoolId).subscribe({
+      next: () => {
+        this.loadData();
+        this.closeModal();
+        this.notify('success', 'Asignacion guardada', 'El supervisor quedo vinculado a la escuela seleccionada.');
+      },
+      error: err => this.notify('error', 'No se pudo asignar', this.getErrorMessage(err, 'Intente nuevamente o revise si ya existe la asignacion.'))
     });
   }
 
   createZone() {
-    if (!this.zoneForm.number || !this.zoneForm.cct) return;
+    if (!this.zoneForm.number || !this.zoneForm.cct) {
+      this.notify('info', 'Datos incompletos', 'Ingrese el numero de zona y la clave CCT.');
+      return;
+    }
+
     this.catalogService.createSchoolZone(this.zoneForm).subscribe({
       next: () => {
         this.loadData();
         this.closeModal();
+        this.notify('success', 'Zona registrada', 'La nueva zona escolar ya aparece en el panel.');
       },
-      error: (err) => alert(err.error?.message || 'Error al crear zona')
+      error: err => this.notify('error', 'No se pudo registrar', this.getErrorMessage(err, 'Revise que la CCT no este duplicada.'))
     });
   }
 
   createSchool() {
-    if (!this.schoolForm.name || !this.schoolForm.cct || !this.schoolForm.schoolZoneId) return;
-    this.catalogService.createSchool(this.schoolForm).subscribe({
-      next: () => {
-        this.loadData();
-        this.closeModal();
-      },
-      error: (err) => alert(err.error?.message || 'Error al crear escuela')
-    });
-  }
-
-  createGroup() {
-    if (!this.groupForm.section || !this.groupForm.schoolId || !this.groupForm.schoolYearId) {
-      alert('Error: Todos los campos son obligatorios (Sección, Grado, Escuela y Ciclo).');
+    if (!this.schoolForm.name || !this.schoolForm.cct || !this.schoolForm.schoolZoneId || !this.schoolForm.educationLevelId) {
+      this.notify('info', 'Datos incompletos', 'Complete nombre, CCT, zona escolar y nivel educativo.');
       return;
     }
 
     const payload = {
-      ...this.groupForm,
-      grade: Number(this.groupForm.grade)
+      ...this.schoolForm,
+      turn: Number(this.schoolForm.turn),
+      educationLevelId: Number(this.schoolForm.educationLevelId),
+      schoolZoneId: Number(this.schoolForm.schoolZoneId)
     };
 
-    this.catalogService.createGroup(payload).subscribe({
+    this.catalogService.createSchool(payload).subscribe({
       next: () => {
         this.loadData();
         this.closeModal();
+        this.notify('success', 'Escuela registrada', 'La escuela quedo vinculada a su zona escolar.');
       },
-      error: (err) => {
-        const detail = err.error?.message || 'Error desconocido';
-        alert(`🔴 Servidor: ${detail}`);
-      }
+      error: err => this.notify('error', 'No se pudo registrar', this.getErrorMessage(err, 'Revise los datos capturados.'))
     });
   }
 
-  createUser() {
-    if (!this.userForm.email || !this.userForm.password || !this.userForm.name) return;
-    this.userService.createUser(this.userForm).subscribe({
-      next: () => {
-        this.loadData();
-        this.closeModal();
-      },
-      error: (err) => alert(err.error?.message || 'Error al crear usuario')
-    });
+  dismissToast() {
+    this.toast.set(null);
   }
 
-  bulkRegister() {
-    if (!this.registrationForm.groupId || this.registrationForm.studentIds.length === 0) {
-      alert('Seleccione un grupo y al menos un alumno.');
-      return;
+  getTabDescription(): string {
+    switch (this.activeTab()) {
+      case 'users':
+        return 'Supervisores registrados y su escuela asignada.';
+      case 'zones':
+        return 'Zonas escolares disponibles para organizar escuelas.';
+      case 'schools':
+        return 'Escuelas registradas y vinculadas a una zona.';
     }
-    this.studentService.bulkAddRegistration(this.registrationForm).subscribe({
-      next: () => {
-        alert('Alumnos inscritos correctamente.');
-        this.selectedStudentIds.set(new Set());
-        this.loadData();
-        this.closeModal();
-      },
-      error: (err) => alert(err.error?.message || 'Error al inscribir alumnos')
-    });
   }
 
-  getRoleLabel(roleValue: number): string {
-    return this.roles().find(r => r.key === roleValue)?.label || roleValue.toString();
+  private notify(type: ToastType, title: string, message: string) {
+    this.toast.set({ type, title, message });
+    window.setTimeout(() => {
+      if (this.toast()?.title === title) {
+        this.toast.set(null);
+      }
+    }, 4200);
+  }
+
+  private getErrorMessage(err: any, fallback: string): string {
+    return err?.error?.data || err?.error?.message || err?.error || fallback;
+  }
+
+  private emptyUserForm(): AddUserRequest {
+    return {
+      email: '',
+      password: '',
+      name: '',
+      fatherLastName: '',
+      role: UserRole.SUPERVISOR,
+      schoolId: ''
+    };
+  }
+
+  private emptyZoneForm(): AddSchoolZoneRequest {
+    return { number: '', cct: '', name: '', description: '' };
+  }
+
+  private emptySchoolForm(): AddSchoolRequest {
+    return { name: '', cct: '', turn: 1, educationLevelId: 0, schoolZoneId: '' };
   }
 }

@@ -1,0 +1,436 @@
+<section class="social-page">
+  <div class="toast" *ngIf="alert() as currentAlert" [class]="currentAlert.type">
+    <strong>{{ currentAlert.title }}</strong>
+    <span>{{ currentAlert.message }}</span>
+    <button type="button" (click)="alert.set(null)">×</button>
+  </div>
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Trabajo social</span>
+      <h1>Gestión de alumnos, grupos y tutores</h1>
+      <p>Registra alumnos y tutores únicamente dentro de tus escuelas asignadas.</p>
+    </div>
+    <button class="primary-action" type="button" (click)="activeTab.set('registro')" [disabled]="schools().length === 0">
+      + Registro rápido
+    </button>
+  </header>
+
+  <div class="empty-access" *ngIf="!loading() && schools().length === 0">
+    <h2>No tienes escuelas asignadas</h2>
+    <p>Solicita a dirección o supervisión que te asigne una escuela antes de gestionar alumnos.</p>
+  </div>
+
+  <ng-container *ngIf="schools().length > 0">
+    <section class="metric-grid">
+      <article><span>Escuelas</span><strong>{{ schoolsCount() }}</strong></article>
+      <article><span>Grupos</span><strong>{{ activeGroupsCount() }}</strong></article>
+      <article><span>Alumnos</span><strong>{{ registeredStudentsCount() }}</strong></article>
+      <article><span>Tutores visibles</span><strong>{{ tutorsCount() }}</strong></article>
+    </section>
+
+    <nav class="tabs">
+      <button
+        *ngFor="let tab of tabs"
+        type="button"
+        [class.active]="activeTab() === tab.key"
+        (click)="activeTab.set(tab.key)"
+      >
+        {{ tab.label }}
+      </button>
+    </nav>
+
+    <section class="filters-card">
+      <label>
+        Escuela
+        <select [ngModel]="selectedSchoolId()" (ngModelChange)="selectedSchoolId.set($event); refreshScopedData()">
+          <option value="">Todas mis escuelas</option>
+          <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
+        </select>
+      </label>
+      <label>
+        Ciclo escolar
+        <select [ngModel]="selectedYearId()" (ngModelChange)="selectedYearId.set($event); refreshScopedData()">
+          <option *ngFor="let year of years()" [value]="year.id">{{ year.name }}</option>
+        </select>
+      </label>
+      <label>
+        Grupo
+        <select [ngModel]="selectedGroupId()" (ngModelChange)="selectedGroupId.set($event); loadStudents()">
+          <option value="">Todos los grupos</option>
+          <option *ngFor="let group of groups()" [value]="group.id">{{ group.schoolName }} · {{ group.displayName }}</option>
+        </select>
+      </label>
+      <label>
+        Buscar
+        <input
+          type="search"
+          placeholder="Nombre o CURP"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </label>
+    </section>
+
+    <section class="content-card" *ngIf="activeTab() === 'alumnos'">
+      <div class="section-head">
+        <div>
+          <h2>Alumnos registrados</h2>
+          <p>{{ filteredStudents().length }} alumnos visibles con los filtros actuales.</p>
+        </div>
+        <button class="ghost-button" type="button" (click)="loadStudents()">Actualizar</button>
+      </div>
+
+      <div class="state" *ngIf="loading()">Cargando alumnos...</div>
+      <div class="state" *ngIf="!loading() && filteredStudents().length === 0">No hay alumnos registrados en este alcance.</div>
+
+      <div class="table-wrapper" *ngIf="!loading() && filteredStudents().length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>CURP</th>
+              <th>Edad</th>
+              <th>Escuela</th>
+              <th>Grupo</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of filteredStudents()">
+              <td>
+                <div class="person-cell">
+                  <div class="avatar">{{ student.name.charAt(0) }}{{ student.fatherLastName.charAt(0) }}</div>
+                  <strong>{{ getStudentName(student) }}</strong>
+                </div>
+              </td>
+              <td>{{ student.curp || 'Sin CURP' }}</td>
+              <td>{{ getAge(student.birthDate) }} años</td>
+              <td>{{ student.schoolName || 'Sin escuela' }}</td>
+              <td>{{ student.groupName || 'Sin grupo' }}</td>
+              <td>
+                <button class="row-button" type="button" (click)="selectStudentForTutors(student)">Tutores</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="content-card" *ngIf="activeTab() === 'grupos'">
+      <div class="section-head">
+        <div>
+          <h2>Grupos de tus escuelas</h2>
+          <p>Crea grupos, asigna docentes e inscribe alumnos.</p>
+        </div>
+        <button class="primary-action" type="button" (click)="openGroupModal()">Crear grupo</button>
+      </div>
+
+      <div class="education-level-filter">
+        <label>Nivel educativo
+          <select [ngModel]="selectedEducationLevelFilter()" (ngModelChange)="selectedEducationLevelFilter.set($event)">
+            <option value="">Todos los niveles</option>
+            <option *ngFor="let level of educationLevels" [value]="level.id">{{ level.name }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grupos-layout">
+        <!-- Lista de grupos (izquierda) -->
+        <div class="grupos-list">
+          <article class="group-card" *ngFor="let group of filteredGroupsWithTeachers()"
+                   [class.selected]="selectedGroupDetail()?.id === group.id"
+                   (click)="openGroupDetail(group)">
+            <div class="group-card-header">
+              <strong>{{ group.displayName }}</strong>
+              <span class="level-tag">{{ group.educationLevelName }}</span>
+            </div>
+            <span>{{ group.schoolName }}</span>
+            <small>{{ group.schoolYearName }}</small>
+            <div class="teacher-list" *ngIf="group.teachers.length > 0">
+              <span *ngFor="let teacher of group.teachers" class="teacher-badge" [class.titular]="teacher.esTitular">
+                {{ teacher.fullName }}{{ teacher.esTitular ? ' (Titular)' : '' }}
+              </span>
+            </div>
+            <span class="no-teacher" *ngIf="group.teachers.length === 0">Sin docente asignado</span>
+          </article>
+          <div class="state" *ngIf="filteredGroupsWithTeachers().length === 0">No hay grupos para estos filtros.</div>
+        </div>
+
+        <!-- Panel detalle del grupo (derecha) -->
+        <div class="group-detail-panel" *ngIf="selectedGroupDetail() as detail">
+          <div class="detail-header">
+            <div>
+              <h3>{{ detail.displayName }} — {{ detail.schoolName }}</h3>
+              <span class="level-tag">{{ detail.educationLevelName }}</span>
+              <span class="detail-meta">{{ detail.schoolYearName }}</span>
+            </div>
+            <button class="close-detail" type="button" (click)="closeGroupDetail()">×</button>
+          </div>
+
+          <!-- Docente(s) -->
+          <div class="detail-section">
+            <div class="detail-section-head">
+              <strong>Docente</strong>
+              <button class="row-button small" type="button" (click)="openAssignDocente(detail)">+ Asignar</button>
+            </div>
+            <div class="teacher-list" *ngIf="detail.teachers.length > 0">
+              <span *ngFor="let teacher of detail.teachers" class="teacher-badge" [class.titular]="teacher.esTitular">
+                {{ teacher.fullName }}{{ teacher.esTitular ? ' (Titular)' : '' }}
+              </span>
+            </div>
+            <span class="no-teacher" *ngIf="detail.teachers.length === 0">Sin docente asignado</span>
+          </div>
+
+          <!-- Alumnos del grupo -->
+          <div class="detail-section">
+            <div class="detail-section-head">
+              <strong>Alumnos ({{ groupStudents().length }})</strong>
+              <button class="primary-action small" type="button" (click)="openAssignStudentModal()">+ Agregar</button>
+            </div>
+
+            <div class="state small" *ngIf="loadingGroupStudents()">Cargando...</div>
+
+            <div class="student-list-panel" *ngIf="!loadingGroupStudents()">
+              <div class="student-row" *ngFor="let student of groupStudents()">
+                <div class="avatar small">{{ student.name.charAt(0) }}{{ student.fatherLastName.charAt(0) }}</div>
+                <div class="student-row-info">
+                  <strong>{{ getStudentName(student) }}</strong>
+                  <small>{{ student.curp || 'Sin CURP' }} · {{ getAge(student.birthDate) }} años</small>
+                </div>
+              </div>
+              <p class="muted" *ngIf="groupStudents().length === 0">No hay alumnos inscritos en este grupo.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Placeholder cuando no hay grupo seleccionado -->
+        <div class="group-detail-placeholder" *ngIf="!selectedGroupDetail() && filteredGroupsWithTeachers().length > 0">
+          <p>Selecciona un grupo para ver sus alumnos y docentes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-card" *ngIf="activeTab() === 'registro'">
+      <div class="section-head">
+        <div>
+          <h2>Registro rápido</h2>
+          <p>Alta de alumno, inscripción al grupo y tutor principal en una sola operación.</p>
+        </div>
+      </div>
+
+      <form class="quick-form" (ngSubmit)="saveQuickStudent()">
+        <fieldset>
+          <legend>Datos del alumno</legend>
+          <label>Nombre <input name="name" [(ngModel)]="quickForm.name" required /></label>
+          <label>Apellido paterno <input name="fatherLastName" [(ngModel)]="quickForm.fatherLastName" required /></label>
+          <label>Apellido materno <input name="motherLastName" [(ngModel)]="quickForm.motherLastName" /></label>
+          <label>Sexo
+            <select name="sexo" [(ngModel)]="quickForm.sexo">
+              <option [ngValue]="Gender.M">Mujer</option>
+              <option [ngValue]="Gender.F">Hombre</option>
+            </select>
+          </label>
+          <label>Fecha de nacimiento <input name="birthDate" type="date" [(ngModel)]="quickForm.birthDate" required /></label>
+          <label>CURP <input name="curp" maxlength="18" [(ngModel)]="quickForm.curp" /></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Inscripción</legend>
+          <label>Grupo
+            <select name="groupId" [ngModel]="quickForm.groupId" (ngModelChange)="onQuickGroupChange($event)" required>
+              <option value="">Selecciona grupo</option>
+              <option *ngFor="let group of groups()" [value]="group.id">{{ group.schoolName }} · {{ group.displayName }}</option>
+            </select>
+          </label>
+          <label>Ciclo escolar
+            <select name="schoolYearId" [(ngModel)]="quickForm.schoolYearId" required>
+              <option *ngFor="let year of years()" [value]="year.id">{{ year.name }}</option>
+            </select>
+          </label>
+          <label>Fecha de ingreso <input name="ingressDate" type="date" [(ngModel)]="quickForm.ingressDate" /></label>
+          <label class="check"><input name="isNew" type="checkbox" [(ngModel)]="quickForm.isNew" /> Nuevo ingreso</label>
+          <label class="check"><input name="isTracking" type="checkbox" [(ngModel)]="quickForm.isTracking" /> Seguimiento</label>
+          <label class="full">Notas <textarea name="notes" [(ngModel)]="quickForm.notes"></textarea></label>
+        </fieldset>
+
+        <div class="access-rule" *ngIf="quickForm.groupId">
+          <strong>{{ selectedLevelLabel() }}</strong>
+          <span *ngIf="isTutorManagedLevel()">Preescolar y primaria requieren cuenta del tutor. El trabajador social captura correo y contraseña temporal.</span>
+          <span *ngIf="isStudentManagedLevel()">Secundaria y preparatoria usan cuenta propia del alumno. El tutor puede guardarse solo como contacto.</span>
+        </div>
+
+        <fieldset>
+          <legend>Tutor principal</legend>
+          <label>Nombre completo <input name="tutorCompleteName" [(ngModel)]="quickForm.tutorCompleteName" [required]="isTutorManagedLevel()" /></label>
+          <label>Parentesco <input name="tutorParentesco" [(ngModel)]="quickForm.tutorParentesco" /></label>
+          <label>Teléfono <input name="tutorPhone" [(ngModel)]="quickForm.tutorPhone" /></label>
+          <label>Correo <input name="tutorEmail" type="email" [(ngModel)]="quickForm.tutorEmail" /></label>
+          <label class="full">Dirección <input name="tutorAddress" [(ngModel)]="quickForm.tutorAddress" /></label>
+          <label class="check full" *ngIf="isTutorManagedLevel()"><input name="createTutorAccount" type="checkbox" [(ngModel)]="quickForm.createTutorAccount" disabled /> Crear cuenta de acceso para tutor</label>
+          <label *ngIf="isTutorManagedLevel()">Contraseña temporal <input name="tutorPassword" type="password" [(ngModel)]="quickForm.tutorPassword" required /></label>
+        </fieldset>
+
+        <fieldset *ngIf="isStudentManagedLevel()">
+          <legend>Cuenta del alumno</legend>
+          <label>Correo de acceso <input name="studentEmail" type="email" [(ngModel)]="quickForm.studentEmail" required /></label>
+          <label>Contraseña temporal <input name="studentPassword" type="password" [(ngModel)]="quickForm.studentPassword" required /></label>
+          <p class="full muted">El alumno podrá iniciar sesión con esta cuenta. El tutor queda como contacto opcional.</p>
+        </fieldset>
+
+        <footer>
+          <button class="primary-action" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando...' : 'Registrar alumno' }}</button>
+        </footer>
+      </form>
+    </section>
+
+    <section class="content-card" *ngIf="activeTab() === 'tutores'">
+      <h2>Tutores</h2>
+      <p class="muted">Selecciona un alumno desde la tabla para consultar o agregar tutores.</p>
+    </section>
+  </ng-container>
+
+  <div class="modal-backdrop" *ngIf="showGroupModal()" (click)="showGroupModal.set(false)">
+    <form class="modal-card" (click)="$event.stopPropagation()" (ngSubmit)="createGroup()">
+      <header>
+        <h2>Crear grupo</h2>
+        <button type="button" (click)="showGroupModal.set(false)">×</button>
+      </header>
+      <div class="modal-grid">
+        <label>Escuela
+          <select name="schoolId" [ngModel]="groupForm.schoolId" (ngModelChange)="onGroupSchoolChange($event)" required>
+            <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }} ({{ school.educationLevelName }})</option>
+          </select>
+        </label>
+        <label>Ciclo
+          <select name="schoolYearId" [(ngModel)]="groupForm.schoolYearId" required>
+            <option *ngFor="let year of years()" [value]="year.id">{{ year.name }}</option>
+          </select>
+        </label>
+        <label>Grado
+          <select name="gradeId" [(ngModel)]="groupForm.gradeId" required>
+            <option *ngFor="let grade of modalGrades()" [ngValue]="grade.key">{{ grade.label || grade.value }}</option>
+          </select>
+        </label>
+        <label>Sección <input name="section" maxlength="1" [(ngModel)]="groupForm.section" required /></label>
+      </div>
+      <footer>
+        <button class="ghost-button" type="button" (click)="showGroupModal.set(false)">Cancelar</button>
+        <button class="primary-action" type="submit" [disabled]="saving()">Guardar</button>
+      </footer>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showTutorModal()" (click)="showTutorModal.set(false)">
+    <div class="modal-card wide" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <h2>Tutores de {{ selectedStudent() ? getStudentName(selectedStudent()!) : '' }}</h2>
+          <p>Gestiona contactos y cuentas de acceso del tutor.</p>
+        </div>
+        <button type="button" (click)="showTutorModal.set(false)">×</button>
+      </header>
+
+      <div class="tutor-list">
+        <article *ngFor="let tutor of tutors()">
+          <strong>{{ tutor.completeName }}</strong>
+          <span>{{ tutor.parent || 'Tutor' }} · {{ tutor.phoneNumber || 'Sin teléfono' }}</span>
+          <small>{{ tutor.email || 'Sin correo' }} {{ tutor.userId ? '· Cuenta activa' : '' }}</small>
+        </article>
+        <p class="muted" *ngIf="tutors().length === 0">Este alumno aún no tiene tutores registrados.</p>
+      </div>
+
+      <form class="modal-grid" (ngSubmit)="addTutor()">
+        <label>Nombre completo <input name="completeName" [(ngModel)]="tutorForm.completeName" required /></label>
+        <label>Parentesco <input name="parent" [(ngModel)]="tutorForm.parent" /></label>
+        <label>Teléfono <input name="phoneNumber" [(ngModel)]="tutorForm.phoneNumber" /></label>
+        <label>Correo <input name="email" type="email" [(ngModel)]="tutorForm.email" /></label>
+        <label class="full">Dirección <input name="address" [(ngModel)]="tutorForm.address" /></label>
+        <label class="check full"><input name="accountEnabled" type="checkbox" [(ngModel)]="tutorAccount.enabled" /> Crear cuenta para este tutor</label>
+        <label *ngIf="tutorAccount.enabled">Correo de acceso <input name="accountEmail" type="email" [(ngModel)]="tutorAccount.email" /></label>
+        <label *ngIf="tutorAccount.enabled">Contraseña temporal <input name="accountPassword" type="password" [(ngModel)]="tutorAccount.password" /></label>
+        <footer class="full">
+          <button class="primary-action" type="submit" [disabled]="saving()">Agregar tutor</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showAssignDocenteModal()" (click)="showAssignDocenteModal.set(false)">
+    <form class="modal-card" (click)="$event.stopPropagation()" (ngSubmit)="assignDocente()">
+      <header>
+        <h2>Asignar docente a {{ selectedGroupForDocente()?.displayName }} · {{ selectedGroupForDocente()?.schoolName }}</h2>
+        <button type="button" (click)="showAssignDocenteModal.set(false)">×</button>
+      </header>
+
+      <div class="current-teachers" *ngIf="selectedGroupForDocente()?.teachers?.length">
+        <p class="muted">Docentes actuales:</p>
+        <div class="teacher-list">
+          <span *ngFor="let t of selectedGroupForDocente()!.teachers" class="teacher-badge" [class.titular]="t.esTitular">
+            {{ t.fullName }}{{ t.esTitular ? ' (Titular)' : '' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-grid">
+        <label>Docente
+          <select name="docenteId" [(ngModel)]="assignDocenteForm.docenteId" required>
+            <option value="">Selecciona docente</option>
+            <option *ngFor="let d of docentes()" [value]="d.id">{{ d.name }} {{ d.fatherLastName }} {{ d.motherLastName || '' }}</option>
+          </select>
+        </label>
+        <label>Ciclo escolar
+          <select name="schoolYearId" [(ngModel)]="assignDocenteForm.schoolYearId" required>
+            <option *ngFor="let year of years()" [value]="year.id">{{ year.name }}</option>
+          </select>
+        </label>
+        <label class="check full">
+          <input name="esTitular" type="checkbox" [(ngModel)]="assignDocenteForm.esTitular" /> Docente titular del grupo
+        </label>
+      </div>
+      <footer>
+        <button class="ghost-button" type="button" (click)="showAssignDocenteModal.set(false)">Cancelar</button>
+        <button class="primary-action" type="submit" [disabled]="saving()">{{ saving() ? 'Asignando...' : 'Asignar' }}</button>
+      </footer>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showAssignStudentModal()" (click)="showAssignStudentModal.set(false)">
+    <div class="modal-card wide" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <h2>Agregar alumnos a {{ selectedGroupDetail()?.displayName }}</h2>
+          <p>{{ selectedGroupDetail()?.schoolName }} · {{ selectedGroupDetail()?.educationLevelName }}</p>
+        </div>
+        <button type="button" (click)="showAssignStudentModal.set(false)">×</button>
+      </header>
+
+      <div class="assign-search">
+        <input type="search" placeholder="Buscar por nombre o CURP..."
+               [ngModel]="assignStudentSearch()" (ngModelChange)="assignStudentSearch.set($event)" />
+      </div>
+
+      <div class="assign-student-list">
+        <div class="assign-student-row" *ngFor="let student of availableStudents()"
+             [class.selected]="selectedStudentIds().has(student.id)"
+             (click)="toggleStudentSelection(student.id)">
+          <input type="checkbox" [checked]="selectedStudentIds().has(student.id)" />
+          <div class="avatar small">{{ student.name.charAt(0) }}{{ student.fatherLastName.charAt(0) }}</div>
+          <div class="student-row-info">
+            <strong>{{ getStudentName(student) }}</strong>
+            <small>{{ student.curp || 'Sin CURP' }} · {{ student.groupName || 'Sin grupo' }}</small>
+          </div>
+        </div>
+        <p class="muted" *ngIf="availableStudents().length === 0">No hay alumnos disponibles para asignar.</p>
+      </div>
+
+      <footer>
+        <span class="selected-count" *ngIf="selectedStudentIds().size > 0">{{ selectedStudentIds().size }} seleccionado(s)</span>
+        <button class="ghost-button" type="button" (click)="showAssignStudentModal.set(false)">Cancelar</button>
+        <button class="primary-action" type="button" (click)="assignStudentsToGroup()" [disabled]="saving() || selectedStudentIds().size === 0">
+          {{ saving() ? 'Inscribiendo...' : 'Inscribir al grupo' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+</section>

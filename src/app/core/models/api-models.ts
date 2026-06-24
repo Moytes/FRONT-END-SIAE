@@ -19,7 +19,9 @@ export enum UserRole {
   ESPECIALISTA_PSI = 5,
   ESPECIALISTA_APR = 6,
   TRABAJO_SOCIAL = 7,
-  DOCENTE = 8
+  DOCENTE = 8,
+  TUTOR = 9,
+  ALUMNO = 10
 }
 
 export enum BoolStatus {
@@ -86,6 +88,7 @@ export interface UserListItem {
   phoneNumber?: string;
   status: BoolStatus;
   avatarUrl?: string;
+  schoolId?: string;
   schoolZoneId?: string;
   schoolName?: string;
   createdAt: string;
@@ -198,6 +201,7 @@ export interface TutorListItem {
   phoneNumber?: string;
   email?: string;
   address?: string;
+  userId?: string;
 }
 
 export interface AddTutorRequest {
@@ -232,6 +236,31 @@ export interface SchoolYear {
   startDate: string;
   endDate: string;
   isActive: boolean;
+  activo?: boolean;
+}
+
+export interface SupervisorCreateStaffRequest {
+  email: string;
+  password: string;
+  name: string;
+  fatherLastName: string;
+  motherLastName?: string;
+  roleId: UserRole;
+  schoolId: string;
+  phone?: string;
+  avatarUrl?: string;
+}
+
+export interface SupervisorUpdateStaffRequest {
+  email: string;
+  name: string;
+  fatherLastName: string;
+  motherLastName?: string;
+  roleId: UserRole;
+  schoolId: string;
+  phone?: string;
+  avatarUrl?: string;
+  activo: boolean;
 }
 
 export interface AddSchoolYearRequest {
@@ -263,30 +292,90 @@ export interface School {
   cct?: string;
   schoolZoneId: string;
   schoolZoneName?: string;
+  educationLevelId?: number;
+  educationLevelName?: string;
 }
 
 export interface AddSchoolRequest {
   name: string;
   cct: string;
-  schoolZoneId: string;
+  turn: number;
+  educationLevelId: number;
+  schoolZoneId?: string;
 }
 
 export interface Group {
   id: string;
   displayName: string;
+  gradeId?: number;
   grade: number;
   section: string;
   schoolId: string;
   schoolName: string;
   schoolYearId: string;
   schoolYearName?: string;
+  educationLevelId?: number;
+  educationLevelName?: string;
+}
+
+export interface GroupTeacher {
+  userId: string;
+  fullName: string;
+  esTitular: boolean;
+}
+
+export interface GroupWithTeachers extends Group {
+  teachers: GroupTeacher[];
+}
+
+export interface AssignDocenteRequest {
+  docenteId: string;
+  schoolYearId: string;
+  esTitular: boolean;
 }
 
 export interface AddGroupRequest {
   section: string;
   grade: number;
+  gradeId?: number;
   schoolId: string;
   schoolYearId: string;
+}
+
+export interface TrabajoSocialQuickStudentRequest {
+  name: string;
+  fatherLastName: string;
+  motherLastName?: string;
+  sexo: Gender;
+  birthDate: string;
+  curp?: string;
+  photoUrl?: string;
+  groupId: string;
+  schoolYearId: string;
+  ingressDate?: string;
+  isNew: boolean;
+  isTracking: boolean;
+  finalSituation?: number;
+  notes?: string;
+  tutorCompleteName: string;
+  tutorParentesco?: string;
+  tutorPhone?: string;
+  tutorEmail?: string;
+  tutorAddress?: string;
+  createTutorAccount: boolean;
+  tutorPassword?: string;
+  studentEmail?: string;
+  studentPassword?: string;
+}
+
+export interface TrabajoSocialBulkRegistrationRequest {
+  studentIds: string[];
+  groupId: string;
+  schoolYearId: string;
+  ingressDate?: string;
+  isNew: boolean;
+  isTracking: boolean;
+  notes?: string;
 }
 
 export interface DisabilityCatalog {
@@ -512,4 +601,57 @@ export interface TEAAlertItem {
   schoolName: string;
   alertLevel: AlertLevel;
   screeningDate: string;
+}
+
+// ================================================================
+// ALUMNO PORTAL
+// ================================================================
+export interface AlumnoPortalStudent {
+  id: string;
+  name: string;
+  fatherLastName: string;
+  motherLastName?: string;
+  fullName: string;
+  birthDate: string;
+  photoUrl?: string;
+  schoolId: number;
+  schoolName: string;
+  groupId: number;
+  groupName: string;
+  schoolYearId: number;
+  schoolYearName: string;
+  educationLevelId: number;
+  educationLevelName: string;
+  accessedByTutor: boolean;
+}
+
+export interface AlumnoPortalPerfil {
+  roleClave: string;
+  accessedByTutor: boolean;
+  students: AlumnoPortalStudent[];
+}
+
+export interface AlumnoTrabajo {
+  id: number;
+  asignacionId: number;
+  alumnoId: string;
+  estado: string;
+  fechaInicio?: string;
+  fechaCompletado?: string;
+  retroalimentacion?: string;
+  asignacion: {
+    fechaAsignacion: string;
+    fechaLimite?: string;
+    instrucciones?: string;
+    material: {
+      id: number;
+      titulo: string;
+      descripcion?: string;
+      tipo: string;
+      tipoClave: string;
+      archivoUrl?: string;
+      thumbnailUrl?: string;
+      contenidoJson?: string;
+    };
+  };
 }

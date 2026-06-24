@@ -1,0 +1,202 @@
+<div class="alumno-portal">
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="loading-spinner"></div>
+    <p>Cargando tu portal...</p>
+  </div>
+
+  <ng-container *ngIf="!loading()">
+
+    <!-- Header con info del alumno -->
+    <header class="portal-header">
+      <div class="header-content">
+        <div class="student-info">
+          <div class="student-avatar">
+            <img [src]="selectedStudent()?.photoUrl || 'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=' + selectedStudent()?.name"
+                 [alt]="selectedStudent()?.fullName" />
+          </div>
+          <div class="student-details">
+            <h1 class="student-name">{{ selectedStudent()?.fullName }}</h1>
+            <div class="student-meta">
+              <span class="meta-chip school">{{ selectedStudent()?.schoolName }}</span>
+              <span class="meta-chip group">{{ selectedStudent()?.groupName }}</span>
+              <span class="meta-chip cycle">{{ selectedStudent()?.schoolYearName }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector de alumno (cuando tutor tiene varios hijos) -->
+        <div class="student-selector" *ngIf="accessedByTutor() && students().length > 1">
+          <p class="selector-label">Seleccionar alumno:</p>
+          <div class="selector-chips">
+            <button *ngFor="let s of students()"
+                    class="selector-chip"
+                    [class.active]="selectedStudent()?.id === s.id"
+                    (click)="selectStudent(s)">
+              {{ s.name }} {{ s.fatherLastName }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats rápidas -->
+      <div class="stats-row">
+        <div class="stat-card pending">
+          <div class="stat-number">{{ pendientes().length }}</div>
+          <div class="stat-label">Por hacer</div>
+        </div>
+        <div class="stat-card progress">
+          <div class="stat-number">{{ enProgreso().length }}</div>
+          <div class="stat-label">En progreso</div>
+        </div>
+        <div class="stat-card done">
+          <div class="stat-number">{{ completados().length }}</div>
+          <div class="stat-label">Completados</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs de navegación -->
+    <nav class="tabs-nav">
+      <button class="tab-btn" [class.active]="activeTab() === 'PENDIENTE'" (click)="setTab('PENDIENTE')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Por hacer
+        <span class="tab-badge" *ngIf="pendientes().length > 0">{{ pendientes().length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'EN_PROGRESO'" (click)="setTab('EN_PROGRESO')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+        En progreso
+        <span class="tab-badge blue" *ngIf="enProgreso().length > 0">{{ enProgreso().length }}</span>
+      </button>
+      <button class="tab-btn" [class.active]="activeTab() === 'COMPLETADO'" (click)="setTab('COMPLETADO')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Completados
+        <span class="tab-badge green" *ngIf="completados().length > 0">{{ completados().length }}</span>
+      </button>
+    </nav>
+
+    <!-- Lista de trabajos -->
+    <div class="trabajos-grid" *ngIf="!loadingTrabajos()">
+
+      <!-- Estado vacío -->
+      <div class="empty-state" *ngIf="currentTrabajos().length === 0">
+        <div class="empty-icon">
+          <svg *ngIf="activeTab() === 'PENDIENTE'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <svg *ngIf="activeTab() === 'EN_PROGRESO'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg *ngIf="activeTab() === 'COMPLETADO'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <p class="empty-title" *ngIf="activeTab() === 'PENDIENTE'">No tienes trabajos pendientes</p>
+        <p class="empty-title" *ngIf="activeTab() === 'EN_PROGRESO'">No tienes trabajos en progreso</p>
+        <p class="empty-title" *ngIf="activeTab() === 'COMPLETADO'">Aún no has completado trabajos</p>
+        <p class="empty-subtitle">Los trabajos asignados aparecerán aquí</p>
+      </div>
+
+      <!-- Tarjetas de trabajos -->
+      <div class="trabajo-card" *ngFor="let trabajo of currentTrabajos()"
+           [class.overdue]="isOverdue(trabajo)"
+           [class.playable]="isPlayable(trabajo)">
+
+        <div class="card-header">
+          <div class="material-type-badge" [attr.data-type]="getTipoIcon(trabajo.asignacion.material.tipoClave)">
+            <!-- Chat icon -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'chat'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <!-- Star icon -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'star'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <!-- Gamepad icon -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'gamepad'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4m6 0h.01m4-2h.01"/></svg>
+            <!-- Image icon -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'image'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <!-- Headphones icon -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'headphones'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zm-18 0a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+            <!-- Play icon -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'play'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <!-- File icon (default) -->
+            <svg *ngIf="getTipoIcon(trabajo.asignacion.material.tipoClave) === 'file'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="card-title-area">
+            <h3 class="card-title">{{ trabajo.asignacion.material.titulo }}</h3>
+            <span class="card-type">{{ trabajo.asignacion.material.tipo }}</span>
+          </div>
+          <div class="estado-badge" [attr.data-estado]="trabajo.estado">
+            {{ getEstadoLabel(trabajo.estado) }}
+          </div>
+        </div>
+
+        <p class="card-description" *ngIf="trabajo.asignacion.material.descripcion">
+          {{ trabajo.asignacion.material.descripcion }}
+        </p>
+
+        <p class="card-instructions" *ngIf="trabajo.asignacion.instrucciones">
+          {{ trabajo.asignacion.instrucciones }}
+        </p>
+
+        <div class="card-meta">
+          <span class="meta-item" *ngIf="trabajo.asignacion.fechaAsignacion">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="meta-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Asignado: {{ formatDate(trabajo.asignacion.fechaAsignacion) }}
+          </span>
+          <span class="meta-item deadline" [class.overdue-text]="isOverdue(trabajo)" *ngIf="trabajo.asignacion.fechaLimite">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="meta-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Límite: {{ formatDate(trabajo.asignacion.fechaLimite) }}
+          </span>
+        </div>
+
+        <!-- Retroalimentación -->
+        <div class="feedback-box" *ngIf="trabajo.retroalimentacion">
+          <strong>Retroalimentación:</strong>
+          <p>{{ trabajo.retroalimentacion }}</p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="card-actions">
+          <button class="action-btn primary" *ngIf="trabajo.estado === 'PENDIENTE'" (click)="iniciarTrabajo(trabajo)">
+            Comenzar
+          </button>
+          <button class="action-btn play" *ngIf="trabajo.estado === 'EN_PROGRESO' && isPlayable(trabajo)" (click)="jugarActividad(trabajo)">
+            Jugar
+          </button>
+          <button class="action-btn success" *ngIf="trabajo.estado === 'EN_PROGRESO'" (click)="abrirCompletar(trabajo)">
+            Completar
+          </button>
+          <span class="completed-label" *ngIf="trabajo.estado === 'COMPLETADO' || trabajo.estado === 'EVALUADO'">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ trabajo.estado === 'EVALUADO' ? 'Evaluado' : 'Completado' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading trabajos -->
+    <div class="loading-state small" *ngIf="loadingTrabajos()">
+      <div class="loading-spinner"></div>
+      <p>Cargando trabajos...</p>
+    </div>
+
+  </ng-container>
+</div>
+
+<!-- Modal Completar -->
+<div class="modal-overlay" *ngIf="showCompletarModal()" (click)="cerrarCompletar()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Completar trabajo</h3>
+      <button class="close-btn" (click)="cerrarCompletar()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-question">¿Confirmas que has terminado este trabajo?</p>
+      <div class="modal-trabajo-info">
+        <strong>{{ selectedTrabajo()?.asignacion?.material?.titulo }}</strong>
+        <span>{{ selectedTrabajo()?.asignacion?.material?.tipo }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="cerrarCompletar()" [disabled]="completando()">Cancelar</button>
+      <button class="btn btn-success" (click)="confirmarCompletar()" [disabled]="completando()">
+        {{ completando() ? 'Enviando...' : 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>

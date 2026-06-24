@@ -12,6 +12,7 @@ export const routes: Routes = [
         path: '',
         loadComponent: () =>
             import('./layout/main-layout/main-layout').then(m => m.MainLayout),
+        canActivate: [authGuard],
         children: [
             {
                 path: '',
@@ -20,7 +21,22 @@ export const routes: Routes = [
                 pathMatch: 'full'
             },
             {
+                path: 'trabajadorsocial',
+                canActivate: [authGuard, roleGuard],
+                data: { permission: 'GESTION_TRABAJO_SOCIAL' },
+                loadComponent: () =>
+                    import('./pages/trabajadorsocial/trabajadorsocial').then(m => m.Trabajadorsocial)
+            },
+            {
+                path: 'supervisordezona',
+                canActivate: [authGuard, roleGuard],
+                data: { permission: 'GESTION_ZONA' },
+                loadComponent: () =>
+                    import('./pages/supervisordezona/supervisordezona').then(m => m.Supervisordezona)
+            },
+            {
                 path: 'admin',
+                canActivate: [authGuard, roleGuard],
                 data: { permission: 'ADMIN' },
                 loadComponent: () =>
                     import('./pages/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard)
@@ -33,11 +49,39 @@ export const routes: Routes = [
                     import('./pages/docente-dashboard/docente-dashboard').then(m => m.DocenteDashboard)
             },
             {
+                path: 'comunicacion',
+                canActivate: [authGuard, roleGuard],
+                data: { permission: 'COMUNICACION' },
+                loadComponent: () =>
+                    import('./pages/comunicacion/comunicacion').then(m => m.Comunicacion)
+            },
+            {
+                path: 'aprendizaje',
+                canActivate: [authGuard, roleGuard],
+                data: { permission: 'APRENDIZAJE' },
+                loadComponent: () =>
+                    import('./pages/aprendizaje/aprendizaje').then(m => m.Aprendizaje)
+            },
+            {
+                path: 'psicologia',
+                canActivate: [authGuard, roleGuard],
+                data: { permission: 'PSICOLOGIA' },
+                loadComponent: () =>
+                    import('./pages/psicologia/psicologia').then(m => m.Psicologia)
+            },
+            {
                 path: 'especialista',
                 canActivate: [roleGuard],
                 data: { permission: 'PLAN_ACCION' },
                 loadComponent: () =>
                     import('./pages/especialista-dashboard/especialista-dashboard').then(m => m.EspecialistaDashboard)
+            },
+            {
+                path: 'alumno',
+                canActivate: [authGuard, roleGuard],
+                data: { permission: 'PORTAL_ALUMNO' },
+                loadComponent: () =>
+                    import('./pages/alumno/alumno').then(m => m.AlumnoPage)
             },
             {
                 path: 'perfil',

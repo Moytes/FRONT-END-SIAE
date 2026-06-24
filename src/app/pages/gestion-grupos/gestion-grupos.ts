@@ -142,7 +142,7 @@ export class GestionGrupos implements OnInit {
         this.showAddModal.set(false);
         this.loadGroupStudents(group.id);
       },
-      error: (err) => alert(err.error?.message || 'Error al agregar alumnos')
+      error: (err: any) => alert(err.error?.message || 'Error al agregar alumnos')
     });
   }
 

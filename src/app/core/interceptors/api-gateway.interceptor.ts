@@ -23,9 +23,21 @@ export const apiGatewayInterceptor: HttpInterceptorFn = (req, next) => {
     map(event => {
       // 2. Interceptar respuestas exitosas para validar el estándar JSchema
       if (event instanceof HttpResponse) {
-        const body = event.body as ApiResponse;
+        let body = event.body as any;
+        
+        // Si el body es un objeto y tiene intOpCode (ya es ApiResponse)
         if (body && body.intOpCode) {
           console.log(`[Trace] Origin: ${getServiceOrigin(body.intOpCode)} | Code: ${body.intOpCode}`);
+        }
+
+        // Si el backend responde con JSON plano sin 'statusCode' (ej. SAEV3), lo envolvemos
+        if (body !== null && typeof body === 'object' && !('statusCode' in body)) {
+          const wrappedBody: ApiResponse = {
+            statusCode: event.status,
+            message: 'Success',
+            data: body
+          };
+          return event.clone({ body: wrappedBody });
         }
       }
       return event;
@@ -38,7 +50,7 @@ export const apiGatewayInterceptor: HttpInterceptorFn = (req, next) => {
 
       console.error(`[Error] Origin: ${origin} | Code: ${intOpCode}`, errorBody);
 
-      if (error.status === 401 || intOpCode === 'ID_401') {
+      if (error.status === 401 && intOpCode === 'ID_401') {
         localStorage.removeItem('SIAE_JWT_TOKEN');
         localStorage.removeItem('SIAE_USER_SESSION');
         router.navigate(['/login']);

@@ -18,7 +18,7 @@ export class ReportService {
     if (schoolId) params.push(`schoolId=${schoolId}`);
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<StudentDataSheetItem[]>(`api/reportes/sabana-datos${qs}`);
+    return this.api.get<StudentDataSheetItem[]>(`api/clinical/reportes/sabana-datos${qs}`);
   }
 
   /** GET /api/reportes/resumen-cie?studentId=&schoolYearId= */
@@ -27,7 +27,7 @@ export class ReportService {
     if (studentId) params.push(`studentId=${studentId}`);
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<CIESummaryItem[]>(`api/reportes/resumen-cie${qs}`);
+    return this.api.get<CIESummaryItem[]>(`api/clinical/reportes/resumen-cie${qs}`);
   }
 
   /** GET /api/reportes/alertas-tea?schoolYearId=&alertLevel= */
@@ -36,6 +36,6 @@ export class ReportService {
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     if (alertLevel !== undefined) params.push(`alertLevel=${alertLevel}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<TEAAlertItem[]>(`api/reportes/alertas-tea${qs}`);
+    return this.api.get<TEAAlertItem[]>(`api/clinical/reportes/alertas-tea${qs}`);
   }
 }

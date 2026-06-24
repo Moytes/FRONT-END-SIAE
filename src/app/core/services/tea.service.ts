@@ -14,7 +14,7 @@ export class TeaService {
 
   /** GET /api/tea/indicadores */
   getIndicators(): Observable<TEAIndicatorCatalog[]> {
-    return this.api.get<TEAIndicatorCatalog[]>('api/tea/indicadores');
+    return this.api.get<TEAIndicatorCatalog[]>('api/clinical/tea/indicadores');
   }
 
   /** GET /api/tea/screenings?studentId=&schoolYearId=&alertLevel= */
@@ -24,16 +24,16 @@ export class TeaService {
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     if (alertLevel !== undefined) params.push(`alertLevel=${alertLevel}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<TEAScreeningListItem[]>(`api/tea/screenings${qs}`);
+    return this.api.get<TEAScreeningListItem[]>(`api/clinical/history/tea${qs}`);
   }
 
   /** POST /api/tea/screenings */
   createScreening(request: any): Observable<ApiResponse<string>> {
-    return this.api.post<string>('api/tea/screenings', request);
+    return this.api.post<string>('api/clinical/evaluate/tea', request);
   }
 
   /** POST /api/tea/screenings/{id}/respuestas */
   upsertAnswers(screeningId: string, request: any): Observable<ApiResponse<string[]>> {
-    return this.api.post<string[]>(`api/tea/screenings/${screeningId}/respuestas`, request);
+    return this.api.post<string[]>(`api/clinical/evaluate/tea/${screeningId}/respuestas`, request);
   }
 }

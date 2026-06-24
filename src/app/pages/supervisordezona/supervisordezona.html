@@ -1,0 +1,219 @@
+<section class="supervisor-page">
+  <div class="toast" *ngIf="alert() as currentAlert" [class]="currentAlert.type">
+    <strong>{{ currentAlert.title }}</strong>
+    <span>{{ currentAlert.message }}</span>
+    <button type="button" (click)="alert.set(null)" aria-label="Cerrar alerta">×</button>
+  </div>
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Supervisor de zona</span>
+      <h1>Gestión de escuelas y personal</h1>
+      <p>Administra directores, docentes y especialistas únicamente en tus escuelas asignadas.</p>
+    </div>
+    <button class="primary-action" type="button" (click)="openCreateModal()" [disabled]="schools().length === 0">
+      + Agregar personal
+    </button>
+  </header>
+
+  <div class="empty-access" *ngIf="!loading() && schools().length === 0">
+    <h2>No tienes escuelas asignadas</h2>
+    <p>Solicita a administración que te asigne escuelas antes de crear directores, docentes o especialistas.</p>
+  </div>
+
+  <ng-container *ngIf="schools().length > 0">
+    <section class="metric-grid">
+      <article class="metric-card">
+        <span>Escuelas asignadas</span>
+        <strong>{{ schools().length }}</strong>
+      </article>
+      <article class="metric-card">
+        <span>Personal activo</span>
+        <strong>{{ activeStaffCount() }}</strong>
+      </article>
+      <article class="metric-card">
+        <span>Directores USAER</span>
+        <strong>{{ directorsCount() }}</strong>
+      </article>
+      <article class="metric-card">
+        <span>Docentes</span>
+        <strong>{{ teachersCount() }}</strong>
+      </article>
+      <article class="metric-card">
+        <span>Especialistas</span>
+        <strong>{{ specialistsCount() }}</strong>
+      </article>
+    </section>
+
+    <section class="schools-panel">
+      <div class="section-title">
+        <h2>Tus escuelas</h2>
+        <p>Este módulo solo opera sobre estas instituciones.</p>
+      </div>
+      <div class="school-list">
+        <article class="school-chip" *ngFor="let school of schools()">
+          <strong>{{ school.name }}</strong>
+          <span>{{ school.cct || 'Sin CCT' }} · {{ school.schoolZoneName || 'Zona no especificada' }}</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="staff-panel">
+      <div class="panel-toolbar">
+        <div class="section-title">
+          <h2>Personal asignado</h2>
+          <p>{{ filteredStaff().length }} resultados visibles</p>
+        </div>
+        <div class="filters">
+          <input
+            type="search"
+            placeholder="Buscar por nombre o correo"
+            [ngModel]="searchTerm()"
+            (ngModelChange)="searchTerm.set($event)"
+          />
+          <select [ngModel]="selectedSchoolId()" (ngModelChange)="selectedSchoolId.set($event); applyServerFilters()">
+            <option value="">Todas las escuelas</option>
+            <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
+          </select>
+          <select [ngModel]="selectedRoleId()" (ngModelChange)="selectedRoleId.set($event); applyServerFilters()">
+            <option value="">Todos los roles</option>
+            <option *ngFor="let role of managedRoles" [value]="role.id">{{ role.label }}</option>
+          </select>
+          <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)">
+            <option value="all">Todos</option>
+            <option value="active">Activos</option>
+            <option value="inactive">Inactivos</option>
+          </select>
+          <button class="ghost-button" type="button" (click)="clearFilters()">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="table-state" *ngIf="loading()">Cargando personal...</div>
+      <div class="table-state" *ngIf="!loading() && filteredStaff().length === 0">
+        No hay personal con los filtros actuales.
+      </div>
+
+      <div class="table-wrapper" *ngIf="!loading() && filteredStaff().length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Escuela</th>
+              <th>Contacto</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of filteredStaff()">
+              <td>
+                <div class="person-cell">
+                  <div class="avatar">{{ user.name.charAt(0) }}{{ user.fatherLastName.charAt(0) }}</div>
+                  <div>
+                    <strong>{{ user.name }} {{ user.fatherLastName }} {{ user.motherLastName || '' }}</strong>
+                    <span>{{ user.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-tag" [class]="getRoleClass(user.role)">{{ getRoleLabel(user.role) }}</span></td>
+              <td>{{ user.schoolName || 'Sin escuela' }}</td>
+              <td>{{ user.phoneNumber || 'Sin teléfono' }}</td>
+              <td>
+                <span class="status-pill" [class.inactive]="user.status === 0">
+                  {{ user.status === 1 ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button type="button" (click)="openEditModal(user)">Editar</button>
+                  <button type="button" class="danger" (click)="requestStatusToggle(user)">
+                    {{ user.status === 1 ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+
+  <div class="modal-backdrop" *ngIf="modalOpen()" (click)="closeModal()">
+    <form class="modal-card" (click)="$event.stopPropagation()" (ngSubmit)="saveStaff()">
+      <header>
+        <div>
+          <h2>{{ editingUser() ? 'Editar personal' : 'Agregar personal' }}</h2>
+          <p>Los usuarios creados quedarán ligados a una de tus escuelas asignadas.</p>
+        </div>
+        <button type="button" class="icon-button" (click)="closeModal()">×</button>
+      </header>
+
+      <div class="form-grid">
+        <label>
+          Nombre
+          <input name="name" [(ngModel)]="form.name" required />
+        </label>
+        <label>
+          Apellido paterno
+          <input name="fatherLastName" [(ngModel)]="form.fatherLastName" required />
+        </label>
+        <label>
+          Apellido materno
+          <input name="motherLastName" [(ngModel)]="form.motherLastName" />
+        </label>
+        <label>
+          Correo
+          <input name="email" type="email" [(ngModel)]="form.email" required />
+        </label>
+        <label *ngIf="!editingUser()">
+          Contraseña temporal
+          <input name="password" type="password" [(ngModel)]="form.password" required minlength="8" />
+        </label>
+        <label>
+          Teléfono
+          <input name="phone" [(ngModel)]="form.phone" />
+        </label>
+        <label>
+          Rol
+          <select name="roleId" [(ngModel)]="form.roleId" required>
+            <option *ngFor="let role of managedRoles" [ngValue]="role.id">{{ role.label }}</option>
+          </select>
+        </label>
+        <label>
+          Escuela
+          <select name="schoolId" [(ngModel)]="form.schoolId" required>
+            <option value="">Selecciona escuela</option>
+            <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
+          </select>
+        </label>
+        <label class="full">
+          URL de avatar
+          <input name="avatarUrl" [(ngModel)]="form.avatarUrl" placeholder="Opcional" />
+        </label>
+        <label class="toggle-row" *ngIf="editingUser()">
+          <input name="activo" type="checkbox" [(ngModel)]="form.activo" />
+          Usuario activo
+        </label>
+      </div>
+
+      <footer>
+        <button type="button" class="ghost-button" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="primary-action" [disabled]="saving()">
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </footer>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="confirmOpen()" (click)="closeConfirm()">
+    <div class="confirm-card" (click)="$event.stopPropagation()">
+      <h2>Confirmar cambio de estado</h2>
+      <p>Esta acción cambiará el acceso del usuario seleccionado. Puedes revertirlo después.</p>
+      <footer>
+        <button type="button" class="ghost-button" (click)="closeConfirm()">Cancelar</button>
+        <button type="button" class="danger-action" (click)="saveStatusToggle()">Confirmar</button>
+      </footer>
+    </div>
+  </div>
+</section>

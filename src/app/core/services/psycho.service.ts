@@ -16,26 +16,26 @@ export class PsychoService {
     if (studentId) params.push(`studentId=${studentId}`);
     if (schoolYearId) params.push(`schoolYearId=${schoolYearId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
-    return this.api.get<PsychoeducationalAssessmentListItem[]>(`api/evaluaciones-psicopedagogicas${qs}`);
+    return this.api.get<PsychoeducationalAssessmentListItem[]>(`api/clinical/evaluaciones-psicopedagogicas${qs}`);
   }
 
   /** POST /api/evaluaciones-psicopedagogicas */
   createAssessment(request: any): Observable<ApiResponse<string>> {
-    return this.api.post<string>('api/evaluaciones-psicopedagogicas', request);
+    return this.api.post<string>('api/clinical/evaluaciones-psicopedagogicas', request);
   }
 
   /** PUT /api/evaluaciones-psicopedagogicas/{id} */
   updateAssessment(id: string, request: any): Observable<ApiResponse<any>> {
-    return this.api.put<any>(`api/evaluaciones-psicopedagogicas/${id}`, request);
+    return this.api.put<any>(`api/clinical/evaluaciones-psicopedagogicas/${id}`, request);
   }
 
   /** POST /api/evaluaciones-psicopedagogicas/{id}/bap */
   syncBaps(id: string, request: any): Observable<ApiResponse<string[]>> {
-    return this.api.post<string[]>(`api/evaluaciones-psicopedagogicas/${id}/bap`, request);
+    return this.api.post<string[]>(`api/clinical/evaluaciones-psicopedagogicas/${id}/bap`, request);
   }
 
   /** POST /api/evaluaciones-psicopedagogicas/{id}/colaboradores */
   syncCollaborators(id: string, request: any): Observable<ApiResponse<string[]>> {
-    return this.api.post<string[]>(`api/evaluaciones-psicopedagogicas/${id}/colaboradores`, request);
+    return this.api.post<string[]>(`api/clinical/evaluaciones-psicopedagogicas/${id}/colaboradores`, request);
   }
 }

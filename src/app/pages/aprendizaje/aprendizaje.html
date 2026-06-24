@@ -1,0 +1,95 @@
+<section class="specialist-page learning">
+  <div class="toast" *ngIf="alert() as currentAlert" [class]="currentAlert.type">
+    <strong>{{ currentAlert.title }}</strong>
+    <span>{{ currentAlert.message }}</span>
+    <button type="button" (click)="alert.set(null)">×</button>
+  </div>
+
+  <header class="hero">
+    <div>
+      <span class="eyebrow">Especialista en Aprendizaje</span>
+      <h1>Intervención y seguimiento de aprendizaje</h1>
+      <p>Gestiona únicamente alumnos canalizados al área de aprendizaje dentro de tus escuelas asignadas.</p>
+    </div>
+    <div class="scope-pill">
+      <span>Escuela activa</span>
+      <strong>{{ activeSchool()?.name || 'Sin escuela seleccionada' }}</strong>
+    </div>
+  </header>
+
+  <div class="empty-access" *ngIf="!loading() && schools().length === 0">
+    <h2>No tienes escuelas asignadas</h2>
+    <p>Solicita a supervisión que vincule tu cuenta a una escuela antes de gestionar aprendizaje.</p>
+  </div>
+
+  <ng-container *ngIf="schools().length > 0">
+    <section class="metric-grid">
+      <article><span>Escuelas</span><strong>{{ schools().length }}</strong></article>
+      <article><span>Grupos</span><strong>{{ groupsCount() }}</strong></article>
+      <article><span>Alumnos aprendizaje</span><strong>{{ studentsCount() }}</strong></article>
+      <article><span>Seguimiento activo</span><strong>{{ primaryStudentsCount() }}</strong></article>
+    </section>
+
+    <section class="filters-card">
+      <label>Escuela
+        <select [ngModel]="selectedSchoolId()" (ngModelChange)="selectedSchoolId.set($event); refreshScope()">
+          <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
+        </select>
+      </label>
+      <label>Ciclo escolar
+        <select [ngModel]="selectedYearId()" (ngModelChange)="selectedYearId.set($event); refreshScope()">
+          <option *ngFor="let year of years()" [value]="year.id">{{ year.name }}</option>
+        </select>
+      </label>
+      <label>Grupo
+        <select [ngModel]="selectedGroupId()" (ngModelChange)="selectedGroupId.set($event); loadStudents()">
+          <option value="">Todos los grupos</option>
+          <option *ngFor="let group of groups()" [value]="group.id">{{ group.displayName }} · {{ group.schoolYearName }}</option>
+        </select>
+      </label>
+      <label>Buscar
+        <input type="search" placeholder="Nombre o CURP" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" />
+      </label>
+    </section>
+
+    <main class="dashboard-grid">
+      <section class="panel students-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Alumnos del área de aprendizaje</h2>
+            <p>{{ filteredStudents().length }} alumnos visibles con tus permisos actuales.</p>
+          </div>
+          <button class="ghost-button" type="button" (click)="loadStudents()">Actualizar</button>
+        </div>
+
+        <div class="state" *ngIf="loading()">Cargando alumnos...</div>
+        <div class="state" *ngIf="!loading() && filteredStudents().length === 0">No hay alumnos asignados a aprendizaje en este alcance.</div>
+
+        <div class="table-wrapper" *ngIf="!loading() && filteredStudents().length > 0">
+          <table>
+            <thead><tr><th>Alumno</th><th>Edad</th><th>Escuela</th><th>Grupo</th><th>CURP</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let student of filteredStudents()">
+                <td><div class="person-cell"><div class="avatar">{{ student.name.charAt(0) }}{{ student.fatherLastName.charAt(0) }}</div><strong>{{ getStudentName(student) }}</strong></div></td>
+                <td>{{ getAge(student.birthDate) }} años</td>
+                <td>{{ student.schoolName || 'Sin escuela' }}</td>
+                <td>{{ student.groupName || 'Sin grupo' }}</td>
+                <td>{{ student.curp || 'Sin CURP' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="panel side-panel">
+        <h2>Prioridades de intervención</h2>
+        <p class="muted">Este panel concentra barreras de aprendizaje, grupos y alumnos pendientes de plan.</p>
+        <div class="priority-list">
+          <article><strong>Plan individual</strong><span>Crear o revisar ajustes razonables del alumno.</span></article>
+          <article><strong>Materiales</strong><span>Asignar actividades de apoyo cuando el microservicio de clases esté listo.</span></article>
+          <article><strong>Seguimiento</strong><span>Registrar avances por ciclo y grupo.</span></article>
+        </div>
+      </aside>
+    </main>
+  </ng-container>
+</section>
