@@ -77,9 +77,9 @@ export class CatalogService {
     return this.api.get<AttentionArea[]>('api/catalogos/areas-atencion');
   }
 
-  /** GET /api/catalogos/tipos-material */
+  /** GET /api/v1/catalogos/tipos-material — vive en backend-clases, no en backend-core */
   getMaterialTypes(): Observable<MaterialType[]> {
-    return this.api.get<MaterialType[]>('api/catalogos/tipos-material');
+    return this.api.get<MaterialType[]>('api/v1/catalogos/tipos-material');
   }
 
   /** POST /api/catalogos/zonas-escolares */

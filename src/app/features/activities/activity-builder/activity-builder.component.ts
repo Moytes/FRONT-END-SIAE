@@ -1,8 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ActivityConfigService, ActivityDimension } from '../../../core/services/activity-config.service';
+import { ActivityDimension } from '../../../core/services/activity-config.service';
+import { MaterialService } from '../../../core/services/material.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 
 interface FonemaItem {
   fonema: string;
@@ -132,9 +134,13 @@ const PHONEME_CATALOG: Record<string, { label: string; items: FonemaItem[] }> = 
   templateUrl: './activity-builder.component.html',
   styleUrl: './activity-builder.component.css'
 })
-export class ActivityBuilderComponent {
-  configService = inject(ActivityConfigService);
+export class ActivityBuilderComponent implements OnInit {
+  materialService = inject(MaterialService);
+  catalogService = inject(CatalogService);
   router = inject(Router);
+
+  saving = signal(false);
+  private tipoActividadId = signal<number>(2); // fallback: id=2 = "ACTIVIDAD" en el seed actual
 
   activityTitle = signal('');
   dimension = signal<ActivityDimension>('FONOLOGIA');
@@ -173,6 +179,13 @@ export class ActivityBuilderComponent {
   sequenceMainQ = signal('');
   sequenceSteps = signal<string[]>([]);
   newSequenceStepText = signal('');
+
+  ngOnInit() {
+    this.catalogService.getMaterialTypes().subscribe(types => {
+      const actividad = types.find(t => t.clave === 'ACTIVIDAD');
+      if (actividad) this.tipoActividadId.set(actividad.id);
+    });
+  }
 
   setActivityType(type: number) {
     this.activityType.set(type);
@@ -221,7 +234,8 @@ export class ActivityBuilderComponent {
 
   // --- Guardar ---
   saveConfiguration() {
-    const id = 'act_' + Date.now();
+    if (!this.activityTitle().trim() || this.saving()) return;
+
     let specificConfig: any = {};
 
     const type = this.activityType();
@@ -262,32 +276,43 @@ export class ActivityBuilderComponent {
       specificConfig = { question: this.sequenceMainQ(), steps: this.sequenceSteps() };
     }
 
-    const saved = this.configService.saveActivity({
-      id,
-      title: this.activityTitle(),
-      dimension: this.dimension(),
-      activityType: type,
-      config: specificConfig,
-      createdAt: new Date()
+    this.saving.set(true);
+    this.materialService.createMaterial({
+      titulo: this.activityTitle(),
+      descripcion: this.getTypeLabel(type),
+      tipoId: this.tipoActividadId(),
+      contenidoJson: JSON.stringify({
+        activityType: type,
+        dimension: this.dimension(),
+        config: specificConfig
+      }),
+      tags: [],
+      publicado: false
+    }).subscribe({
+      next: (result) => {
+        this.saving.set(false);
+        // Limpiar formulario
+        this.activityTitle.set('');
+        this.phonemeGroup.set('bilabiales');
+        this.pairsGroup.set('oclusivas');
+        this.flashcardWord.set('');
+        this.flashcardImageUrl.set('');
+        this.flashcardWord2.set('');
+        this.flashcardImageUrl2.set('');
+        this.checklistMainQ.set('');
+        this.checklistQuestions.set([]);
+        this.iaPrompt.set('');
+        this.sequenceMainQ.set('');
+        this.sequenceSteps.set([]);
+        // Navegar al engine para previsualizar (queda como borrador hasta publicarse
+        // desde el catálogo del especialista)
+        this.router.navigate(['/actividades/engine', result.id]);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        alert(err?.error?.message || 'No se pudo guardar la actividad.');
+      }
     });
-
-    if (saved) {
-      // Limpiar formulario
-      this.activityTitle.set('');
-      this.phonemeGroup.set('bilabiales');
-      this.pairsGroup.set('oclusivas');
-      this.flashcardWord.set('');
-      this.flashcardImageUrl.set('');
-      this.flashcardWord2.set('');
-      this.flashcardImageUrl2.set('');
-      this.checklistMainQ.set('');
-      this.checklistQuestions.set([]);
-      this.iaPrompt.set('');
-      this.sequenceMainQ.set('');
-      this.sequenceSteps.set([]);
-      // Navegar al engine para probar
-      this.router.navigate(['/actividades/engine', id]);
-    }
   }
 
   // Helper methods for template

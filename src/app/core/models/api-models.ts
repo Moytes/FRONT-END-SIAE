@@ -11,17 +11,16 @@ export interface ApiResponse<T = any> {
 // ================================================================
 // ENUMS — mirrors Models/DB/
 // ================================================================
+// Los ids 2 (SUPERVISOR), 3 (DIRECTOR_USAER), 7 (TRABAJO_SOCIAL) y 10 (ALUMNO)
+// quedan reservados/sin usar: existieron como roles y se eliminaron de la BD.
 export enum UserRole {
   ADMIN = 1,
-  SUPERVISOR = 2,
-  DIRECTOR_USAER = 3,
   ESPECIALISTA_COM = 4,
   ESPECIALISTA_PSI = 5,
   ESPECIALISTA_APR = 6,
-  TRABAJO_SOCIAL = 7,
   DOCENTE = 8,
   TUTOR = 9,
-  ALUMNO = 10
+  CREADOR_CONTENIDO = 11
 }
 
 export enum BoolStatus {
@@ -210,6 +209,7 @@ export interface AddTutorRequest {
   phoneNumber?: string;
   email?: string;
   address?: string;
+  userId?: string;
 }
 
 // ================================================================
@@ -389,9 +389,13 @@ export interface AttentionArea {
   name: string;
 }
 
+// Forma real confirmada contra backend-clases (CatalogosController.GetTiposMaterial,
+// devuelve la entidad TipoMaterial sin proyectar) — usa "clave"/"nombre", no "name".
 export interface MaterialType {
-  id: string;
-  name: string;
+  id: number;
+  clave: string;
+  nombre: string;
+  descripcion?: string;
 }
 
 // ================================================================
@@ -432,30 +436,55 @@ export interface UpdateCanalizationStatusRequest {
 // ================================================================
 // MATERIALS
 // ================================================================
+// Nombres de campo en español — reflejan tal cual la forma real que devuelve
+// backend-clases (MaterialesController), que NO envuelve sus respuestas.
 export interface MaterialListItem {
-  id: string;
-  title: string;
-  description?: string;
-  materialTypeId: string;
-  materialTypeName: string;
-  dimensionId?: string;
-  dimensionName?: string;
-  grade?: number;
-  fileUrl?: string;
-  imageUrl?: string;
+  id: number;
+  titulo: string;
+  descripcion?: string;
+  tipoId: number;
+  tipoNombre: string;
+  nivelId?: number;
+  gradoMin?: number;
+  gradoMax?: number;
+  dimensionId?: number;
+  attentionAreaId?: number;
+  nivelDesempeno?: 'INICIAL' | 'EN_PROCESO' | 'LOGRADO';
+  creadorId: string;
+  archivoUrl?: string;
+  archivoMime?: string;
+  archivoSize?: number;
+  thumbnailUrl?: string;
+  contenidoJson?: string;
+  criteriosJson?: string;
+  publicado: boolean;
+  evaluacionAuto: boolean;
   tags: string[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface AddMaterialRequest {
-  title: string;
-  description?: string;
-  materialTypeId: string;
-  dimensionId?: string;
-  grade?: number;
-  fileUrl?: string;
-  imageUrl?: string;
-  createdById?: string;
+  titulo: string;
+  descripcion?: string;
+  tipoId: number;
+  nivelId?: number;
+  gradoMin?: number;
+  gradoMax?: number;
+  dimensionId?: number;
+  attentionAreaId?: number;
+  nivelDesempeno?: 'INICIAL' | 'EN_PROCESO' | 'LOGRADO';
+  contenidoJson?: string;
+  criteriosJson?: string;
+  archivoR2Key?: string;
+  archivoUrl?: string;
+  archivoSize?: number;
+  archivoMime?: string;
+  thumbnailR2Key?: string;
+  thumbnailUrl?: string;
+  tags: string[];
+  evaluacionAuto?: boolean;
+  publicado?: boolean;
 }
 
 // ================================================================
@@ -479,30 +508,160 @@ export interface AddNotificationRequest {
 // ================================================================
 // ASSIGNMENTS
 // ================================================================
-export interface StudentAssignmentListItem {
-  id: string;
-  assignmentId: string;
-  studentId: string;
-  studentName: string;
-  materialId: string;
-  materialTitle: string;
-  isCompleted: boolean;
-  completedAt?: string;
-  score?: number;
-  createdAt: string;
+// Forma real confirmada contra backend-clases (AsignacionesController) — el
+// enum EstadoAsignacion se serializa como string (JsonStringEnumConverter).
+export type EstadoAsignacion = 'PENDIENTE' | 'EN_PROGRESO' | 'COMPLETADO' | 'EVALUADO';
+
+export interface AsignacionAlumnoItem {
+  id: number;
+  alumnoId: string;
+  estado: EstadoAsignacion;
+  fechaCompletado?: string;
+  retroalimentacion?: string;
+}
+
+export interface Asignacion {
+  id: number;
+  fechaAsignacion: string;
+  fechaLimite?: string;
+  instrucciones?: string;
+  material: { id: number; titulo: string };
+  alumnos: AsignacionAlumnoItem[];
 }
 
 export interface AddAssignmentRequest {
-  materialId: string;
-  assignedById: string;
-  schoolYearId: string;
-  groupId?: string;
-  studentIds?: string[];
+  materialId: number;
+  alumnosIds: string[];
+  cicloId: number;
+  suscripcionAcademiaId?: number;
+  fechaLimite?: string;
+  instrucciones?: string;
 }
 
-export interface CompleteAssignmentStudentRequest {
-  score?: number;
+export interface SetRetroalimentacionRequest {
+  retroalimentacion: string;
+  calificacionManual?: string;
+}
+
+// ================================================================
+// TUTOR — HISTORIAL / EVALUACIONES / SESIONES
+// ================================================================
+// Forma real confirmada contra backend-core (AlumnoPortalController.GetHistorial).
+export interface StudentHistorialDisability {
+  id: number;
+  studentId: string;
+  disabilityId: number;
+  disabilityCVE: string;
+  disabilityName: string;
+  disabilityCategory: number;
+  schoolYearId: number;
+  schoolYearName: string;
+  externalDiagnosis: boolean;
+}
+
+export interface StudentHistorialAttentionArea {
+  id: number;
+  studentId: string;
+  attentionAreaId: number;
+  attentionAreaCVE: string;
+  attentionAreaName: string;
+  schoolYearId: number;
+  isRequired: boolean;
   notes?: string;
+}
+
+export interface StudentHistorialTutor {
+  id: number;
+  studentId: string;
+  completeName: string;
+  parentesco?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  userId?: string;
+}
+
+export interface StudentHistorialRegistration {
+  id: number;
+  groupId: number;
+  groupName: string;
+  schoolId: number;
+  schoolName: string;
+  schoolYearId: number;
+  schoolYearName: string;
+  ingressDate: string;
+  isNew: boolean;
+  isTracking: boolean;
+  finalSituation?: number;
+  notes?: string;
+}
+
+export interface StudentHistorialRecord {
+  id: string;
+  name: string;
+  fatherLastName: string;
+  motherLastName?: string;
+  sexo: number;
+  birthDate: string;
+  curp?: string;
+  photoUrl?: string;
+  activo: boolean;
+  createdAt: string;
+  updatedAt: string;
+  tutors: StudentHistorialTutor[];
+  registrations: StudentHistorialRegistration[];
+}
+
+export interface StudentHistorial {
+  student: StudentHistorialRecord;
+  disabilities: StudentHistorialDisability[];
+  attentionAreas: StudentHistorialAttentionArea[];
+}
+
+// Forma real confirmada contra backend-reportes (TutorController / EvaluacionRepository / SesionRepository).
+export interface EvaluacionDetalle {
+  id: number;
+  alumnoId: string;
+  studentName?: string;
+  cicloId: number;
+  fechaElaboracion: string;
+  estado: string;
+  createdAt: string;
+  updatedAt: string;
+  motivoEvaluacion?: string;
+  conductaEvaluacion?: string;
+  antecedentesEmbarazo?: string;
+  antecedentesHeredo?: string;
+  desarrolloMotor?: string;
+  desarrolloLenguaje?: string;
+  historiaMedica?: string;
+  historiaEscolar?: string;
+  situacionFamiliar?: string;
+  descripcionAlumno?: string;
+  contextoFamiliar?: string;
+  contextoEscolar?: string;
+  contextoSocial?: string;
+  desarrolloFisico?: string;
+  desarrolloCognitivo?: string;
+  desarrolloSocioafectivo?: string;
+  evaluacionAprendizajes?: string;
+  creatividad?: string;
+  interpretacionResultados?: string;
+  conclusiones?: string;
+}
+
+export interface SesionPsicologica {
+  id: number;
+  alumnoId: string;
+  alumnoNombre?: string;
+  psicologoId: string;
+  cicloId: number;
+  fecha: string;
+  tipo?: string;
+  motivo?: string;
+  nota: string;
+  acuerdos?: string;
+  createdAt: string;
 }
 
 // ================================================================

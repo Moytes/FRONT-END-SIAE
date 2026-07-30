@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../../core/services/catalog.service';
 import { AuthService } from '../../services/auth.service';
-import { School, Group, UserRole, SchoolYear } from '../../core/models/api-models';
+import { School, Group, SchoolYear } from '../../core/models/api-models';
 
 @Component({
   selector: 'app-gestion-escuelas',
@@ -27,8 +27,6 @@ export class GestionEscuelas implements OnInit {
   schoolForm = { name: '', cct: '', schoolZoneId: '' };
   yearForm = { name: '', startDate: '', endDate: '', isActive: true };
 
-  readonly UserRole = UserRole;
-
   ngOnInit() {
     this.loadData();
     this.loadCatalogs();
@@ -37,27 +35,12 @@ export class GestionEscuelas implements OnInit {
   loadData() {
     this.loading.set(true);
     
-    // Load both and then filter
     this.catalogService.getSchools().subscribe(allSchools => {
-      const user = this.authService.currentUser();
-      
-      if (user && user.role === UserRole.TRABAJO_SOCIAL && user.schoolIds) {
-        const mySchoolIds = new Set(user.schoolIds);
-        this.schools.set(allSchools.filter(s => mySchoolIds.has(s.id)));
-      } else {
-        this.schools.set(allSchools);
-      }
+      this.schools.set(allSchools);
     });
 
     this.catalogService.getGroups().subscribe(allGroups => {
-      const user = this.authService.currentUser();
-
-      if (user && user.role === UserRole.TRABAJO_SOCIAL && user.schoolIds) {
-        const mySchoolIds = new Set(user.schoolIds);
-        this.groups.set(allGroups.filter(g => mySchoolIds.has(g.schoolId)));
-      } else {
-        this.groups.set(allGroups);
-      }
+      this.groups.set(allGroups);
       this.loading.set(false);
     });
   }

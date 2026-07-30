@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ApiService } from './api';
 import {
   StudentListItem,
@@ -9,8 +10,15 @@ import {
   TutorListItem,
   AddTutorRequest,
   AddRegistrationRequest,
+  BulkAddRegistrationRequest,
   ApiResponse
 } from '../models/api-models';
+
+export interface BulkRegistrationResult {
+  studentId: string;
+  success: boolean;
+  error?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
@@ -48,7 +56,15 @@ export class StudentService {
 
   /** POST /api/alumnos/{id}/tutores */
   addTutor(studentId: string, request: AddTutorRequest): Observable<ApiResponse<string>> {
-    return this.api.post<string>(`api/alumnos/${studentId}/tutores`, request);
+    const payload = {
+      completeName: request.completeName,
+      parentesco: request.parent,
+      phone: request.phoneNumber || null,
+      email: request.email || null,
+      address: request.address || null,
+      userId: request.userId || null
+    };
+    return this.api.post<string>(`api/alumnos/${studentId}/tutores`, payload);
   }
 
   /** POST /api/inscripciones */
@@ -56,11 +72,25 @@ export class StudentService {
     return this.api.post<string>('api/inscripciones', request);
   }
 
-  // /** POST /api/inscripciones/masiva */
-  bulkAddRegistration(request: any): Observable<ApiResponse<any>> {
-    // return this.api.post<any>('api/inscripciones/masiva', request);
-    return new Observable(subscriber => {
-      subscriber.error(new Error('bulkAddRegistration no está implementado en SAE V3'));
-    });
+  /**
+   * No existe un endpoint masivo real y alcanzable (el único "inscripciones/masiva"
+   * vive en TrabajoSocialController, atado al rol TRABAJO_SOCIAL ya eliminado).
+   * Se dispara una llamada a POST /api/inscripciones por alumno; los fallos
+   * individuales (ej. ya inscrito) no cancelan al resto.
+   */
+  bulkAddRegistration(request: BulkAddRegistrationRequest): Observable<BulkRegistrationResult[]> {
+    const calls = request.studentIds.map(studentId =>
+      this.addRegistration({
+        studentId,
+        groupId: request.groupId,
+        schoolYearId: request.schoolYearId
+      }).pipe(
+        map((): BulkRegistrationResult => ({ studentId, success: true })),
+        catchError((err): Observable<BulkRegistrationResult> =>
+          of({ studentId, success: false, error: err?.error?.message || err?.message || 'Error desconocido' })
+        )
+      )
+    );
+    return forkJoin(calls);
   }
 }

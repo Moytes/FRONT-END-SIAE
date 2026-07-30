@@ -256,8 +256,8 @@
 
         <!-- Guardar Datos -->
         <div class="save-actions">
-           <button class="btn-primary" (click)="saveConfiguration()" [disabled]="!activityTitle() || !activityType()">
-             🚀 Publicar e Iniciar Misión
+           <button class="btn-primary" (click)="saveConfiguration()" [disabled]="!activityTitle() || !activityType() || saving()">
+             {{ saving() ? 'Guardando...' : '🚀 Guardar y previsualizar' }}
            </button>
         </div>
      </div>

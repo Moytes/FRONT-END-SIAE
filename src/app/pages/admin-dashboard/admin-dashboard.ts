@@ -1,21 +1,17 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../../core/services/catalog.service';
-import { UserService } from '../../core/services/user.service';
 import {
   AddSchoolRequest,
   AddSchoolZoneRequest,
-  AddUserRequest,
   EnumOption,
   School,
-  SchoolZone,
-  UserListItem,
-  UserRole
+  SchoolZone
 } from '../../core/models/api-models';
 
-type AdminTab = 'users' | 'zones' | 'schools';
-type ModalType = 'none' | 'user' | 'assign-supervisor' | 'zone' | 'school';
+type AdminTab = 'zones' | 'schools';
+type ModalType = 'none' | 'zone' | 'school';
 type ToastType = 'success' | 'error' | 'info';
 
 interface ToastMessage {
@@ -32,26 +28,17 @@ interface ToastMessage {
   styleUrl: './admin-dashboard.css'
 })
 export class AdminDashboard implements OnInit {
-  private userService = inject(UserService);
   private catalogService = inject(CatalogService);
 
-  activeTab = signal<AdminTab>('users');
+  activeTab = signal<AdminTab>('zones');
   showModal = signal<ModalType>('none');
   loading = signal(false);
   toast = signal<ToastMessage | null>(null);
 
-  users = signal<UserListItem[]>([]);
   zones = signal<SchoolZone[]>([]);
   schools = signal<School[]>([]);
   educationLevels = signal<EnumOption[]>([]);
 
-  selectedExistingUserId = signal('');
-
-  supervisors = computed(() =>
-    this.users().filter(user => Number(user.role) === UserRole.SUPERVISOR)
-  );
-
-  userForm: AddUserRequest = this.emptyUserForm();
   zoneForm: AddSchoolZoneRequest = this.emptyZoneForm();
   schoolForm: AddSchoolRequest = this.emptySchoolForm();
 
@@ -62,12 +49,6 @@ export class AdminDashboard implements OnInit {
 
   loadData() {
     this.loading.set(true);
-    this.userService.getUsers().subscribe({
-      next: users => this.users.set(users),
-      error: () => this.notify('error', 'Usuarios no disponibles', 'No se pudieron cargar los supervisores. Intente nuevamente.'),
-      complete: () => this.loading.set(false)
-    });
-
     this.catalogService.getSchoolZones().subscribe({
       next: zones => this.zones.set(zones),
       error: () => this.notify('error', 'Zonas no disponibles', 'No se pudieron cargar las zonas escolares.')
@@ -75,7 +56,8 @@ export class AdminDashboard implements OnInit {
 
     this.catalogService.getSchools().subscribe({
       next: schools => this.schools.set(schools),
-      error: () => this.notify('error', 'Escuelas no disponibles', 'No se pudieron cargar las escuelas registradas.')
+      error: () => this.notify('error', 'Escuelas no disponibles', 'No se pudieron cargar las escuelas registradas.'),
+      complete: () => this.loading.set(false)
     });
   }
 
@@ -99,45 +81,9 @@ export class AdminDashboard implements OnInit {
 
   closeModal() {
     this.showModal.set('none');
-    this.selectedExistingUserId.set('');
-    this.userForm = this.emptyUserForm();
     this.zoneForm = this.emptyZoneForm();
     this.schoolForm = this.emptySchoolForm();
     this.schoolForm.educationLevelId = this.educationLevels()[0]?.key || 0;
-  }
-
-  createSupervisor() {
-    if (!this.userForm.email || !this.userForm.password || !this.userForm.name || !this.userForm.fatherLastName) {
-      this.notify('info', 'Datos incompletos', 'Complete nombre, apellido, correo y contrasena temporal.');
-      return;
-    }
-
-    this.userService.createUser({ ...this.userForm, role: UserRole.SUPERVISOR }).subscribe({
-      next: () => {
-        this.loadData();
-        this.closeModal();
-        this.notify('success', 'Supervisor registrado', 'El usuario ya puede ser asignado a una escuela.');
-      },
-      error: err => this.notify('error', 'No se pudo registrar', this.getErrorMessage(err, 'Revise los datos e intente nuevamente.'))
-    });
-  }
-
-  assignSupervisorToSchool() {
-    const userId = this.selectedExistingUserId();
-    const schoolId = this.userForm.schoolId;
-    if (!userId || !schoolId) {
-      this.notify('info', 'Seleccione los datos', 'Elija un supervisor y la escuela donde trabajara.');
-      return;
-    }
-
-    this.userService.assignSupervisorToSchool(userId, schoolId).subscribe({
-      next: () => {
-        this.loadData();
-        this.closeModal();
-        this.notify('success', 'Asignacion guardada', 'El supervisor quedo vinculado a la escuela seleccionada.');
-      },
-      error: err => this.notify('error', 'No se pudo asignar', this.getErrorMessage(err, 'Intente nuevamente o revise si ya existe la asignacion.'))
-    });
   }
 
   createZone() {
@@ -185,8 +131,6 @@ export class AdminDashboard implements OnInit {
 
   getTabDescription(): string {
     switch (this.activeTab()) {
-      case 'users':
-        return 'Supervisores registrados y su escuela asignada.';
       case 'zones':
         return 'Zonas escolares disponibles para organizar escuelas.';
       case 'schools':
@@ -205,17 +149,6 @@ export class AdminDashboard implements OnInit {
 
   private getErrorMessage(err: any, fallback: string): string {
     return err?.error?.data || err?.error?.message || err?.error || fallback;
-  }
-
-  private emptyUserForm(): AddUserRequest {
-    return {
-      email: '',
-      password: '',
-      name: '',
-      fatherLastName: '',
-      role: UserRole.SUPERVISOR,
-      schoolId: ''
-    };
   }
 
   private emptyZoneForm(): AddSchoolZoneRequest {

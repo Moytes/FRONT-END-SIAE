@@ -3,13 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../../core/services/catalog.service';
 import { StudentService } from '../../core/services/student.service';
-import { AuthService } from '../../services/auth.service';
 import {
   Group,
   StudentListItem,
   SchoolYear,
   BulkAddRegistrationRequest,
-  UserRole,
   School
 } from '../../core/models/api-models';
 
@@ -23,7 +21,6 @@ import {
 export class GestionGrupos implements OnInit {
   private catalogService = inject(CatalogService);
   private studentService = inject(StudentService);
-  private authService = inject(AuthService);
 
   // State
   groups = signal<Group[]>([]);
@@ -69,28 +66,11 @@ export class GestionGrupos implements OnInit {
     });
 
     this.catalogService.getSchools().subscribe(res => {
-      const user = this.authService.currentUser();
-      if (user && user.role === UserRole.TRABAJO_SOCIAL && user.schoolIds) {
-        const mySchoolIds = new Set(user.schoolIds);
-        this.schools.set(res.filter(s => mySchoolIds.has(s.id)));
-      } else {
-        this.schools.set(res);
-      }
+      this.schools.set(res);
     });
 
     this.catalogService.getGroups().subscribe(allGroups => {
-      const user = this.authService.currentUser();
-      
-      if (user && user.role === UserRole.TRABAJO_SOCIAL && user.schoolIds && user.schoolIds.length > 0) {
-        const mySchoolIds = new Set(user.schoolIds);
-        const filtered = allGroups.filter(g => mySchoolIds.has(g.schoolId));
-        this.groups.set(filtered);
-      } else if (user && user.role === UserRole.TRABAJO_SOCIAL) {
-        // Trabajo social sin escuelas asignadas
-        this.groups.set([]);
-      } else {
-        this.groups.set(allGroups);
-      }
+      this.groups.set(allGroups);
       this.loading.set(false);
     });
   }
@@ -135,14 +115,18 @@ export class GestionGrupos implements OnInit {
 
     this.registrationForm.studentIds = Array.from(this.selectedForAdd());
     this.registrationForm.groupId = group.id;
+    this.registrationForm.schoolYearId = group.schoolYearId;
 
-    this.studentService.bulkAddRegistration(this.registrationForm).subscribe({
-      next: () => {
+    this.studentService.bulkAddRegistration(this.registrationForm).subscribe(results => {
+      const failed = results.filter(r => !r.success);
+      if (failed.length === 0) {
         alert('Alumnos agregados correctamente.');
-        this.showAddModal.set(false);
-        this.loadGroupStudents(group.id);
-      },
-      error: (err: any) => alert(err.error?.message || 'Error al agregar alumnos')
+      } else {
+        const detalle = failed.map(f => `- ${f.error}`).join('\n');
+        alert(`${results.length - failed.length} de ${results.length} alumnos agregados.\nFallaron:\n${detalle}`);
+      }
+      this.showAddModal.set(false);
+      this.loadGroupStudents(group.id);
     });
   }
 

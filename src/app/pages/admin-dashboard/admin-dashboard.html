@@ -11,25 +11,16 @@
     <div class="header-title">
       <span class="eyebrow">Panel administrativo</span>
       <h1>Gestion de plataforma</h1>
-      <p>Administre supervisores, zonas escolares y escuelas desde un solo lugar.</p>
+      <p>Administre zonas escolares y escuelas desde un solo lugar.</p>
     </div>
 
     <div class="header-actions" [ngSwitch]="activeTab()">
-      <ng-container *ngSwitchCase="'users'">
-        <button class="btn btn-primary" (click)="openModal('user')">Nuevo supervisor</button>
-        <button class="btn btn-secondary" (click)="openModal('assign-supervisor')">Asignar escuela</button>
-      </ng-container>
       <button *ngSwitchCase="'zones'" class="btn btn-primary" (click)="openModal('zone')">Registrar zona</button>
       <button *ngSwitchCase="'schools'" class="btn btn-primary" (click)="openModal('school')">Registrar escuela</button>
     </div>
   </header>
 
   <section class="stats-container" aria-label="Resumen administrativo">
-    <button class="stat-card" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
-      <span class="stat-label">Supervisores</span>
-      <span class="stat-value">{{ supervisors().length }}</span>
-      <span class="stat-help">Usuarios con rol de supervision</span>
-    </button>
     <button class="stat-card" [class.active]="activeTab() === 'zones'" (click)="setTab('zones')">
       <span class="stat-label">Zonas escolares</span>
       <span class="stat-value">{{ zones().length }}</span>
@@ -43,7 +34,6 @@
   </section>
 
   <nav class="admin-nav" aria-label="Secciones del administrador">
-    <button class="nav-item" [class.active]="activeTab() === 'users'" (click)="setTab('users')">Supervisores</button>
     <button class="nav-item" [class.active]="activeTab() === 'zones'" (click)="setTab('zones')">Zonas</button>
     <button class="nav-item" [class.active]="activeTab() === 'schools'" (click)="setTab('schools')">Escuelas</button>
   </nav>
@@ -52,7 +42,6 @@
     <div class="table-header">
       <div>
         <h2 [ngSwitch]="activeTab()">
-          <span *ngSwitchCase="'users'">Directorio de supervisores</span>
           <span *ngSwitchCase="'zones'">Zonas escolares</span>
           <span *ngSwitchCase="'schools'">Escuelas registradas</span>
         </h2>
@@ -64,12 +53,6 @@
     <div class="table-wrapper">
       <table class="admin-table" [ngSwitch]="activeTab()">
         <thead>
-          <tr *ngSwitchCase="'users'">
-            <th>Supervisor</th>
-            <th>Contacto</th>
-            <th>Escuela asignada</th>
-            <th>Estado</th>
-          </tr>
           <tr *ngSwitchCase="'zones'">
             <th>Zona escolar</th>
             <th>Clave CCT</th>
@@ -81,31 +64,6 @@
             <th>Zona escolar</th>
           </tr>
         </thead>
-
-        <tbody *ngSwitchCase="'users'">
-          <tr *ngFor="let user of supervisors()">
-            <td>
-              <div class="person-cell">
-                <span class="avatar">{{ user.name[0] }}{{ user.fatherLastName[0] }}</span>
-                <div>
-                  <div class="primary-text">{{ user.name }} {{ user.fatherLastName }}</div>
-                  <div class="muted-text">{{ user.motherLastName || 'Supervisor de plataforma' }}</div>
-                </div>
-              </div>
-            </td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.schoolName || 'Pendiente de asignar' }}</td>
-            <td><span class="status-pill success">Activo</span></td>
-          </tr>
-          <tr *ngIf="supervisors().length === 0">
-            <td colspan="4">
-              <div class="empty-state">
-                <strong>No hay supervisores registrados</strong>
-                <span>Registre un supervisor para comenzar a asignarlo a una escuela.</span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
 
         <tbody *ngSwitchCase="'zones'">
           <tr *ngFor="let zone of zones()">
@@ -149,80 +107,6 @@
   </section>
 
   <div class="modal-overlay" *ngIf="showModal() !== 'none'">
-    <div class="modal-box" *ngIf="showModal() === 'user'">
-      <div class="modal-header">
-        <div>
-          <span class="modal-kicker">Usuario supervisor</span>
-          <h3>Registrar nuevo supervisor</h3>
-        </div>
-        <button class="close-btn" type="button" (click)="closeModal()" aria-label="Cerrar">x</button>
-      </div>
-      <form (ngSubmit)="createSupervisor()">
-        <div class="modal-body">
-          <div class="form-grid">
-            <div class="input-group">
-              <label>Nombre</label>
-              <input class="admin-input" name="name" [(ngModel)]="userForm.name" placeholder="Ej. Laura" required>
-            </div>
-            <div class="input-group">
-              <label>Apellido paterno</label>
-              <input class="admin-input" name="fatherLastName" [(ngModel)]="userForm.fatherLastName" placeholder="Ej. Martinez" required>
-            </div>
-          </div>
-          <div class="input-group">
-            <label>Apellido materno</label>
-            <input class="admin-input" name="motherLastName" [(ngModel)]="userForm.motherLastName" placeholder="Opcional">
-          </div>
-          <div class="form-grid">
-            <div class="input-group">
-              <label>Correo electronico</label>
-              <input class="admin-input" type="email" name="email" [(ngModel)]="userForm.email" placeholder="supervisor@correo.com" required>
-            </div>
-            <div class="input-group">
-              <label>Contrasena temporal</label>
-              <input class="admin-input" type="password" name="password" [(ngModel)]="userForm.password" minlength="8" placeholder="Minimo 8 caracteres" required>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Registrar supervisor</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="modal-box" *ngIf="showModal() === 'assign-supervisor'">
-      <div class="modal-header">
-        <div>
-          <span class="modal-kicker">Asignacion</span>
-          <h3>Asignar supervisor a escuela</h3>
-        </div>
-        <button class="close-btn" type="button" (click)="closeModal()" aria-label="Cerrar">x</button>
-      </div>
-      <form (ngSubmit)="assignSupervisorToSchool()">
-        <div class="modal-body">
-          <div class="input-group">
-            <label>Supervisor</label>
-            <select class="admin-input" name="supervisor" [ngModel]="selectedExistingUserId()" (ngModelChange)="selectedExistingUserId.set($event)" required>
-              <option value="" disabled>Seleccione un supervisor</option>
-              <option *ngFor="let user of supervisors()" [value]="user.id">{{ user.name }} {{ user.fatherLastName }} - {{ user.email }}</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label>Escuela</label>
-            <select class="admin-input" name="schoolId" [(ngModel)]="userForm.schoolId" required>
-              <option value="" disabled>Seleccione una escuela</option>
-              <option *ngFor="let school of schools()" [value]="school.id">{{ school.name }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar asignacion</button>
-        </div>
-      </form>
-    </div>
-
     <div class="modal-box" *ngIf="showModal() === 'zone'">
       <div class="modal-header">
         <div>

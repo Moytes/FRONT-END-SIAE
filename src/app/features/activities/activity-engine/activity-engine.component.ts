@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ActivityConfigService, ActivityConfig } from '../../../core/services/activity-config.service';
+import { ActivityConfig } from '../../../core/services/activity-config.service';
+import { MaterialService } from '../../../core/services/material.service';
 
 import { FlashcardRenderer } from '../flashcard-renderer/flashcard-renderer';
 import { ChecklistRenderer } from '../checklist-renderer/checklist-renderer';
@@ -119,7 +120,7 @@ import { PragmaticaRendererComponent } from '../pragmatica-renderer/pragmatica-r
 export class ActivityEngineComponent implements OnInit {
   route = inject(ActivatedRoute);
   router = inject(Router);
-  configService = inject(ActivityConfigService);
+  materialService = inject(MaterialService);
 
   loadedConfig = signal<ActivityConfig | null>(null);
   loading = signal(true);
@@ -127,12 +128,39 @@ export class ActivityEngineComponent implements OnInit {
   ngOnInit() {
      this.route.paramMap.subscribe(params => {
         const id = params.get('id');
-        if (id) {
-           const conf = this.configService.getActivity(id);
-           this.loadedConfig.set(conf || null);
+        if (!id) {
+          this.loading.set(false);
+          return;
         }
-        this.loading.set(false);
+
+        this.materialService.getMaterial(+id).subscribe({
+          next: (material) => {
+            this.loadedConfig.set(this.parseContenido(material.id, material.titulo, material.contenidoJson));
+            this.loading.set(false);
+          },
+          error: () => {
+            this.loadedConfig.set(null);
+            this.loading.set(false);
+          }
+        });
      });
+  }
+
+  private parseContenido(id: number, title: string, contenidoJson: string | undefined): ActivityConfig | null {
+    if (!contenidoJson) return null;
+    try {
+      const parsed = JSON.parse(contenidoJson);
+      return {
+        id: String(id),
+        title,
+        activityType: parsed.activityType,
+        dimension: parsed.dimension,
+        config: parsed.config,
+        createdAt: new Date()
+      };
+    } catch {
+      return null;
+    }
   }
 
   getRendererType(activityType: number): string {

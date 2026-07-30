@@ -50,13 +50,6 @@ export class UserService {
     return this.api.post<string>('api/usuarios', payload);
   }
 
-  /** POST /api/usuarios/{id}/supervisor-escuela */
-  assignSupervisorToSchool(userId: string, schoolId: string): Observable<ApiResponse<string>> {
-    return this.api.post<string>(`api/usuarios/${userId}/supervisor-escuela`, {
-      schoolId: Number(schoolId)
-    });
-  }
-
   /** PUT /api/usuarios/{id} */
   updateUser(id: string, request: UpdateUserRequest): Observable<ApiResponse<any>> {
     return this.api.put<any>(`api/usuarios/${id}`, request);
