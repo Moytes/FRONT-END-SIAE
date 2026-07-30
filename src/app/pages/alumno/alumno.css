@@ -668,6 +668,123 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ===== Secciones principales / PDF ===== */
+.section-tabs {
+  margin-bottom: 1.5rem;
+}
+
+.pdf-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+}
+
+/* ===== Historial / Clínico ===== */
+.historial-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.info-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 1rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.info-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.2rem;
+}
+
+.info-value {
+  display: block;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.info-chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  letter-spacing: 0.3px;
+}
+
+.simple-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.empty-inline {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.eval-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.eval-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.eval-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: #f1f5f9;
+}
+
+.eval-item p {
+  margin: 0.25rem 0;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 640px) {
   .alumno-portal {

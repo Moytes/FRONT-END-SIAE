@@ -38,6 +38,12 @@
             </button>
           </div>
         </div>
+
+        <!-- Descarga de reporte PDF (solo tutor) -->
+        <button class="btn btn-secondary pdf-btn" *ngIf="accessedByTutor()" [disabled]="descargandoPdf()" (click)="descargarReporte()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tab-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          {{ descargandoPdf() ? 'Descargando...' : 'Descargar reporte PDF' }}
+        </button>
       </div>
 
       <!-- Stats rápidas -->
@@ -56,6 +62,21 @@
         </div>
       </div>
     </header>
+
+    <!-- Secciones principales (Trabajos / Historial / Clínico) — Historial y Clínico solo para tutor -->
+    <nav class="tabs-nav section-tabs" *ngIf="accessedByTutor()">
+      <button class="tab-btn" [class.active]="activeSection() === 'TRABAJOS'" (click)="setSection('TRABAJOS')">
+        Actividades
+      </button>
+      <button class="tab-btn" [class.active]="activeSection() === 'HISTORIAL'" (click)="setSection('HISTORIAL')">
+        Historial educativo
+      </button>
+      <button class="tab-btn" [class.active]="activeSection() === 'CLINICO'" (click)="setSection('CLINICO')">
+        Evaluaciones y sesiones
+      </button>
+    </nav>
+
+    <ng-container *ngIf="activeSection() === 'TRABAJOS'">
 
     <!-- Tabs de navegación -->
     <nav class="tabs-nav">
@@ -172,6 +193,93 @@
       <div class="loading-spinner"></div>
       <p>Cargando trabajos...</p>
     </div>
+
+    </ng-container>
+
+    <!-- Sección: Historial educativo (solo tutor) -->
+    <ng-container *ngIf="activeSection() === 'HISTORIAL'">
+      <div class="loading-state small" *ngIf="loadingHistorial()">
+        <div class="loading-spinner"></div>
+        <p>Cargando historial...</p>
+      </div>
+
+      <div class="historial-content" *ngIf="!loadingHistorial() && historial() as h">
+        <section class="info-card">
+          <h3>Datos generales</h3>
+          <div class="info-grid">
+            <div><span class="info-label">CURP</span><span class="info-value">{{ h.student.curp || 'N/A' }}</span></div>
+            <div><span class="info-label">Fecha de nacimiento</span><span class="info-value">{{ formatDate(h.student.birthDate) }}</span></div>
+            <div><span class="info-label">Estatus</span><span class="info-value">{{ h.student.activo ? 'Activo' : 'Inactivo' }}</span></div>
+          </div>
+        </section>
+
+        <section class="info-card">
+          <h3>Áreas de apoyo identificadas</h3>
+          <div class="empty-inline" *ngIf="h.attentionAreas.length === 0">Sin áreas de apoyo registradas.</div>
+          <div class="tag-list">
+            <span class="info-chip" *ngFor="let a of h.attentionAreas">{{ a.attentionAreaName }}</span>
+          </div>
+        </section>
+
+        <section class="info-card">
+          <h3>Discapacidades / diagnósticos</h3>
+          <div class="empty-inline" *ngIf="h.disabilities.length === 0">Sin diagnósticos registrados.</div>
+          <ul class="simple-list">
+            <li *ngFor="let d of h.disabilities">
+              {{ d.disabilityName }}
+              <span class="muted">({{ d.schoolYearName }}{{ d.externalDiagnosis ? ' — diagnóstico externo' : '' }})</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="info-card">
+          <h3>Historial de inscripciones</h3>
+          <ul class="simple-list">
+            <li *ngFor="let r of h.student.registrations">
+              {{ r.schoolYearName }} — {{ r.groupName }} ({{ r.schoolName }})
+            </li>
+          </ul>
+        </section>
+      </div>
+    </ng-container>
+
+    <!-- Sección: Evaluaciones y sesiones clínicas (solo tutor) -->
+    <ng-container *ngIf="activeSection() === 'CLINICO'">
+      <div class="loading-state small" *ngIf="loadingClinico()">
+        <div class="loading-spinner"></div>
+        <p>Cargando evaluaciones y sesiones...</p>
+      </div>
+
+      <div class="historial-content" *ngIf="!loadingClinico()">
+        <section class="info-card">
+          <h3>Evaluaciones psicopedagógicas</h3>
+          <div class="empty-inline" *ngIf="evaluaciones().length === 0">No hay evaluaciones registradas.</div>
+          <div class="eval-item" *ngFor="let e of evaluaciones()">
+            <div class="eval-header">
+              <strong>{{ formatDate(e.fechaElaboracion) }}</strong>
+              <span class="info-chip">{{ getEstadoEvaluacionLabel(e.estado) }}</span>
+            </div>
+            <p *ngIf="e.motivoEvaluacion"><strong>Motivo:</strong> {{ e.motivoEvaluacion }}</p>
+            <p *ngIf="e.conclusiones"><strong>Conclusiones:</strong> {{ e.conclusiones }}</p>
+            <p *ngIf="e.interpretacionResultados"><strong>Interpretación:</strong> {{ e.interpretacionResultados }}</p>
+          </div>
+        </section>
+
+        <section class="info-card">
+          <h3>Sesiones psicológicas</h3>
+          <div class="empty-inline" *ngIf="sesiones().length === 0">No hay sesiones registradas.</div>
+          <div class="eval-item" *ngFor="let s of sesiones()">
+            <div class="eval-header">
+              <strong>{{ formatDate(s.fecha) }}</strong>
+              <span class="info-chip" *ngIf="s.tipo">{{ s.tipo }}</span>
+            </div>
+            <p *ngIf="s.motivo"><strong>Motivo:</strong> {{ s.motivo }}</p>
+            <p><strong>Nota:</strong> {{ s.nota }}</p>
+            <p *ngIf="s.acuerdos"><strong>Acuerdos:</strong> {{ s.acuerdos }}</p>
+          </div>
+        </section>
+      </div>
+    </ng-container>
 
   </ng-container>
 </div>

@@ -2,8 +2,15 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AlumnoPortalService } from '../../core/services/alumno-portal.service';
+import { TutorClinicoService } from '../../core/services/tutor-clinico.service';
 import { AuthService } from '../../services/auth.service';
-import { AlumnoPortalStudent, AlumnoTrabajo } from '../../core/models/api-models';
+import {
+  AlumnoPortalStudent,
+  AlumnoTrabajo,
+  StudentHistorial,
+  EvaluacionDetalle,
+  SesionPsicologica
+} from '../../core/models/api-models';
 
 @Component({
   selector: 'app-alumno',
@@ -14,6 +21,7 @@ import { AlumnoPortalStudent, AlumnoTrabajo } from '../../core/models/api-models
 })
 export class AlumnoPage implements OnInit {
   private portalService = inject(AlumnoPortalService);
+  private tutorClinicoService = inject(TutorClinicoService);
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -28,6 +36,18 @@ export class AlumnoPage implements OnInit {
   showCompletarModal = signal(false);
   selectedTrabajo = signal<AlumnoTrabajo | null>(null);
   completando = signal(false);
+
+  // Secciones adicionales (solo TUTOR): historial educativo y evaluaciones/sesiones clínicas.
+  activeSection = signal<'TRABAJOS' | 'HISTORIAL' | 'CLINICO'>('TRABAJOS');
+
+  historial = signal<StudentHistorial | null>(null);
+  loadingHistorial = signal(false);
+
+  evaluaciones = signal<EvaluacionDetalle[]>([]);
+  sesiones = signal<SesionPsicologica[]>([]);
+  loadingClinico = signal(false);
+
+  descargandoPdf = signal(false);
 
   pendientes = computed(() => this.trabajos().filter(t => t.estado === 'PENDIENTE'));
   enProgreso = computed(() => this.trabajos().filter(t => t.estado === 'EN_PROGRESO'));
@@ -62,7 +82,66 @@ export class AlumnoPage implements OnInit {
 
   selectStudent(student: AlumnoPortalStudent) {
     this.selectedStudent.set(student);
+    this.historial.set(null);
+    this.evaluaciones.set([]);
+    this.sesiones.set([]);
     this.loadTrabajos(student.id);
+    if (this.activeSection() === 'HISTORIAL') this.loadHistorial(student.id);
+    if (this.activeSection() === 'CLINICO') this.loadClinico(student.id);
+  }
+
+  setSection(section: 'TRABAJOS' | 'HISTORIAL' | 'CLINICO') {
+    this.activeSection.set(section);
+    const student = this.selectedStudent();
+    if (!student) return;
+
+    if (section === 'HISTORIAL' && !this.historial()) {
+      this.loadHistorial(student.id);
+    }
+    if (section === 'CLINICO' && this.evaluaciones().length === 0 && this.sesiones().length === 0) {
+      this.loadClinico(student.id);
+    }
+  }
+
+  loadHistorial(alumnoId: string) {
+    this.loadingHistorial.set(true);
+    this.portalService.getHistorial(alumnoId).subscribe({
+      next: (data) => {
+        this.historial.set(data);
+        this.loadingHistorial.set(false);
+      },
+      error: () => this.loadingHistorial.set(false)
+    });
+  }
+
+  loadClinico(alumnoId: string) {
+    this.loadingClinico.set(true);
+    this.tutorClinicoService.getEvaluaciones(alumnoId).subscribe({
+      next: (data) => this.evaluaciones.set(data),
+      error: () => {}
+    });
+    this.tutorClinicoService.getSesiones(alumnoId).subscribe({
+      next: (data) => {
+        this.sesiones.set(data);
+        this.loadingClinico.set(false);
+      },
+      error: () => this.loadingClinico.set(false)
+    });
+  }
+
+  descargarReporte() {
+    const student = this.selectedStudent();
+    if (!student) return;
+
+    this.descargandoPdf.set(true);
+    const nombreArchivo = `reporte-${student.name}-${student.fatherLastName}.pdf`.replace(/\s+/g, '_');
+    this.portalService.descargarReportePdf(student.id, nombreArchivo).subscribe({
+      next: () => this.descargandoPdf.set(false),
+      error: () => {
+        this.descargandoPdf.set(false);
+        alert('No se pudo descargar el reporte.');
+      }
+    });
   }
 
   loadTrabajos(alumnoId: string) {
@@ -124,7 +203,7 @@ export class AlumnoPage implements OnInit {
     if (trabajo.asignacion.material.tipoClave === 'DIALOGO_ANIMADO' ||
         trabajo.asignacion.material.tipoClave === 'ACTIVIDAD' ||
         trabajo.asignacion.material.tipoClave === 'JUEGO_DIGITAL') {
-      this.router.navigate(['/jugar', trabajo.asignacion.material.id]);
+      this.router.navigate(['/jugar', trabajo.id]);
     }
   }
 
@@ -167,5 +246,14 @@ export class AlumnoPage implements OnInit {
   isOverdue(trabajo: AlumnoTrabajo): boolean {
     if (!trabajo.asignacion.fechaLimite) return false;
     return new Date(trabajo.asignacion.fechaLimite) < new Date() && trabajo.estado === 'PENDIENTE';
+  }
+
+  getEstadoEvaluacionLabel(estado: string): string {
+    const labels: Record<string, string> = {
+      'BORRADOR': 'Borrador',
+      'FINALIZADA': 'Finalizada',
+      'VALIDADA': 'Validada'
+    };
+    return labels[estado] || estado;
   }
 }

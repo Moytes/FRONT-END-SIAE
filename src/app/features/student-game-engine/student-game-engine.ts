@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ActivityConfigService, ActivityConfig } from '../../core/services/activity-config.service';
+import { ActivityConfig } from '../../core/services/activity-config.service';
+import { AlumnoPortalService } from '../../core/services/alumno-portal.service';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
@@ -14,24 +15,40 @@ import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-
 export class StudentGameEngineComponent implements OnInit {
   route = inject(ActivatedRoute);
   router = inject(Router);
-  activityService = inject(ActivityConfigService);
+  alumnoPortalService = inject(AlumnoPortalService);
+
+  // Id del AlumnoTrabajo (no del material) — es lo que recibe la ruta /jugar/:id
+  // y lo que hace falta para marcar el trabajo como completado en el backend.
+  private trabajoId: number | null = null;
 
   mission = signal<ActivityConfig | null>(null);
   gameState = signal<'INTRO' | 'PLAYING' | 'WIN' | 'WRONG'>('INTRO');
-  
+
   progress = signal<number>(10);
   showSuccessAnim = signal<boolean>(false);
   selectedOption = signal<number | null>(null);
-  
+
   // Para Tipo 11 (Secuencias)
   orderedSteps = signal<{id: number, text: string}[]>([]);
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
-      if (id) {
-        const found = this.activityService.getActivity(id);
-        if (found) {
+      if (!id) {
+        this.router.navigate(['/']);
+        return;
+      }
+
+      this.trabajoId = +id;
+      this.alumnoPortalService.getTrabajo(this.trabajoId).subscribe({
+        next: (trabajo) => {
+          const found = this.parseContenido(trabajo.asignacion.material.contenidoJson);
+          if (!found) {
+            alert('Esta actividad no tiene contenido jugable configurado.');
+            this.router.navigate(['/']);
+            return;
+          }
+
           this.mission.set(found);
           // Si es de tipo Secuencia (11), preparamos los pasos desordenados
           if (found.activityType === 11 && found.config?.steps) {
@@ -39,11 +56,27 @@ export class StudentGameEngineComponent implements OnInit {
             // Mezclado simple para el juego
             this.orderedSteps.set(steps.sort(() => Math.random() - 0.5));
           }
-        } else {
-          this.router.navigate(['/']);
-        }
-      }
+        },
+        error: () => this.router.navigate(['/'])
+      });
     });
+  }
+
+  private parseContenido(contenidoJson: string | undefined): ActivityConfig | null {
+    if (!contenidoJson) return null;
+    try {
+      const parsed = JSON.parse(contenidoJson);
+      return {
+        id: String(this.trabajoId),
+        title: '',
+        activityType: parsed.activityType,
+        dimension: parsed.dimension,
+        config: parsed.config,
+        createdAt: new Date()
+      };
+    } catch {
+      return null;
+    }
   }
 
   startMission() {
@@ -88,14 +121,17 @@ export class StudentGameEngineComponent implements OnInit {
   completeMission() {
     this.showSuccessAnim.set(true);
     this.progress.set(100);
-    
+
+    if (this.trabajoId) {
+      this.alumnoPortalService.completarTrabajo(this.trabajoId).subscribe({
+        error: (err) => console.error('No se pudo registrar el trabajo como completado', err)
+      });
+    }
+
     // Simula una pequeña pausa para ver la animación antes de la victoria
     setTimeout(() => {
       this.gameState.set('WIN');
       this.showSuccessAnim.set(false);
-      
-      // Lanzar confeti nativo de JS si quisiéramos (mock para MVP)
-      console.log('¡Efecto especial de Victoria ejecutado!');
     }, 1200);
   }
 

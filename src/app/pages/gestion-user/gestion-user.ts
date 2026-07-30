@@ -1,7 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
 import { StudentService } from '../../core/services/student.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import {
@@ -22,7 +21,6 @@ import {
   styleUrl: './gestion-user.css',
 })
 export class GestionUser implements OnInit {
-  authService = inject(AuthService);
   private studentService = inject(StudentService);
   private catalogService = inject(CatalogService);
 
@@ -74,14 +72,7 @@ export class GestionUser implements OnInit {
     this.error.set('');
     this.studentService.getStudents(search).subscribe({
       next: (data) => {
-        const user = this.authService.currentUser();
-        // Filtrado por pertenencia para Trabajo Social (Rol 7)
-        if (user && user.role === 7 && user.schoolIds) {
-          const mySchoolIds = new Set(user.schoolIds);
-          this.alumnos.set(data.filter(a => a.schoolId && mySchoolIds.has(a.schoolId)));
-        } else {
-          this.alumnos.set(data);
-        }
+        this.alumnos.set(data);
         this.loading.set(false);
       },
       error: (err) => {
@@ -131,16 +122,17 @@ export class GestionUser implements OnInit {
       return;
     }
 
-    this.studentService.bulkAddRegistration(this.registrationForm).subscribe({
-      next: () => {
+    this.studentService.bulkAddRegistration(this.registrationForm).subscribe(results => {
+      const failed = results.filter(r => !r.success);
+      if (failed.length === 0) {
         alert('Alumnos inscritos correctamente en el grupo.');
-        this.selectedStudentIds.set(new Set());
-        this.loadStudents();
-        this.closeRegistrationModal();
-      },
-      error: (err: any) => {
-        alert(err.error?.message || 'Error al inscribir alumnos');
+      } else {
+        const detalle = failed.map(f => `- ${f.error}`).join('\n');
+        alert(`${results.length - failed.length} de ${results.length} alumnos inscritos.\nFallaron:\n${detalle}`);
       }
+      this.selectedStudentIds.set(new Set());
+      this.loadStudents();
+      this.closeRegistrationModal();
     });
   }
 

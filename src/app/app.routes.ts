@@ -21,20 +21,6 @@ export const routes: Routes = [
                 pathMatch: 'full'
             },
             {
-                path: 'trabajadorsocial',
-                canActivate: [authGuard, roleGuard],
-                data: { permission: 'GESTION_TRABAJO_SOCIAL' },
-                loadComponent: () =>
-                    import('./pages/trabajadorsocial/trabajadorsocial').then(m => m.Trabajadorsocial)
-            },
-            {
-                path: 'supervisordezona',
-                canActivate: [authGuard, roleGuard],
-                data: { permission: 'GESTION_ZONA' },
-                loadComponent: () =>
-                    import('./pages/supervisordezona/supervisordezona').then(m => m.Supervisordezona)
-            },
-            {
                 path: 'admin',
                 canActivate: [authGuard, roleGuard],
                 data: { permission: 'ADMIN' },

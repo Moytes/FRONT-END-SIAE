@@ -1,37 +1,31 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiService } from './api';
-import {
-  StudentAssignmentListItem,
-  AddAssignmentRequest,
-  CompleteAssignmentStudentRequest,
-  ApiResponse
-} from '../models/api-models';
+import { map } from 'rxjs/operators';
+import { ApiResponse, Asignacion, AddAssignmentRequest, SetRetroalimentacionRequest } from '../models/api-models';
 
+// api/v1/asignaciones vive en backend-clases (responde "crudo"), pero el
+// interceptor global normaliza todo a { statusCode, data, ... } — ver la nota
+// en alumno-portal.service.ts / material.service.ts.
 @Injectable({ providedIn: 'root' })
 export class AssignmentService {
-  constructor(private api: ApiService) {}
+  constructor(private http: HttpClient) {}
 
-  /** POST /api/asignaciones */
-  createAssignment(request: AddAssignmentRequest): Observable<ApiResponse<string>> {
-    return this.api.post<string>('api/asignaciones', request);
+  /** POST /api/v1/asignaciones — asignadoPor lo deriva el backend del JWT */
+  createAsignacion(request: AddAssignmentRequest): Observable<{ id: number }> {
+    return this.http.post<ApiResponse<{ id: number }>>('api/v1/asignaciones', request)
+      .pipe(map(r => r.data));
   }
 
-  /** GET /api/alumnos/{id}/asignaciones */
-  getAssignmentsByStudent(studentId: string): Observable<StudentAssignmentListItem[]> {
-    return this.api.get<StudentAssignmentListItem[]>(`api/alumnos/${studentId}/asignaciones`);
+  /** GET /api/v1/asignaciones/mias — lo que el docente autenticado ha asignado */
+  getMisAsignaciones(): Observable<Asignacion[]> {
+    return this.http.get<ApiResponse<Asignacion[]>>('api/v1/asignaciones/mias')
+      .pipe(map(r => r.data));
   }
 
-  /** POST /api/asignaciones-alumnos/{id}/completar */
-  completeAssignmentStudent(
-    assignmentStudentId: string,
-    request: CompleteAssignmentStudentRequest
-  ): Observable<ApiResponse<any>> {
-    return this.api.post<any>(`api/asignaciones-alumnos/${assignmentStudentId}/completar`, request);
-  }
-
-  /** POST /api/dialogos/{id}/progreso */
-  addDialogProgress(dialogId: string, request: any): Observable<ApiResponse<string>> {
-    return this.api.post<string>(`api/dialogos/${dialogId}/progreso`, request);
+  /** PATCH /api/v1/asignaciones/alumnos/{id}/retroalimentacion */
+  setRetroalimentacion(asignacionAlumnoId: number, request: SetRetroalimentacionRequest): Observable<any> {
+    return this.http.patch<ApiResponse<any>>(`api/v1/asignaciones/alumnos/${asignacionAlumnoId}/retroalimentacion`, request)
+      .pipe(map(r => r.data));
   }
 }

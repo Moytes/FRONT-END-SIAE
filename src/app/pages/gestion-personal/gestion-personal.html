@@ -138,3 +138,70 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de vínculo (paso 2): Docente → Grupo, Tutor → Alumno -->
+<div class="modal-overlay" *ngIf="showLinkModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 *ngIf="createdUserRole() === UserRole.DOCENTE">Asignar Docente a un Grupo</h3>
+      <h3 *ngIf="createdUserRole() === UserRole.TUTOR">Vincular Tutor a un Alumno</h3>
+      <button class="close-btn" (click)="closeLinkModal()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Docente: seleccionar grupo -->
+      <div *ngIf="createdUserRole() === UserRole.DOCENTE">
+        <p class="subtitle">El colaborador ya fue creado. Ahora asígnalo a un grupo para que pueda ver a sus alumnos.</p>
+        <div class="form-group">
+          <label>Grupo</label>
+          <select class="form-select" [(ngModel)]="linkGroupId" [ngModelOptions]="{standalone: true}">
+            <option value="" disabled>Seleccione un grupo...</option>
+            <option *ngFor="let g of groups()" [value]="g.id">{{ g.displayName }} — {{ g.schoolName }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="linkEsTitular" [ngModelOptions]="{standalone: true}">
+            Es titular del grupo
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" (click)="closeLinkModal()">Omitir por ahora</button>
+          <button type="button" class="btn-primary" [disabled]="!linkGroupId || linkSaving()" (click)="confirmAssignGroup()">Asignar grupo</button>
+        </div>
+      </div>
+
+      <!-- Tutor: buscar y vincular alumno -->
+      <div *ngIf="createdUserRole() === UserRole.TUTOR">
+        <p class="subtitle">El colaborador ya fue creado. Ahora vincúlalo con el alumno (o alumnos) del que es tutor.</p>
+        <div class="form-group">
+          <label>Buscar alumno</label>
+          <input type="text" class="form-input" placeholder="Nombre, apellido o CURP..."
+                 [(ngModel)]="studentSearchTerm" [ngModelOptions]="{standalone: true}"
+                 (keyup.enter)="searchStudentsForTutor()">
+          <button type="button" class="btn-ghost" (click)="searchStudentsForTutor()">Buscar</button>
+        </div>
+        <div class="form-group" *ngIf="studentResults().length > 0">
+          <label>Alumno</label>
+          <select class="form-select" [(ngModel)]="selectedStudentId" [ngModelOptions]="{standalone: true}">
+            <option value="" disabled>Seleccione un alumno...</option>
+            <option *ngFor="let s of studentResults()" [value]="s.id">
+              {{ s.name }} {{ s.fatherLastName }} {{ s.motherLastName }} — {{ s.schoolName || 'Sin escuela' }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Parentesco</label>
+          <input type="text" class="form-input" placeholder="Madre, Padre, Tutor legal..."
+                 [(ngModel)]="parentesco" [ngModelOptions]="{standalone: true}">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" (click)="closeLinkModal()">Terminar</button>
+          <button type="button" class="btn-ghost" [disabled]="!selectedStudentId || linkSaving()" (click)="confirmLinkTutor(); linkAnotherStudent()">Guardar y vincular otro</button>
+          <button type="button" class="btn-primary" [disabled]="!selectedStudentId || linkSaving()" (click)="confirmLinkTutor()">Vincular</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

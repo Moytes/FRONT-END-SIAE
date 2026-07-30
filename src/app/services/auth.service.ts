@@ -10,8 +10,6 @@ import {
 } from '../core/models/api-models';
 
 export type PermissionKey =
-  | 'GESTION_ZONA'
-  | 'GESTION_TRABAJO_SOCIAL'
   | 'GESTION_ACTIVIDADES'
   | 'APLICACION'
   | 'ANALISIS_IA'
@@ -30,24 +28,25 @@ export type PermissionKey =
 function rolesPermissions(role: UserRole): PermissionKey[] {
   switch (role) {
     case UserRole.ADMIN:
-      return ['ADMIN'];
-    case UserRole.SUPERVISOR:
-      return ['GESTION_ZONA'];
-    case UserRole.DIRECTOR_USAER:
-      return ['GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION', 'GESTION_GRUPOS', 'GESTION_ESCUELAS'];
+      // LECTURA_ALUMNO da acceso a /gestion-user — el único lugar del frontend con el
+      // formulario de alta/edición de alumno, y StudentController.CreateStudent/UpdateStudent
+      // son [Authorize(Roles="ADMIN")] en el backend, así que sin esto ADMIN no podía
+      // crear alumnos desde ninguna pantalla.
+      return ['ADMIN', 'GESTION_GRUPOS', 'GESTION_ESCUELAS', 'LECTURA_ALUMNO'];
     case UserRole.ESPECIALISTA_COM:
       return ['COMUNICACION', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
     case UserRole.ESPECIALISTA_PSI:
       return ['PSICOLOGIA', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
     case UserRole.ESPECIALISTA_APR:
       return ['APRENDIZAJE', 'GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
-    case UserRole.TRABAJO_SOCIAL:
-      return ['GESTION_TRABAJO_SOCIAL'];
+    case UserRole.CREADOR_CONTENIDO:
+      // PLAN_ACCION: catálogo de materiales en especialista-dashboard.
+      // GESTION_ACTIVIDADES: constructor de actividades interactivas (/actividades/builder).
+      // Ambos alineados con MaterialesController.RolesCreadores, que ya incluye CREADOR_CONTENIDO.
+      return ['PLAN_ACCION', 'GESTION_ACTIVIDADES'];
     case UserRole.DOCENTE:
       return ['APLICACION', 'LECTURA_ALUMNO'];
     case UserRole.TUTOR:
-      return ['PORTAL_ALUMNO'];
-    case UserRole.ALUMNO:
       return ['PORTAL_ALUMNO'];
     default:
       return ['APLICACION'];
@@ -79,7 +78,7 @@ export class AuthService {
       if (stored && token) {
         const user: CurrentUser = JSON.parse(stored);
         user.role = normalizeRole(user.role);
-        if (!user.role || isNaN(user.role) || user.role < 1 || user.role > 10) {
+        if (!user.role || isNaN(user.role) || user.role < 1 || user.role > 11) {
           this.clearSession();
           return;
         }
@@ -187,15 +186,12 @@ export class AuthService {
     const role = normalizeRole(user.role);
     const roleNames: Record<UserRole, string> = {
       [UserRole.ADMIN]: 'Administrador',
-      [UserRole.SUPERVISOR]: 'Supervisor de Zona',
-      [UserRole.DIRECTOR_USAER]: 'Director USAER',
       [UserRole.ESPECIALISTA_COM]: 'Especialista en Comunicación',
       [UserRole.ESPECIALISTA_PSI]: 'Especialista en Psicología',
       [UserRole.ESPECIALISTA_APR]: 'Especialista en Aprendizaje',
-      [UserRole.TRABAJO_SOCIAL]: 'Trabajo Social',
       [UserRole.DOCENTE]: 'Docente',
       [UserRole.TUTOR]: 'Tutor',
-      [UserRole.ALUMNO]: 'Alumno'
+      [UserRole.CREADOR_CONTENIDO]: 'Creador de Contenido'
     };
     return roleNames[role] ?? 'Usuario';
   }
@@ -207,23 +203,17 @@ export class AuthService {
     switch (normalizeRole(user.role)) {
       case UserRole.ADMIN:
         return '/admin';
-      case UserRole.SUPERVISOR:
-        return '/supervisordezona';
-      case UserRole.DIRECTOR_USAER:
-        return '/especialista';
       case UserRole.ESPECIALISTA_COM:
         return '/comunicacion';
       case UserRole.ESPECIALISTA_PSI:
         return '/psicologia';
       case UserRole.ESPECIALISTA_APR:
         return '/aprendizaje';
-      case UserRole.TRABAJO_SOCIAL:
-        return '/trabajadorsocial';
+      case UserRole.CREADOR_CONTENIDO:
+        return '/especialista';
       case UserRole.DOCENTE:
         return '/docente';
       case UserRole.TUTOR:
-        return '/alumno';
-      case UserRole.ALUMNO:
         return '/alumno';
       default:
         return '/login';

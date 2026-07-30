@@ -30,8 +30,16 @@ export const apiGatewayInterceptor: HttpInterceptorFn = (req, next) => {
           console.log(`[Trace] Origin: ${getServiceOrigin(body.intOpCode)} | Code: ${body.intOpCode}`);
         }
 
-        // Si el backend responde con JSON plano sin 'statusCode' (ej. SAEV3), lo envolvemos
-        if (body !== null && typeof body === 'object' && !('statusCode' in body)) {
+        // Si el backend responde con JSON plano sin 'statusCode' (ej. SAEV3), lo envolvemos.
+        // Los Blob/ArrayBuffer (ej. descarga de PDF con responseType: 'blob') se dejan
+        // intactos: envolverlos rompería la descarga (ya no serían un Blob real).
+        if (
+          body !== null &&
+          typeof body === 'object' &&
+          !(body instanceof Blob) &&
+          !(body instanceof ArrayBuffer) &&
+          !('statusCode' in body)
+        ) {
           const wrappedBody: ApiResponse = {
             statusCode: event.status,
             message: 'Success',
