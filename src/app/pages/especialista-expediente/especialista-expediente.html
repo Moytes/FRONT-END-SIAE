@@ -1,0 +1,159 @@
+<div class="exp-page" *ngIf="!loading(); else loadingTpl">
+  <header class="exp-header" *ngIf="expediente() as exp">
+    <div>
+      <a routerLink="/especialista" class="back">← Panel del especialista</a>
+      <h1>{{ exp.alumno.nombreCompleto }}</h1>
+      <p class="meta">
+        <span *ngIf="exp.alumno.curp">CURP: {{ exp.alumno.curp }}</span>
+        <span *ngIf="exp.alumno.escuelaNombre"> · {{ exp.alumno.escuelaNombre }}</span>
+        <span *ngIf="exp.alumno.grupo"> · {{ exp.alumno.grupo }}</span>
+      </p>
+      <div class="tags" *ngIf="exp.alumno.areasAtencion.length">
+        <span class="tag" *ngFor="let a of exp.alumno.areasAtencion">{{ a }}</span>
+      </div>
+    </div>
+    <button type="button" class="btn-descargar-pdf" [disabled]="descargandoPdf()" (click)="descargarPdf()">
+      {{ descargandoPdf() ? 'Generando PDF...' : '⬇ Descargar expediente en PDF' }}
+    </button>
+  </header>
+
+  <p class="error" *ngIf="error()">{{ error() }}</p>
+
+  <ng-container *ngIf="expediente() as exp">
+    <section class="exp-section">
+      <h2>Plan de acción / Actividades asignadas</h2>
+      <table *ngIf="actividadesPlan().length; else emptyBlock">
+        <thead><tr><th>Actividad</th><th>Asignación</th><th>Límite</th><th>Estado</th><th>Retroalimentación</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let a of actividadesPlan()">
+            <td>{{ a.materialTitulo }}</td>
+            <td>{{ a.fechaAsignacion | date:'dd/MM/yyyy' }}</td>
+            <td>{{ a.fechaLimite ? (a.fechaLimite | date:'dd/MM/yyyy') : '—' }}</td>
+            <td>{{ actividadEstadoLabel(a.estado) }}</td>
+            <td>{{ a.retroalimentacion || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="exp-section">
+      <h2>Canalizaciones</h2>
+      <table *ngIf="exp.canalizaciones.length; else emptyBlock">
+        <thead><tr><th>Fecha</th><th>Área</th><th>Motivo</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of exp.canalizaciones">
+            <td>{{ c.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ c.areaNombre || '—' }}</td>
+            <td>{{ c.motivo }}</td>
+            <td>{{ canalStatusLabel(c.estado) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="exp-section">
+      <h2>Evaluaciones psicopedagógicas</h2>
+      <table *ngIf="exp.evaluaciones.length; else emptyBlock">
+        <thead><tr><th>Ciclo</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let e of exp.evaluaciones">
+            <td>{{ e.schoolYearName || e.schoolYearId }}</td>
+            <td>{{ e.status }}</td>
+            <td>{{ e.createdAt | date:'dd/MM/yyyy' }}</td>
+            <td><a [routerLink]="['/especialista/evaluaciones', e.id]">Continuar</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="exp-section">
+      <h2>Historial TEA</h2>
+      <table *ngIf="exp.teaHistorial.length; else emptyBlock">
+        <thead><tr><th>Fecha</th><th>Puntaje</th><th>Alerta</th><th>Canalización</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let t of exp.teaHistorial">
+            <td>{{ t.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ t.puntajeTotal ?? '—' }}</td>
+            <td>{{ t.nivelAlerta || '—' }}</td>
+            <td>{{ t.requiereCanalizacion ? 'Sí' : 'No' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="exp-section">
+      <h2>Citas</h2>
+      <table *ngIf="exp.citas.length; else emptyBlock">
+        <thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of exp.citas">
+            <td>{{ c.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ c.hora }}</td>
+            <td>{{ c.tipoCita }}</td>
+            <td>{{ citaEstadoLabel(c.estado) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="exp-section">
+      <div class="section-head">
+        <h2>Sesiones psicológicas</h2>
+        <button type="button" class="btn-sm" (click)="openSesionModal()">+ Nueva sesión</button>
+      </div>
+      <table *ngIf="exp.sesiones.length; else emptyBlock">
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Nota</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let s of exp.sesiones">
+            <td>{{ s.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>{{ s.tipo || '—' }}</td>
+            <td>{{ s.nota }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="exp-section">
+      <h2>Resumen CIE</h2>
+      <table *ngIf="exp.cieResumen.length; else emptyBlock">
+        <thead><tr><th>Dimensión</th><th>Avance</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of exp.cieResumen">
+            <td>{{ c.dimensionName }}</td>
+            <td>{{ c.completedIndicators }}/{{ c.totalIndicators }} ({{ c.percentage }}%)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </ng-container>
+</div>
+
+<ng-template #loadingTpl>
+  <p class="loading">Cargando expediente...</p>
+</ng-template>
+
+<ng-template #emptyBlock>
+  <p class="empty">Sin registros.</p>
+</ng-template>
+
+<div class="modal-overlay" *ngIf="showSesionModal()">
+  <div class="modal-box">
+    <header class="modal-header">
+      <h3>Nueva sesión</h3>
+      <button type="button" class="close" (click)="closeSesionModal()">×</button>
+    </header>
+    <div class="modal-body">
+      <label>Fecha<input type="date" [(ngModel)]="sesionForm.fecha"></label>
+      <label>Tipo<input type="text" [(ngModel)]="sesionForm.tipo"></label>
+      <label>Motivo<input type="text" [(ngModel)]="sesionForm.motivo"></label>
+      <label>Nota<textarea rows="3" [(ngModel)]="sesionForm.nota"></textarea></label>
+      <label>Acuerdos<textarea rows="2" [(ngModel)]="sesionForm.acuerdos"></textarea></label>
+    </div>
+    <footer class="modal-footer">
+      <button type="button" (click)="closeSesionModal()">Cancelar</button>
+      <button type="button" class="primary" [disabled]="!sesionForm.nota.trim() || sesionSaving()" (click)="saveSesion()">
+        {{ sesionSaving() ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </footer>
+  </div>
+</div>

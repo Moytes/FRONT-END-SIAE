@@ -1,0 +1,229 @@
+<main class="wizard-page">
+  <section class="wizard-card">
+    <header class="wizard-header">
+      <h1>{{ pageTitle }}</h1>
+    </header>
+
+    <div class="wizard-loading" *ngIf="loadingEdit">Cargando evaluación...</div>
+
+    <nav class="stepper" aria-label="Progreso de la evaluación" *ngIf="!loadingEdit">
+      <ng-container *ngFor="let step of steps; let index = index">
+        <button type="button" class="step"
+                [class.active]="currentStep === index + 1"
+                [class.completed]="currentStep > index + 1"
+                [disabled]="index + 1 > currentStep"
+                (click)="goToStep(index + 1)">
+          <span class="step-circle">{{ index + 1 }}</span>
+          <span class="step-label">{{ step }}</span>
+        </button>
+        <span *ngIf="index < steps.length - 1" class="step-line"
+              [class.completed]="currentStep > index + 1"></span>
+      </ng-container>
+    </nav>
+
+    <div class="wizard-content" *ngIf="!loadingEdit">
+      <!-- Paso 1 -->
+      <div *ngIf="currentStep === 1">
+        <div class="section-label">1. Datos del Alumno</div>
+        <div class="form-grid two-columns">
+          <div class="field">
+            <label for="curp">CURP del Alumno</label>
+            <div class="input-status">
+              <input id="curp" name="curp" [ngModel]="form.curp"
+                     (ngModelChange)="onCurpChange($event)"
+                     maxlength="18" placeholder="Ingresa el CURP..." autocomplete="off">
+              <span class="searching" *ngIf="searchingStudent">Buscando...</span>
+            </div>
+            <small class="field-error" *ngIf="studentError">{{ studentError }}</small>
+          </div>
+          <div class="field">
+            <label for="studentName">Nombre Completo</label>
+            <input id="studentName" name="studentName" [(ngModel)]="form.nombreCompleto"
+                   disabled placeholder="Se autocompleta al buscar CURP">
+          </div>
+        </div>
+
+        <div class="form-grid three-columns">
+          <div class="field">
+            <label for="grade">Grado Escolar</label>
+            <select id="grade" name="grade" [(ngModel)]="form.grado" (change)="onGradeChange()">
+              <option [ngValue]="undefined" disabled>Seleccionar...</option>
+              <option *ngFor="let grade of availableGrades" [ngValue]="grade">{{ grade }}°</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="group">Grupo</label>
+            <select id="group" name="group" [(ngModel)]="form.grupoId">
+              <option value="" disabled>Seleccionar...</option>
+              <option *ngFor="let group of filteredGroups" [value]="group.id">{{ group.displayName }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="schoolYear">Ciclo Escolar</label>
+            <select id="schoolYear" name="schoolYear" [(ngModel)]="form.cicloId" (change)="onCycleChange()">
+              <option value="" disabled>Seleccionar...</option>
+              <option *ngFor="let year of schoolYears" [value]="year.id">{{ year.name }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-label">2. Motivo de la Evaluación</div>
+        <div class="field">
+          <label for="reason">Motivo / Descripción de la Situación</label>
+          <textarea id="reason" name="reason" [(ngModel)]="form.motivoEvaluacion" rows="4"
+                    placeholder="Describe la razón de la evaluación y antecedentes relevantes..."></textarea>
+        </div>
+
+        <div class="section-label">3. Áreas a Evaluar</div>
+        <div class="checkbox-grid">
+          <label class="check-option" *ngFor="let area of areas">
+            <input type="checkbox" [checked]="form.areasEvaluar.includes(area)"
+                   (change)="toggleSelection(form.areasEvaluar, area)">
+            <span>{{ area }}</span>
+          </label>
+        </div>
+
+        <div class="section-label">4. Instrumentos / Pruebas a Aplicar</div>
+        <div class="checkbox-grid">
+          <label class="check-option" *ngFor="let instrument of instruments">
+            <input type="checkbox" [checked]="form.instrumentosAplicar.includes(instrument)"
+                   (change)="toggleSelection(form.instrumentosAplicar, instrument)">
+            <span>{{ instrument }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div *ngIf="currentStep === 2">
+        <div class="section-label">1. Aplicación de Instrumentos</div>
+        <div class="selected-summary">
+          <span *ngFor="let instrument of form.instrumentosAplicar">{{ instrument }}</span>
+        </div>
+        <div class="field">
+          <label for="instrumentDetails">Registro de aplicación y condiciones</label>
+          <textarea id="instrumentDetails" name="instrumentDetails" [(ngModel)]="form.instrumentosDetalle" rows="5"
+                    placeholder="Describe fechas de aplicación, condiciones, apoyos y comportamiento observado..."></textarea>
+        </div>
+
+        <div class="section-label">2. Antecedentes Relevantes</div>
+        <div class="form-grid two-columns">
+          <div class="field">
+            <label for="pregnancy">Antecedentes del embarazo</label>
+            <textarea id="pregnancy" name="pregnancy" [(ngModel)]="form.antecedentesEmbarazo" rows="4"></textarea>
+          </div>
+          <div class="field">
+            <label for="hereditary">Antecedentes heredofamiliares</label>
+            <textarea id="hereditary" name="hereditary" [(ngModel)]="form.antecedentesHeredo" rows="4"></textarea>
+          </div>
+          <div class="field">
+            <label for="medical">Historia médica</label>
+            <textarea id="medical" name="medical" [(ngModel)]="form.historiaMedica" rows="4"></textarea>
+          </div>
+          <div class="field">
+            <label for="schoolHistory">Historia escolar</label>
+            <textarea id="schoolHistory" name="schoolHistory" [(ngModel)]="form.historiaEscolar" rows="4"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 3 -->
+      <div *ngIf="currentStep === 3">
+        <div class="section-label">1. Resultados por Área</div>
+        <div class="form-grid two-columns">
+          <div class="field"><label for="cognitive">Desarrollo cognitivo</label><textarea id="cognitive" name="cognitive" [(ngModel)]="form.desarrolloCognitivo" rows="4"></textarea></div>
+          <div class="field"><label for="language">Desarrollo del lenguaje</label><textarea id="language" name="language" [(ngModel)]="form.desarrolloLenguaje" rows="4"></textarea></div>
+          <div class="field"><label for="motor">Desarrollo motor</label><textarea id="motor" name="motor" [(ngModel)]="form.desarrolloMotor" rows="4"></textarea></div>
+          <div class="field"><label for="socio">Desarrollo socioafectivo</label><textarea id="socio" name="socio" [(ngModel)]="form.desarrolloSocioafectivo" rows="4"></textarea></div>
+          <div class="field"><label for="learning">Evaluación de aprendizajes</label><textarea id="learning" name="learning" [(ngModel)]="form.evaluacionAprendizajes" rows="4"></textarea></div>
+          <div class="field"><label for="creativity">Creatividad</label><textarea id="creativity" name="creativity" [(ngModel)]="form.creatividad" rows="4"></textarea></div>
+        </div>
+        <div class="section-label">2. Interpretación Integrada</div>
+        <div class="field">
+          <label for="interpretation">Interpretación de resultados</label>
+          <textarea id="interpretation" name="interpretation" [(ngModel)]="form.interpretacionResultados" rows="5"
+                    placeholder="Integra los hallazgos cuantitativos y cualitativos..."></textarea>
+        </div>
+      </div>
+
+      <!-- Paso 4 -->
+      <div *ngIf="currentStep === 4">
+        <div class="section-label">1. Observaciones Clínicas y Conductuales</div>
+        <div class="field">
+          <label for="behavior">Conducta durante la evaluación</label>
+          <textarea id="behavior" name="behavior" [(ngModel)]="form.conductaEvaluacion" rows="5"
+                    placeholder="Describe disposición, atención, respuesta a consignas y conducta observada..."></textarea>
+        </div>
+        <div class="form-grid two-columns">
+          <div class="field"><label for="studentDescription">Descripción del alumno</label><textarea id="studentDescription" name="studentDescription" [(ngModel)]="form.descripcionAlumno" rows="4"></textarea></div>
+          <div class="field"><label for="physical">Desarrollo físico</label><textarea id="physical" name="physical" [(ngModel)]="form.desarrolloFisico" rows="4"></textarea></div>
+        </div>
+        <div class="section-label">2. Contextos</div>
+        <div class="form-grid three-columns">
+          <div class="field"><label for="familyContext">Contexto familiar</label><textarea id="familyContext" name="familyContext" [(ngModel)]="form.contextoFamiliar" rows="5"></textarea></div>
+          <div class="field"><label for="schoolContext">Contexto escolar</label><textarea id="schoolContext" name="schoolContext" [(ngModel)]="form.contextoEscolar" rows="5"></textarea></div>
+          <div class="field"><label for="socialContext">Contexto social</label><textarea id="socialContext" name="socialContext" [(ngModel)]="form.contextoSocial" rows="5"></textarea></div>
+        </div>
+      </div>
+
+      <!-- Paso 5 -->
+      <div *ngIf="currentStep === 5">
+        <div class="section-label">1. Cierre de la Evaluación</div>
+        <div class="field">
+          <label for="conclusions">Conclusiones y recomendaciones</label>
+          <textarea id="conclusions" name="conclusions" [(ngModel)]="form.conclusiones" rows="7"
+                    placeholder="Redacta las conclusiones, recomendaciones y acciones de seguimiento..."></textarea>
+        </div>
+        <div class="field">
+          <label for="familySituation">Situación familiar relevante</label>
+          <textarea id="familySituation" name="familySituation" [(ngModel)]="form.situacionFamiliar" rows="4"></textarea>
+        </div>
+        <div class="closure-option">
+          <label>
+            <input type="radio" name="status" value="BORRADOR" [(ngModel)]="form.estado">
+            <span><strong>Guardar como borrador</strong><small>Permite continuar editando después.</small></span>
+          </label>
+          <label>
+            <input type="radio" name="status" value="EN_REVISION" [(ngModel)]="form.estado">
+            <span><strong>Enviar a revisión</strong><small>Marca la evaluación como lista para revisión.</small></span>
+          </label>
+        </div>
+
+        <div class="section-label">2. Barreras para el aprendizaje (BAP)</div>
+        <div class="repeat-block" *ngFor="let row of bapRows; let i = index">
+          <div class="form-grid two-columns">
+            <div class="field"><label>Tipo BAP</label><input type="text" [(ngModel)]="row.tipoBap" [name]="'bapTipo'+i"></div>
+            <div class="field"><label>Contexto</label><input type="text" [(ngModel)]="row.contexto" [name]="'bapCtx'+i"></div>
+            <div class="field"><label>Indicador de inclusión</label><input type="text" [(ngModel)]="row.indicadorInclusion" [name]="'bapInd'+i"></div>
+            <div class="field"><label>Descripción</label><input type="text" [(ngModel)]="row.descripcion" [name]="'bapDesc'+i"></div>
+          </div>
+          <button type="button" class="link-btn" (click)="removeBapRow(i)">Eliminar fila</button>
+        </div>
+        <button type="button" class="link-btn" (click)="addBapRow()">+ Agregar BAP</button>
+
+        <div class="section-label">3. Colaboradores</div>
+        <div class="repeat-block" *ngFor="let col of colaboradorRows; let j = index">
+          <div class="form-grid two-columns">
+            <div class="field"><label>Nombre externo</label><input type="text" [(ngModel)]="col.nombreExterno" [name]="'colNom'+j"></div>
+            <div class="field"><label>Rol</label><input type="text" [(ngModel)]="col.rolColaborador" [name]="'colRol'+j"></div>
+          </div>
+          <button type="button" class="link-btn" (click)="removeColaboradorRow(j)">Eliminar colaborador</button>
+        </div>
+        <button type="button" class="link-btn" (click)="addColaboradorRow()">+ Agregar colaborador</button>
+
+        <p class="submit-error" *ngIf="submitError">{{ submitError }}</p>
+      </div>
+    </div>
+
+    <footer class="wizard-footer" *ngIf="!loadingEdit">
+      <button type="button" class="back-button" *ngIf="currentStep > 1" (click)="previousStep()">← Atrás</button>
+      <span class="footer-spacer"></span>
+      <button type="button" class="cancel-button" (click)="cancel()">Cancelar</button>
+      <button type="button" class="next-button" *ngIf="currentStep < 5"
+              [disabled]="!isStepValid()" (click)="nextStep()">Siguiente →</button>
+      <button type="button" class="next-button" *ngIf="currentStep === 5"
+              [disabled]="!isStepValid() || saving" (click)="save()">
+        {{ saving ? 'Guardando...' : 'Guardar Evaluación' }}
+      </button>
+    </footer>
+  </section>
+</main>

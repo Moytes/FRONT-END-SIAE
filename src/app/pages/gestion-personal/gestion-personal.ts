@@ -13,7 +13,8 @@ import {
   EnumOption,
   SchoolYear,
   Group,
-  StudentListItem
+  StudentListItem,
+  Especialidad
 } from '../../core/models/api-models';
 
 @Component({
@@ -60,7 +61,7 @@ export class GestionPersonal implements OnInit {
     password: '',
     name: '',
     fatherLastName: '',
-    role: UserRole.ESPECIALISTA_APR,
+    role: UserRole.ESPECIALISTA,
     schoolZoneId: '',
     schoolId: '',
     schoolYearId: ''
@@ -108,7 +109,7 @@ export class GestionPersonal implements OnInit {
       password: '',
       name: '',
       fatherLastName: '',
-      role: UserRole.ESPECIALISTA_APR,
+      role: UserRole.ESPECIALISTA,
       schoolZoneId: '',
       schoolId: '',
       schoolYearId: activeYearId
@@ -118,6 +119,10 @@ export class GestionPersonal implements OnInit {
   createUser() {
     if (!this.userForm.email || !this.userForm.password || !this.userForm.name) {
       alert('Por favor rellene los campos obligatorios.');
+      return;
+    }
+    if (this.requiresEspecialidad(this.userForm.role) && !this.userForm.especialidad) {
+      alert('Selecciona la especialidad.');
       return;
     }
 
@@ -131,6 +136,9 @@ export class GestionPersonal implements OnInit {
     }
     if (!this.requiresZone(role)) {
       delete payload.schoolZoneId;
+    }
+    if (!this.requiresEspecialidad(role)) {
+      delete payload.especialidad;
     }
 
     this.userService.createUser(payload).subscribe({
@@ -259,13 +267,28 @@ export class GestionPersonal implements OnInit {
     return this.roles().find(r => r.key === roleValue)?.label || roleValue.toString();
   }
 
+  especialidadLabel(especialidad?: Especialidad): string {
+    const labels: Record<Especialidad, string> = {
+      PSICOLOGIA: 'Psicología',
+      COMUNICACION: 'Comunicación',
+      APRENDIZAJE: 'Aprendizaje'
+    };
+    return especialidad ? labels[especialidad] : '';
+  }
+
   requiresSchool(role: any): boolean {
     const r = Number(role);
-    return [3, 4, 5, 6, 7, 8].includes(r); // Director, Especialistas, Trabajo Social, Docente
+    // 3/7 (Director USAER, Trabajo Social) ya no existen como roles, se dejan por si
+    // vuelven; 5 = Especialista (unificado), 8 = Docente.
+    return [3, 5, 7, 8].includes(r);
   }
 
   requiresZone(role: any): boolean {
     const r = Number(role);
     return r === 2; // Supervisor
+  }
+
+  requiresEspecialidad(role: any): boolean {
+    return Number(role) === UserRole.ESPECIALISTA;
   }
 }

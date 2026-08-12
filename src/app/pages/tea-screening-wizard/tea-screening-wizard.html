@@ -1,0 +1,83 @@
+<main class="tea-page">
+  <header class="tea-header">
+    <div>
+      <h1>Tamizaje TEA</h1>
+      <p>Registra frecuencia (0–3) e intensidad (0–3) por indicador.</p>
+    </div>
+    <a routerLink="/especialista" class="link-back">← Volver al panel</a>
+  </header>
+
+  <section class="tea-card" *ngIf="loadingIndicators()">
+    <p class="muted">Cargando indicadores...</p>
+  </section>
+
+  <form class="tea-form" *ngIf="!loadingIndicators()" (ngSubmit)="submit()">
+    <section class="tea-card">
+      <h2>Datos generales</h2>
+      <div class="grid two">
+        <div class="field">
+          <label for="studentSelect">Alumno</label>
+          <select id="studentSelect" name="studentSelect" [ngModel]="selectedStudentId()" (ngModelChange)="onStudentSelect($event)">
+            <option value="">Seleccionar de la lista...</option>
+            <option *ngFor="let s of students()" [value]="s.id">{{ s.name }} {{ s.fatherLastName }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="curp">CURP</label>
+          <input id="curp" name="curp" type="text" maxlength="18" [ngModel]="curp()" (ngModelChange)="onCurpChange($event)" placeholder="18 caracteres">
+          <small *ngIf="searchingStudent()" class="muted">Buscando...</small>
+          <small *ngIf="studentError()" class="error">{{ studentError() }}</small>
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="field">
+          <label for="ciclo">Ciclo escolar</label>
+          <select id="ciclo" name="ciclo" [ngModel]="cicloId()" (ngModelChange)="cicloId.set($event)" required>
+            <option value="" disabled>Seleccionar...</option>
+            <option *ngFor="let y of schoolYears()" [value]="y.id">{{ y.name }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="contexto">Contexto / observaciones generales</label>
+          <textarea id="contexto" name="contexto" rows="2" [ngModel]="contextoObs()" (ngModelChange)="contextoObs.set($event)"></textarea>
+        </div>
+      </div>
+      <p *ngIf="selectedStudent() as student" class="student-chip">
+        Alumno seleccionado: <strong>{{ student.name }} {{ student.fatherLastName }}</strong>
+      </p>
+    </section>
+
+    <section class="tea-card" *ngFor="let dominio of dominios()">
+      <h2>{{ dominio }}</h2>
+      <div class="indicator" *ngFor="let ind of indicatorsForDominio(dominio)">
+        <div class="indicator-head">
+          <span class="code">{{ ind.codigo }}</span>
+          <p>{{ ind.descripcion }}</p>
+        </div>
+        <div class="grid three">
+          <div class="field compact">
+            <label>Frecuencia (0–3)</label>
+            <input type="number" min="0" max="3" [(ngModel)]="answerFor(ind.id).frecuencia" [attr.name]="'f'+ind.id">
+          </div>
+          <div class="field compact">
+            <label>Intensidad (0–3)</label>
+            <input type="number" min="0" max="3" [(ngModel)]="answerFor(ind.id).intensidad" [attr.name]="'i'+ind.id">
+          </div>
+          <div class="field compact span-2">
+            <label>Observación (opcional)</label>
+            <input type="text" [(ngModel)]="answerFor(ind.id).observacion" [attr.name]="'o'+ind.id">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="error" *ngIf="submitError()">{{ submitError() }}</p>
+
+    <footer class="tea-footer">
+      <button type="button" class="btn-ghost" (click)="cancel()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="!canSubmit()">
+        {{ saving() ? 'Guardando...' : 'Guardar tamizaje' }}
+      </button>
+    </footer>
+  </form>
+</main>

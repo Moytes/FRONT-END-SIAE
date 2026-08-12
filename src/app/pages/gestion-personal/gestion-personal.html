@@ -32,7 +32,10 @@
               </div>
             </td>
             <td><code>{{ user.email }}</code></td>
-            <td><span class="role-badge">{{ getRoleLabel(user.role) }}</span></td>
+            <td>
+              <span class="role-badge">{{ getRoleLabel(user.role) }}</span>
+              <span class="role-badge" *ngIf="user.especialidad">{{ especialidadLabel(user.especialidad) }}</span>
+            </td>
             <td>
               <span class="school-tag" [class.global]="user.schoolName === 'Acceso Global'">
                 {{ user.schoolName || 'Sin asignar' }}
@@ -100,6 +103,17 @@
             <label>Rol de Sistema</label>
             <select name="role" [(ngModel)]="userForm.role" class="form-select" required>
               <option *ngFor="let role of roles()" [value]="role.key">{{ role.label }}</option>
+            </select>
+          </div>
+
+          <!-- Especialidad: solo decide su pantalla de inicio por defecto, no permisos -->
+          <div class="form-group" *ngIf="requiresEspecialidad(userForm.role)">
+            <label>Especialidad</label>
+            <select name="especialidad" [(ngModel)]="userForm.especialidad" class="form-select" required>
+              <option value="" disabled>Seleccione especialidad...</option>
+              <option value="PSICOLOGIA">Psicología</option>
+              <option value="COMUNICACION">Comunicación</option>
+              <option value="APRENDIZAJE">Aprendizaje</option>
             </select>
           </div>
 

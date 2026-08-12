@@ -3,9 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { ActivityConfigService, ActivityConfig } from '../../core/services/activity-config.service';
-import { NotificationService } from '../../core/services/notification.service';
 import { StudentService } from '../../core/services/student.service';
-import { NotificationItem, UserRole } from '../../core/models/api-models';
 
 @Component({
   selector: 'app-home',
@@ -18,12 +16,9 @@ export class Home implements OnInit {
   authService = inject(AuthService);
   activityService = inject(ActivityConfigService);
   router = inject(Router);
-  private notificationService = inject(NotificationService);
   private studentService = inject(StudentService);
 
-  notifications = signal<NotificationItem[]>([]);
   totalStudents = signal(0);
-  unreadNotifications = signal(0);
 
   get user() {
     return this.authService.currentUser();
@@ -40,30 +35,10 @@ export class Home implements OnInit {
       return;
     }
 
-    // Load notifications
-    this.notificationService.getMyNotifications().subscribe({
-      next: (notifs) => {
-        this.notifications.set(notifs);
-        this.unreadNotifications.set(notifs.filter(n => !n.isRead).length);
-      },
-      error: () => { /* silent fail */ }
-    });
-
     // Load student count
     this.studentService.getStudents().subscribe({
       next: (students) => this.totalStudents.set(students.length),
       error: () => { /* silent fail */ }
-    });
-  }
-
-  markNotificationRead(id: string): void {
-    this.notificationService.markAsRead(id).subscribe({
-      next: () => {
-        this.notifications.update(list =>
-          list.map(n => n.id === id ? { ...n, isRead: true } : n)
-        );
-        this.unreadNotifications.update(n => Math.max(0, n - 1));
-      }
     });
   }
 
@@ -81,7 +56,7 @@ export class Home implements OnInit {
   getActivityTypeLabel(type: number): string {
     const labels: Record<number, string> = {
       1: 'Fonemas', 2: 'Pares Mínimos', 3: 'Pragmática',
-      4: 'Tarjetas', 5: 'Análisis IA', 6: 'Plan de Acción',
+      4: 'Tarjetas', 6: 'Plan de Acción',
       7: 'Vocabulario', 8: 'Semántica', 9: 'Lista de Cotejo',
       10: 'Debate', 11: 'Paso a Paso'
     };
@@ -94,7 +69,6 @@ export class Home implements OnInit {
       2: 'Distingue pares de palabras similares para afinar tu percepción auditiva.',
       3: 'Evalúa habilidades pragmáticas y de comunicación social.',
       4: 'Aprende vocabulario nuevo con tarjetas visuales interactivas.',
-      5: 'Expresa ideas libremente con apoyo de inteligencia artificial.',
       6: 'Desarrolla un plan personalizado de metas y acciones.',
       7: 'Amplía tu vocabulario con imágenes y contexto.',
       8: 'Explora relaciones semánticas entre palabras.',

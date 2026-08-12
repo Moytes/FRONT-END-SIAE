@@ -3,6 +3,10 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api';
 import {
   PsychoeducationalAssessmentListItem,
+  PsychoeducationalAssessmentDetail,
+  SavePsychoeducationalAssessmentRequest,
+  EvalPsicoBap,
+  EvalPsicoColaborador,
   ApiResponse
 } from '../models/api-models';
 
@@ -19,23 +23,38 @@ export class PsychoService {
     return this.api.get<PsychoeducationalAssessmentListItem[]>(`api/clinical/evaluaciones-psicopedagogicas${qs}`);
   }
 
+  /** GET /api/evaluaciones-psicopedagogicas/{id} */
+  getAssessment(id: string | number): Observable<PsychoeducationalAssessmentDetail> {
+    return this.api.get<PsychoeducationalAssessmentDetail>(`api/clinical/evaluaciones-psicopedagogicas/${id}`);
+  }
+
   /** POST /api/evaluaciones-psicopedagogicas */
-  createAssessment(request: any): Observable<ApiResponse<string>> {
-    return this.api.post<string>('api/clinical/evaluaciones-psicopedagogicas', request);
+  createAssessment(request: SavePsychoeducationalAssessmentRequest): Observable<ApiResponse<number>> {
+    return this.api.post<number>('api/clinical/evaluaciones-psicopedagogicas', request);
   }
 
   /** PUT /api/evaluaciones-psicopedagogicas/{id} */
-  updateAssessment(id: string, request: any): Observable<ApiResponse<any>> {
+  updateAssessment(id: string | number, request: SavePsychoeducationalAssessmentRequest): Observable<ApiResponse<any>> {
     return this.api.put<any>(`api/clinical/evaluaciones-psicopedagogicas/${id}`, request);
   }
 
-  /** POST /api/evaluaciones-psicopedagogicas/{id}/bap */
-  syncBaps(id: string, request: any): Observable<ApiResponse<string[]>> {
-    return this.api.post<string[]>(`api/clinical/evaluaciones-psicopedagogicas/${id}/bap`, request);
+  /** GET /api/clinical/evaluaciones-psicopedagogicas/{id}/bap */
+  getBaps(id: string | number): Observable<EvalPsicoBap[]> {
+    return this.api.get<EvalPsicoBap[]>(`api/clinical/evaluaciones-psicopedagogicas/${id}/bap`);
   }
 
-  /** POST /api/evaluaciones-psicopedagogicas/{id}/colaboradores */
-  syncCollaborators(id: string, request: any): Observable<ApiResponse<string[]>> {
-    return this.api.post<string[]>(`api/clinical/evaluaciones-psicopedagogicas/${id}/colaboradores`, request);
+  /** GET /api/clinical/evaluaciones-psicopedagogicas/{id}/colaboradores */
+  getCollaborators(id: string | number): Observable<EvalPsicoColaborador[]> {
+    return this.api.get<EvalPsicoColaborador[]>(`api/clinical/evaluaciones-psicopedagogicas/${id}/colaboradores`);
+  }
+
+  /** PUT /api/clinical/evaluaciones-psicopedagogicas/{id}/bap */
+  syncBaps(id: string | number, items: EvalPsicoBap[]): Observable<ApiResponse<any>> {
+    return this.api.put<any>(`api/clinical/evaluaciones-psicopedagogicas/${id}/bap`, { items });
+  }
+
+  /** PUT /api/clinical/evaluaciones-psicopedagogicas/{id}/colaboradores */
+  syncCollaborators(id: string | number, items: EvalPsicoColaborador[]): Observable<ApiResponse<any>> {
+    return this.api.put<any>(`api/clinical/evaluaciones-psicopedagogicas/${id}/colaboradores`, { items });
   }
 }

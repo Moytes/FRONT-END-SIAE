@@ -6,7 +6,8 @@ import {
   LoginRequest,
   LoginResponse,
   ApiResponse,
-  UserRole
+  UserRole,
+  Especialidad
 } from '../core/models/api-models';
 
 export type PermissionKey =
@@ -33,17 +34,16 @@ function rolesPermissions(role: UserRole): PermissionKey[] {
       // son [Authorize(Roles="ADMIN")] en el backend, así que sin esto ADMIN no podía
       // crear alumnos desde ninguna pantalla.
       return ['ADMIN', 'GESTION_GRUPOS', 'GESTION_ESCUELAS', 'LECTURA_ALUMNO'];
-    case UserRole.ESPECIALISTA_COM:
-      return ['COMUNICACION', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
-    case UserRole.ESPECIALISTA_PSI:
-      return ['PSICOLOGIA', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
-    case UserRole.ESPECIALISTA_APR:
-      return ['APRENDIZAJE', 'GESTION_ACTIVIDADES', 'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION'];
-    case UserRole.CREADOR_CONTENIDO:
-      // PLAN_ACCION: catálogo de materiales en especialista-dashboard.
-      // GESTION_ACTIVIDADES: constructor de actividades interactivas (/actividades/builder).
-      // Ambos alineados con MaterialesController.RolesCreadores, que ya incluye CREADOR_CONTENIDO.
-      return ['PLAN_ACCION', 'GESTION_ACTIVIDADES'];
+    case UserRole.ESPECIALISTA:
+      // Un solo rol para los 3 tipos de especialista (ver UserRole): cada endpoint clínico
+      // que se restringió alguna vez a un solo tipo terminó necesitando abrirse a los 3, así
+      // que aquí se otorga la unión completa — cualquier especialista puede entrar a las 3
+      // pantallas de área (Comunicación/Psicología/Aprendizaje), no solo a la suya. Su
+      // "especialidad" (CurrentUser.especialidad) solo decide dónde aterriza por defecto.
+      return [
+        'COMUNICACION', 'PSICOLOGIA', 'APRENDIZAJE',
+        'REPORTES', 'LECTURA_ALUMNO', 'PLAN_ACCION', 'GESTION_ACTIVIDADES', 'APLICACION'
+      ];
     case UserRole.DOCENTE:
       return ['APLICACION', 'LECTURA_ALUMNO'];
     case UserRole.TUTOR:
@@ -78,7 +78,13 @@ export class AuthService {
       if (stored && token) {
         const user: CurrentUser = JSON.parse(stored);
         user.role = normalizeRole(user.role);
-        if (!user.role || isNaN(user.role) || user.role < 1 || user.role > 11) {
+        const knownRoles = new Set([
+          UserRole.ADMIN,
+          UserRole.ESPECIALISTA,
+          UserRole.DOCENTE,
+          UserRole.TUTOR
+        ]);
+        if (!user.role || isNaN(user.role) || !knownRoles.has(user.role)) {
           this.clearSession();
           return;
         }
@@ -154,6 +160,52 @@ export class AuthService {
     }
   }
 
+  /**
+   * Autoedición de perfil — PUT /api/auth/me. Solo los campos que el propio
+   * usuario puede tocar (nombre, apellidos, teléfono, avatar); el backend
+   * conserva rol/zona/estado tal cual y responde con el usuario actualizado.
+   */
+  async updateMyProfile(data: {
+    name: string;
+    fatherLastName: string;
+    motherLastName?: string;
+    phone?: string;
+    avatarUrl?: string;
+  }): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res = await firstValueFrom(
+        this.http.put<ApiResponse<CurrentUser>>('api/auth/me', data)
+      );
+      if (res.statusCode === 200 && res.data) {
+        const raw = res.data as any;
+        const user: CurrentUser = {
+          ...raw,
+          role: normalizeRole(raw.roleId ?? raw.role),
+          phoneNumber: raw.phone ?? raw.phoneNumber,
+          status: raw.activo ? 1 : 0
+        };
+        this.currentUserSignal.set(user);
+        this.permissionsSignal.set(rolesPermissions(user.role));
+        localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      }
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? err?.error ?? 'No se pudo actualizar el perfil.' };
+    }
+  }
+
+  /** Cambio de contraseña propia — POST /api/auth/me/password */
+  async changeMyPassword(currentPassword: string, newPassword: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await firstValueFrom(
+        this.http.post<ApiResponse<any>>('api/auth/me/password', { currentPassword, newPassword })
+      );
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? err?.error ?? 'No se pudo cambiar la contraseña.' };
+    }
+  }
+
   /** Logout — calls backend and clears local storage */
   async logout(): Promise<void> {
     try {
@@ -184,14 +236,14 @@ export class AuthService {
     const user = this.currentUserSignal();
     if (!user) return '';
     const role = normalizeRole(user.role);
+    if (role === UserRole.ESPECIALISTA) {
+      return especialidadLabel(user.especialidad);
+    }
     const roleNames: Record<UserRole, string> = {
       [UserRole.ADMIN]: 'Administrador',
-      [UserRole.ESPECIALISTA_COM]: 'Especialista en Comunicación',
-      [UserRole.ESPECIALISTA_PSI]: 'Especialista en Psicología',
-      [UserRole.ESPECIALISTA_APR]: 'Especialista en Aprendizaje',
+      [UserRole.ESPECIALISTA]: 'Especialista',
       [UserRole.DOCENTE]: 'Docente',
-      [UserRole.TUTOR]: 'Tutor',
-      [UserRole.CREADOR_CONTENIDO]: 'Creador de Contenido'
+      [UserRole.TUTOR]: 'Tutor'
     };
     return roleNames[role] ?? 'Usuario';
   }
@@ -203,14 +255,16 @@ export class AuthService {
     switch (normalizeRole(user.role)) {
       case UserRole.ADMIN:
         return '/admin';
-      case UserRole.ESPECIALISTA_COM:
-        return '/comunicacion';
-      case UserRole.ESPECIALISTA_PSI:
-        return '/psicologia';
-      case UserRole.ESPECIALISTA_APR:
-        return '/aprendizaje';
-      case UserRole.CREADOR_CONTENIDO:
-        return '/especialista';
+      case UserRole.ESPECIALISTA:
+        // La especialidad solo decide la pantalla de inicio por defecto; el usuario puede
+        // navegar a las otras 2 áreas igual (rolesPermissions le da acceso a las 3).
+        switch (user.especialidad) {
+          case 'COMUNICACION': return '/comunicacion';
+          case 'APRENDIZAJE': return '/aprendizaje';
+          case 'PSICOLOGIA':
+          default:
+            return '/especialista';
+        }
       case UserRole.DOCENTE:
         return '/docente';
       case UserRole.TUTOR:
@@ -219,4 +273,13 @@ export class AuthService {
         return '/login';
     }
   }
+}
+
+function especialidadLabel(especialidad?: Especialidad): string {
+  const labels: Record<Especialidad, string> = {
+    PSICOLOGIA: 'Especialista en Psicología',
+    COMUNICACION: 'Especialista en Comunicación',
+    APRENDIZAJE: 'Especialista en Aprendizaje'
+  };
+  return especialidad ? labels[especialidad] : 'Especialista';
 }

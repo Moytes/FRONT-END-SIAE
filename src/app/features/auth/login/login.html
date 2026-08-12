@@ -1,116 +1,133 @@
 <div class="login-page">
-    <!-- Animated background shapes -->
-    <div class="bg-shapes">
-        <div class="shape shape--1"></div>
-        <div class="shape shape--2"></div>
-        <div class="shape shape--3"></div>
-    </div>
-
     <div class="login-card">
-        <!-- Logo / Branding -->
-        <div class="login-card__header">
-            <div class="login-card__logo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none"
-                    stroke="url(#logoGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <defs>
-                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#818cf8" />
-                            <stop offset="100%" style="stop-color:#c084fc" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                </svg>
+        <!-- Columna izquierda: visual / branding -->
+        <div class="login-visual">
+            <div class="login-visual__blob login-visual__blob--green" aria-hidden="true"></div>
+            <div class="login-visual__blob login-visual__blob--orange" aria-hidden="true"></div>
+            <div class="login-visual__blob login-visual__blob--red" aria-hidden="true"></div>
+            <div class="login-visual__top">
+                <div class="visual-brand">
+                    <div class="brand-icon">
+                        <img src="/images/logo2.png" alt="Logo de SiembraEdu">
+                    </div>
+                    <div class="brand-copy">
+                        <span class="brand-name">SiembraEdu</span>
+                        <span class="brand-system">Sistema Integral de Atención Educativa</span>
+                    </div>
+                </div>
             </div>
-            <h1 class="login-card__title">SIAE</h1>
-            <p class="login-card__subtitle">Sistema Integral de Administración Educativa</p>
+
+            <div class="login-visual__bottom">
+                <span class="visual-eyebrow">Plataforma educativa integral</span>
+                <h2 class="visual-headline">Acompañamos cada paso<br>del desarrollo educativo</h2>
+                <p class="visual-subtitle">Seguimiento académico y especializado para docentes, familias y profesionales de apoyo.</p>
+                <div class="visual-features" aria-label="Características del sistema">
+                    <span>Seguimiento integral</span>
+                    <span>Atención especializada</span>
+                    <span>Información segura</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Form -->
-        <form class="login-form" (ngSubmit)="onSubmit()">
-            <!-- Error message -->
-            @if (errorMessage()) {
-            <div class="login-form__error" role="alert">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                {{ errorMessage() }}
-            </div>
-            }
-
-            <!-- Email field -->
-            <div class="form-group">
-                <label for="email" class="form-label">Correo electrónico</label>
-                <div class="input-wrapper" [class.input-wrapper--error]="email.length > 0 && !isEmailValid">
-                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect width="20" height="16" x="2" y="4" rx="2" />
-                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                    </svg>
-                    <input id="email" type="email" class="form-input" placeholder="ejemplo@correo.com"
-                        [(ngModel)]="email" name="email" autocomplete="email" required />
+        <!-- Columna derecha: formulario (misma lógica de siempre) -->
+        <div class="login-form-panel">
+            <div class="form-content">
+                <div class="form-brand">
+                    <img src="/images/logo2.png" alt="Logo de SiembraEdu">
+                    <span>SiembraEdu</span>
                 </div>
-                @if (email.length > 0 && !isEmailValid) {
-                <span class="form-error">Ingresa un correo electrónico válido</span>
-                }
-            </div>
 
-            <!-- Password field -->
-            <div class="form-group">
-                <label for="password" class="form-label">Contraseña</label>
-                <div class="input-wrapper">
-                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    <input id="password" [type]="showPassword() ? 'text' : 'password'" class="form-input"
-                        placeholder="••••••••" [(ngModel)]="password" name="password" autocomplete="current-password"
-                        required />
-                    <button type="button" class="toggle-password" (click)="togglePassword()"
-                        aria-label="Mostrar contraseña">
-                        @if (showPassword()) {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
-                        </svg>
-                        } @else {
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        }
-                    </button>
+                <div class="form-panel-header">
+                    <span class="form-eyebrow">Acceso al sistema</span>
+                    <h1>Bienvenido de nuevo</h1>
+                    <p>Ingresa tus credenciales institucionales para continuar.</p>
                 </div>
-            </div>
 
-            <!-- Forgot password -->
-            <div class="login-form__extras">
-                <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
-            </div>
-
-            <!-- Submit -->
-            <button type="submit" class="btn-submit" [disabled]="!isFormValid || isLoading()">
-                @if (isLoading()) {
-                <span class="spinner"></span>
-                Ingresando...
-                } @else {
-                Iniciar Sesión
+                <form class="login-form" (ngSubmit)="onSubmit()">
+                <!-- Error message -->
+                @if (errorMessage()) {
+                <div class="login-form__error" role="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    {{ errorMessage() }}
+                </div>
                 }
-            </button>
-        </form>
 
-        <!-- Footer -->
-        <p class="login-card__footer">
-            USEBEQ &copy; 2026 — Todos los derechos reservados
-        </p>
+                <!-- Email field -->
+                <div class="form-group">
+                    <label for="email" class="form-label">Correo electrónico</label>
+                    <div class="input-wrapper input-wrapper--has-icon" [class.input-wrapper--error]="email.length > 0 && !isEmailValid">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
+                        </svg>
+                        <input id="email" type="email" class="form-input" placeholder="ejemplo@correo.com"
+                            [(ngModel)]="email" name="email" autocomplete="email" required />
+                    </div>
+                    @if (email.length > 0 && !isEmailValid) {
+                    <span class="form-error">Ingresa un correo electrónico válido</span>
+                    }
+                </div>
+
+                <!-- Password field -->
+                <div class="form-group">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <div class="input-wrapper input-wrapper--has-icon">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <input id="password" [type]="showPassword() ? 'text' : 'password'" class="form-input"
+                            placeholder="••••••••" [(ngModel)]="password" name="password" autocomplete="current-password"
+                            required />
+                        <button type="button" class="toggle-password" (click)="togglePassword()"
+                            aria-label="Mostrar contraseña">
+                            @if (showPassword()) {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                            } @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            }
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recordarme + Olvidaste tu contraseña -->
+                <div class="form-row-between">
+                    <label class="checkbox-label">
+                        <input type="checkbox" />
+                        Recordarme
+                    </label>
+                    <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-submit" [disabled]="!isFormValid || isLoading()">
+                    @if (isLoading()) {
+                    <span class="spinner"></span>
+                    Ingresando...
+                    } @else {
+                    Iniciar Sesión
+                    }
+                </button>
+                </form>
+
+                <p class="signup-text">¿Necesitas acceso? <strong>Contacta al administrador de tu centro educativo</strong></p>
+            </div>
+        </div>
     </div>
 </div>

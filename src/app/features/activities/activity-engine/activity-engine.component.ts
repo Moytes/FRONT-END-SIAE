@@ -6,7 +6,6 @@ import { MaterialService } from '../../../core/services/material.service';
 
 import { FlashcardRenderer } from '../flashcard-renderer/flashcard-renderer';
 import { ChecklistRenderer } from '../checklist-renderer/checklist-renderer';
-import { AianalysisRenderer } from '../aianalysis-renderer/aianalysis-renderer';
 import { ActionPlanRenderer } from '../action-plan-renderer/action-plan-renderer';
 import { StepByStepRenderer } from '../step-by-step-renderer/step-by-step-renderer';
 import { FonemaRendererComponent } from '../fonema-renderer/fonema-renderer';
@@ -23,7 +22,6 @@ import { PragmaticaRendererComponent } from '../pragmatica-renderer/pragmatica-r
     PragmaticaRendererComponent,
     FlashcardRenderer,
     ChecklistRenderer,
-    AianalysisRenderer,
     ActionPlanRenderer,
     StepByStepRenderer
   ],
@@ -64,13 +62,7 @@ import { PragmaticaRendererComponent } from '../pragmatica-renderer/pragmatica-r
            (resultSaved)="handleSave($event)">
         </app-checklist-renderer>
 
-        <app-aianalysis-renderer 
-           *ngSwitchCase="'IA'" 
-           [config]="loadedConfig()!.config"
-           (resultSaved)="handleSave($event)">
-        </app-aianalysis-renderer>
-
-        <app-action-plan-renderer 
+        <app-action-plan-renderer
            *ngSwitchCase="'ACTION_PLAN'" 
            [config]="loadedConfig()!.config"
            (resultSaved)="handleSave($event)">
@@ -174,8 +166,6 @@ export class ActivityEngineComponent implements OnInit {
      if (activityType === 3) return 'PRAGMATICA';
      // ChecklistRenderer Act. 9, 10
      if ([9, 10].includes(activityType)) return 'CHECKLIST';
-     // IARenderer Act. 5
-     if (activityType === 5) return 'IA';
      // ActionPlanRenderer Act. 6
      if (activityType === 6) return 'ACTION_PLAN';
      // StepRenderer Act. 11
@@ -185,9 +175,13 @@ export class ActivityEngineComponent implements OnInit {
   }
 
   handleSave(result: any) {
-    console.log('Evaluación guardada exitosamente en el Engine', result);
-    alert('¡Resultados guardados correctamente!');
-    // Volver al Home del maestro
-    this.router.navigate(['/']); 
+    // Este motor solo se usa para PREVISUALIZAR una actividad recién creada
+    // (activity-builder navega aquí por id de material, sin contexto de alumno
+    // ni de asignación) — no hay a quién ni dónde persistir un resultado real,
+    // así que el mensaje debe ser honesto: esto cierra la vista previa, no
+    // guarda nada en la base de datos.
+    console.log('Vista previa finalizada', result);
+    alert('Vista previa finalizada. Esto no guarda resultados — la actividad se aplica y califica desde el panel del docente.');
+    this.router.navigate(['/']);
   }
 }

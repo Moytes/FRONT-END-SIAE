@@ -90,6 +90,7 @@
                 <th>Escuela</th>
                 <th>Grupo</th>
                 <th>CURP</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -104,6 +105,7 @@
                 <td>{{ student.schoolName || 'Sin escuela' }}</td>
                 <td>{{ student.groupName || 'Sin grupo' }}</td>
                 <td>{{ student.curp || 'Sin CURP' }}</td>
+                <td><a [routerLink]="['/especialista/alumnos', student.id, 'expediente']">Expediente</a></td>
               </tr>
             </tbody>
           </table>

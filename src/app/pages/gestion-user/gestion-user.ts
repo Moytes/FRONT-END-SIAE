@@ -1,8 +1,11 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { StudentService } from '../../core/services/student.service';
 import { CatalogService } from '../../core/services/catalog.service';
+import { AuthService } from '../../services/auth.service';
+import { UserRole } from '../../core/models/api-models';
 import {
   StudentListItem,
   AddStudentRequest,
@@ -23,6 +26,13 @@ import {
 export class GestionUser implements OnInit {
   private studentService = inject(StudentService);
   private catalogService = inject(CatalogService);
+  private route = inject(ActivatedRoute);
+  authService = inject(AuthService);
+
+  /** Solo ADMIN puede crear/editar datos generales del alumno — los especialistas que
+   *  llegan aquí vía el permiso LECTURA_ALUMNO solo consultan (el backend ya rechaza
+   *  CreateStudent/UpdateStudent para cualquier rol que no sea ADMIN). */
+  canEditAlumnos = () => this.authService.currentUser()?.role === UserRole.ADMIN;
 
   alumnos = signal<StudentListItem[]>([]);
   schoolYears = signal<SchoolYear[]>([]);
@@ -59,11 +69,13 @@ export class GestionUser implements OnInit {
   ];
 
   ngOnInit(): void {
+    const searchParam = this.route.snapshot.queryParamMap.get('search');
+    if (searchParam) this.searchTerm = searchParam;
     this.loadData();
   }
 
   loadData(): void {
-    this.loadStudents();
+    this.loadStudents(this.searchTerm || undefined);
     this.loadCatalogs();
   }
 

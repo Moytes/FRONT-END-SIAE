@@ -12,9 +12,17 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 .page-header h1 { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0; }
-.page-header .subtitle { color: #64748b; margin: 0.25rem 0 0; font-weight: 500; }
+.header-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.page-header .subtitle { color: #111111; margin: 0.25rem 0 0; font-weight: 500; }
 
 .export-btn {
   display: flex; align-items: center; gap: 0.5rem;
@@ -24,8 +32,29 @@
   cursor: pointer; transition: all 0.2s;
   box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
 }
-.export-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4); }
+.export-btn:hover {
+  transform: translateY(-2px);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
+  backdrop-filter: blur(8px) saturate(150%);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.export-btn:active { transform: translateY(0); }
 .export-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.pdf-row-btn {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.pdf-row-btn:hover:not(:disabled) { background: #ccfbf1; }
+.pdf-row-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Filtros con selects */
 .filter-bar {
@@ -66,16 +95,23 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Progress bar */
+/* Progress bar — todo en flujo normal (flex), nada con position:absolute que se
+   salga de su celda; así la tabla nunca desborda por culpa de esta columna. */
 .progress-bar {
-  display: flex; align-items: center; gap: 0.5rem;
+  display: flex; align-items: center; gap: 0.6rem; min-width: 130px;
 }
-.progress-bar .progress-fill {
-  height: 8px; background: linear-gradient(90deg, #0ea5e9, #2563eb);
+.progress-track {
+  position: relative; flex: 1 1 auto; min-width: 60px;
+  height: 8px; background: #f1f5f9; border-radius: 9999px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, #0ea5e9, #2563eb);
   border-radius: 9999px; transition: width 0.5s ease;
 }
-.progress-bar { background: #f1f5f9; border-radius: 9999px; min-width: 80px; height: 8px; position: relative; }
-.progress-bar span { position: absolute; right: -38px; font-size: 0.8rem; font-weight: 700; color: #334155; }
+.progress-label {
+  flex-shrink: 0; min-width: 2.6rem; text-align: right;
+  font-size: 0.8rem; font-weight: 700; color: #334155;
+}
 
 /* Empty state */
 .empty-state {
