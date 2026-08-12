@@ -48,16 +48,16 @@
 .mobile-logo .logo-icon {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.mobile-logo .logo-icon svg {
-  width: 18px;
-  height: 18px;
+.mobile-logo .logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .logo-text {

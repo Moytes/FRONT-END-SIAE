@@ -11,17 +11,21 @@ export interface ApiResponse<T = any> {
 // ================================================================
 // ENUMS — mirrors Models/DB/
 // ================================================================
-// Los ids 2 (SUPERVISOR), 3 (DIRECTOR_USAER), 7 (TRABAJO_SOCIAL) y 10 (ALUMNO)
-// quedan reservados/sin usar: existieron como roles y se eliminaron de la BD.
+// Los ids 2 (SUPERVISOR), 3 (DIRECTOR_USAER), 7 (TRABAJO_SOCIAL), 10 (ALUMNO)
+// y 11 (CREADOR_CONTENIDO) quedan reservados/sin usar: existieron como roles y se eliminaron de la BD.
+// ESPECIALISTA_COM(4)/PSI(5)/APR(6) se unificaron en un solo rol ESPECIALISTA=5 (migración
+// MergeEspecialistaRoles) — ningún endpoint clínico terminó restringido a un solo tipo de
+// especialista, así que la especialidad ahora es un dato de perfil (CurrentUser.especialidad),
+// no un rol distinto.
 export enum UserRole {
   ADMIN = 1,
-  ESPECIALISTA_COM = 4,
-  ESPECIALISTA_PSI = 5,
-  ESPECIALISTA_APR = 6,
+  ESPECIALISTA = 5,
   DOCENTE = 8,
-  TUTOR = 9,
-  CREADOR_CONTENIDO = 11
+  TUTOR = 9
 }
+
+/** Solo aplica a UserRole.ESPECIALISTA — decide su pantalla de inicio por defecto. */
+export type Especialidad = 'PSICOLOGIA' | 'COMUNICACION' | 'APRENDIZAJE';
 
 export enum BoolStatus {
   False = 0,
@@ -34,9 +38,10 @@ export enum Gender {
 }
 
 export enum CanalizationStatus {
-  Pendiente = 0,
-  Activa = 1,
-  Cerrada = 2
+  Pendiente = 'PENDIENTE',
+  Recibida = 'RECIBIDA',
+  EnProceso = 'EN_PROCESO',
+  Cerrada = 'CERRADA'
 }
 
 export enum AlertLevel {
@@ -68,6 +73,7 @@ export interface CurrentUser {
   phoneNumber?: string;
   status: BoolStatus;
   avatarUrl?: string;
+  especialidad?: Especialidad;
   createdAt: string;
   updatedAt: string;
   schoolIds?: string[];
@@ -87,6 +93,7 @@ export interface UserListItem {
   phoneNumber?: string;
   status: BoolStatus;
   avatarUrl?: string;
+  especialidad?: Especialidad;
   schoolId?: string;
   schoolZoneId?: string;
   schoolName?: string;
@@ -105,6 +112,8 @@ export interface AddUserRequest {
   schoolYearId?: string;
   phoneNumber?: string;
   avatarUrl?: string;
+  /** Solo cuando role es ESPECIALISTA — su pantalla de inicio por defecto. */
+  especialidad?: Especialidad;
 }
 
 export interface UpdateUserRequest {
@@ -117,6 +126,8 @@ export interface UpdateUserRequest {
   phoneNumber?: string;
   avatarUrl?: string;
   status?: BoolStatus;
+  /** Solo cuando role es ESPECIALISTA — su pantalla de inicio por defecto. */
+  especialidad?: Especialidad;
 }
 
 export interface AssignUserGroupRequest {
@@ -402,35 +413,54 @@ export interface MaterialType {
 // CANALIZATIONS
 // ================================================================
 export interface CanalizationListItem {
-  id: string;
-  studentId: string;
-  studentName: string;
-  requesterId: string;
-  requesterName: string;
-  receiverId: string;
-  receiverName: string;
-  attentionAreaId: string;
-  attentionAreaName: string;
-  reason: string;
-  status: CanalizationStatus;
-  notes?: string;
+  id: number;
+  alumnoId: string;
+  alumnoNombre: string;
+  alumnoCurp?: string;
+  grado?: number;
+  grupo?: string;
+  escuelaNombre?: string;
+  cicloId: number;
+  fecha: string;
+  areaCanaliza?: number;
+  areaNombre?: string;
+  motivo: string;
+  accionesAula?: string;
+  solicitanteId?: string;
+  solicitanteNombre?: string;
+  receptorId?: string;
+  receptorNombre?: string;
+  fechaRecibido?: string;
+  estado: CanalizationStatus;
+  tipoAtencion?: string;
+  fechaAtencion?: string;
+  observacionesClinicas?: string;
+  derivarAreaId?: number;
+  derivarAreaNombre?: string;
+  prioridad?: 'BAJA' | 'MEDIA' | 'ALTA';
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface AddCanalizationRequest {
-  studentId: string;
-  schoolYearId: string;
-  requesterId: string;
-  receiverId: string;
-  attentionAreaId: string;
-  reason: string;
-  notes?: string;
+  alumnoId: string;
+  cicloId: number;
+  areaCanaliza?: number;
+  motivo: string;
+  accionesAula?: string;
+  solicitanteId?: string;
+  receptorId?: string;
 }
 
 export interface UpdateCanalizationStatusRequest {
-  status: CanalizationStatus;
-  notes?: string;
+  estado: CanalizationStatus;
+}
+
+export interface AttendCanalizationRequest {
+  tipoAtencion: string;
+  fechaAtencion: string;
+  observacionesClinicas?: string;
+  derivarAreaId: number;
+  prioridad: 'BAJA' | 'MEDIA' | 'ALTA';
 }
 
 // ================================================================
@@ -459,6 +489,10 @@ export interface MaterialListItem {
   criteriosJson?: string;
   publicado: boolean;
   evaluacionAuto: boolean;
+  instruccionesAplicacion?: string;
+  materialesNecesarios?: string;
+  duracionEstimadaMin?: number;
+  perfilRecomendado?: string;
   tags: string[];
   createdAt: string;
   updatedAt: string;
@@ -485,24 +519,10 @@ export interface AddMaterialRequest {
   tags: string[];
   evaluacionAuto?: boolean;
   publicado?: boolean;
-}
-
-// ================================================================
-// NOTIFICATIONS
-// ================================================================
-export interface NotificationItem {
-  id: string;
-  userId: string;
-  title: string;
-  body: string;
-  isRead: boolean;
-  createdAt: string;
-}
-
-export interface AddNotificationRequest {
-  userId: string;
-  title: string;
-  body: string;
+  instruccionesAplicacion?: string;
+  materialesNecesarios?: string;
+  duracionEstimadaMin?: number;
+  perfilRecomendado?: string;
 }
 
 // ================================================================
@@ -541,6 +561,32 @@ export interface AddAssignmentRequest {
 export interface SetRetroalimentacionRequest {
   retroalimentacion: string;
   calificacionManual?: string;
+}
+
+export interface SetEstadoAsignacionRequest {
+  estado: EstadoAsignacion;
+}
+
+export interface AsignacionProgresoItem {
+  id: number;
+  asignacionId: number;
+  materialId: number;
+  materialTitulo: string;
+  fechaAsignacion: string;
+  fechaLimite?: string;
+  instrucciones?: string;
+  estado: EstadoAsignacion | string;
+  fechaCompletado?: string;
+  retroalimentacion?: string;
+  calificacionManual?: string;
+}
+
+export interface AsignacionResumen {
+  total: number;
+  pendiente: number;
+  enProgreso: number;
+  completado: number;
+  evaluado: number;
 }
 
 // ================================================================
@@ -612,10 +658,40 @@ export interface StudentHistorialRecord {
   registrations: StudentHistorialRegistration[];
 }
 
+export interface StudentHistorialActividad {
+  id: number;
+  materialTitulo: string;
+  estado: string;
+  fechaAsignacion: string;
+  fechaLimite?: string;
+  fechaCompletado?: string;
+  retroalimentacion?: string;
+  instrucciones?: string;
+}
+
+export interface DocenteObservacion {
+  id: number;
+  studentId: string;
+  docenteId: string;
+  docenteNombre?: string;
+  schoolYearId?: number;
+  texto: string;
+  createdAt: string;
+}
+
+export interface StudentHistorialEvaluacionResumen {
+  tipo: string;
+  fecha: string;
+  estado?: string;
+}
+
 export interface StudentHistorial {
   student: StudentHistorialRecord;
   disabilities: StudentHistorialDisability[];
   attentionAreas: StudentHistorialAttentionArea[];
+  actividades?: StudentHistorialActividad[];
+  observaciones?: DocenteObservacion[];
+  evaluacionesResumen?: StudentHistorialEvaluacionResumen[];
 }
 
 // Forma real confirmada contra backend-reportes (TutorController / EvaluacionRepository / SesionRepository).
@@ -650,6 +726,26 @@ export interface EvaluacionDetalle {
   conclusiones?: string;
 }
 
+// Forma real confirmada contra backend-reportes (TutorController).
+export interface TutorEvaluacionResumen {
+  id: number;
+  alumnoId: string;
+  cicloId: number;
+  fechaElaboracion: string;
+  estado: string;
+  motivoEvaluacion?: string;
+}
+
+export interface TutorCita {
+  id: number;
+  alumnoId: string;
+  tipoCita: string;
+  fecha: string;
+  hora: string;
+  modalidad: string;
+  estado: string;
+}
+
 export interface SesionPsicologica {
   id: number;
   alumnoId: string;
@@ -677,35 +773,113 @@ export interface PsychoeducationalAssessmentListItem {
   createdAt: string;
 }
 
+export interface PsychoeducationalAssessmentDetail {
+  id: number;
+  alumnoId: string;
+  studentName?: string;
+  cicloId: number;
+  fechaElaboracion?: string;
+  estado: string;
+  areasEvaluar?: string[];
+  instrumentosAplicar?: string[];
+  instrumentosDetalle?: string;
+  motivoEvaluacion?: string;
+  conductaEvaluacion?: string;
+  antecedentesEmbarazo?: string;
+  antecedentesHeredo?: string;
+  desarrolloMotor?: string;
+  desarrolloLenguaje?: string;
+  historiaMedica?: string;
+  historiaEscolar?: string;
+  situacionFamiliar?: string;
+  descripcionAlumno?: string;
+  contextoFamiliar?: string;
+  contextoEscolar?: string;
+  contextoSocial?: string;
+  desarrolloFisico?: string;
+  desarrolloCognitivo?: string;
+  desarrolloSocioafectivo?: string;
+  evaluacionAprendizajes?: string;
+  creatividad?: string;
+  interpretacionResultados?: string;
+  conclusiones?: string;
+}
+
+export interface SavePsychoeducationalAssessmentRequest {
+  alumnoId: string;
+  cicloId: number;
+  estado: 'BORRADOR' | 'EN_REVISION';
+  areasEvaluar: string[];
+  instrumentosAplicar: string[];
+  instrumentosDetalle?: string;
+  motivoEvaluacion?: string;
+  conductaEvaluacion?: string;
+  antecedentesEmbarazo?: string;
+  antecedentesHeredo?: string;
+  desarrolloMotor?: string;
+  desarrolloLenguaje?: string;
+  historiaMedica?: string;
+  historiaEscolar?: string;
+  situacionFamiliar?: string;
+  descripcionAlumno?: string;
+  contextoFamiliar?: string;
+  contextoEscolar?: string;
+  contextoSocial?: string;
+  desarrolloFisico?: string;
+  desarrolloCognitivo?: string;
+  desarrolloSocioafectivo?: string;
+  evaluacionAprendizajes?: string;
+  creatividad?: string;
+  interpretacionResultados?: string;
+  conclusiones?: string;
+}
+
 // ================================================================
 // CIE
 // ================================================================
+// Los campos de acá abajo reflejan exactamente lo que devuelve CieController (backend-reportes) —
+// antes decían name/studentId/dimensionName/status en inglés, pero el backend siempre mandó
+// nombre/alumnoId/dimensionId (sin nombre)/estado; ninguno de esos campos llegaba nunca con
+// valor, quedaban undefined en silencio (tablas y gráficas vacías sin ningún error visible).
 export interface CIEDimensionCatalog {
-  id: string;
-  name: string;
-  code?: string;
-  indicators: CIEIndicatorItem[];
+  id: number;
+  clave: string;
+  nombre: string;
+  colorHex?: string;
+  descripcion?: string;
+  orden: number;
+  indicadores: CIEIndicatorItem[];
 }
 
 export interface CIEIndicatorItem {
-  id: string;
-  name: string;
-  subIndicators: CIESubIndicatorItem[];
+  id: number;
+  dimensionId: number;
+  codigo?: string;
+  nombre: string;
+  descripcion?: string;
+  orden: number;
+  subindicadores: CIESubIndicatorItem[];
 }
 
 export interface CIESubIndicatorItem {
-  id: string;
-  name: string;
+  id: number;
+  indicadorId: number;
+  codigo?: string;
+  nombre: string;
+  descripcion?: string;
+  orden: number;
 }
 
 export interface CIEEvaluationListItem {
-  id: string;
-  studentId: string;
-  studentName: string;
-  dimensionId: string;
-  dimensionName: string;
-  schoolYearId: string;
-  status: string;
+  id: number;
+  alumnoId: string;
+  alumnoNombre: string;
+  evaluadorId: string;
+  cicloId: number;
+  dimensionId: number;
+  fecha: string;
+  observaciones?: string;
+  estado: string;
   createdAt: string;
 }
 
@@ -713,9 +887,39 @@ export interface CIEEvaluationListItem {
 // TEA SCREENING
 // ================================================================
 export interface TEAIndicatorCatalog {
-  id: string;
-  name: string;
-  category: string;
+  id: number;
+  dominio: string;
+  codigo: string;
+  descripcion: string;
+  orden: number;
+}
+
+export interface TeaScreeningRespuestaInput {
+  indicadorId: number;
+  frecuencia: number;
+  intensidad: number;
+  observacion?: string;
+}
+
+export interface CreateTeaScreeningRequest {
+  studentId: string;
+  cicloId: number;
+  contextoObs?: string;
+  respuestas: TeaScreeningRespuestaInput[];
+}
+
+export interface TeaScreeningHistoryItem {
+  id: number;
+  alumnoId: string;
+  evaluadorId: string;
+  cicloId: number;
+  fecha: string;
+  contextoObs?: string;
+  observacionesGenerales?: string;
+  puntajeTotal?: number;
+  nivelAlerta?: string;
+  requiereCanalizacion: boolean;
+  createdAt: string;
 }
 
 export interface TEAScreeningListItem {
@@ -755,11 +959,131 @@ export interface CIESummaryItem {
 }
 
 export interface TEAAlertItem {
+  id?: number;
   studentId: string;
   studentName: string;
   schoolName: string;
+  grade?: number;
+  groupName?: string;
   alertLevel: AlertLevel;
   screeningDate: string;
+  createdAt?: string;
+  contextoObs?: string;
+  observaciones?: string;
+  requiereCanalizacion?: boolean;
+  puntajeTotal?: number;
+  seguimientoEstado?: 'ACTIVA' | 'EN_MONITOREO' | 'NOTIFICADA' | 'RESUELTA';
+  seguimientoAt?: string;
+  seguimientoNota?: string;
+}
+
+export interface ScheduleAppointmentRequest {
+  alumnoId: string;
+  teaScreeningId?: number;
+  tipoCita: string;
+  fecha: string;
+  hora: string;
+  modalidad: 'PRESENCIAL' | 'VIRTUAL';
+  notasTutor?: string;
+}
+
+export interface ScheduleAppointmentResult {
+  id: number;
+}
+
+export interface CitaListItem {
+  id: number;
+  alumnoId: string;
+  alumnoNombre: string;
+  tipoCita: string;
+  fecha: string;
+  hora: string;
+  modalidad: string;
+  estado: 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA';
+  teaScreeningId?: number;
+  notasTutor?: string;
+  createdAt: string;
+}
+
+export interface EvalPsicoBap {
+  id?: number;
+  tipoBap?: string;
+  contexto?: string;
+  indicadorInclusion?: string;
+  descripcion?: string;
+}
+
+export interface EvalPsicoColaborador {
+  id?: number;
+  usuarioId?: string;
+  nombreExterno?: string;
+  rolColaborador?: string;
+  firmaDigital?: boolean;
+  fechaFirma?: string;
+}
+
+export interface AddSesionRequest {
+  cicloId: number;
+  fecha?: string;
+  tipo?: string;
+  motivo?: string;
+  nota: string;
+  acuerdos?: string;
+}
+
+export interface UpdateSesionRequest {
+  fecha?: string;
+  tipo?: string;
+  motivo?: string;
+  nota: string;
+  acuerdos?: string;
+}
+
+export interface SesionListItem {
+  id: number;
+  alumnoId: string;
+  alumnoNombre?: string;
+  psicologoId: string;
+  cicloId: number;
+  fecha: string;
+  tipo?: string;
+  motivo?: string;
+  nota: string;
+  acuerdos?: string;
+  createdAt: string;
+}
+
+export interface ExpedienteAlumnoDto {
+  id: string;
+  nombreCompleto: string;
+  curp?: string;
+  escuelaNombre?: string;
+  grupo?: string;
+  grado?: number;
+  areasAtencion: string[];
+  discapacidades: string[];
+}
+
+export interface ExpedienteActividad {
+  id: number;
+  materialTitulo: string;
+  estado: string;
+  fechaAsignacion: string;
+  fechaLimite?: string;
+  fechaCompletado?: string;
+  retroalimentacion?: string;
+  instrucciones?: string;
+}
+
+export interface ExpedienteDto {
+  alumno: ExpedienteAlumnoDto;
+  canalizaciones: CanalizationListItem[];
+  evaluaciones: PsychoeducationalAssessmentListItem[];
+  teaHistorial: TeaScreeningHistoryItem[];
+  citas: CitaListItem[];
+  sesiones: SesionListItem[];
+  cieResumen: CIESummaryItem[];
+  actividades?: ExpedienteActividad[];
 }
 
 // ================================================================
@@ -802,6 +1126,8 @@ export interface AlumnoTrabajo {
     fechaAsignacion: string;
     fechaLimite?: string;
     instrucciones?: string;
+    asignadoPorId?: string;
+    asignadoPorNombre?: string;
     material: {
       id: number;
       titulo: string;

@@ -39,6 +39,13 @@
   gap: 24px;
   max-width: 1180px;
   margin: 0 auto 24px;
+  padding: 24px 28px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 24px rgba(25, 38, 66, 0.06);
 }
 
 .header-title {
@@ -67,7 +74,7 @@
 
 .header-title p {
   margin: 12px 0 0;
-  color: var(--admin-text-secondary);
+  color: #111111;
   font-size: 1.05rem;
   line-height: 1.5;
 }
@@ -478,6 +485,13 @@ textarea.admin-input {
 
 .btn-primary:hover {
   background: var(--admin-primary-dark);
+  -webkit-backdrop-filter: blur(8px) saturate(150%);
+  backdrop-filter: blur(8px) saturate(150%);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-secondary {

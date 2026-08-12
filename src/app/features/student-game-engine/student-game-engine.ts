@@ -91,8 +91,9 @@ export class StudentGameEngineComponent implements OnInit {
 
   verifyOption() {
     const correctIdx = this.mission()?.config?.correctIndex;
-    if (correctIdx !== undefined && this.selectedOption() === correctIdx) {
-      this.completeMission();
+    const selected = this.selectedOption();
+    if (correctIdx !== undefined && selected === correctIdx) {
+      this.completeMission({ selectedOption: selected, correctIndex: correctIdx });
     } else {
       // Respuesta incorrecta → sacudir
       this.gameState.set('WRONG');
@@ -109,21 +110,23 @@ export class StudentGameEngineComponent implements OnInit {
   }
 
   verifySequence() {
+    const finalOrder = this.orderedSteps().map(step => step.id);
     const isCorrect = this.orderedSteps().every((step, i) => step.id === i);
     if (isCorrect) {
-      this.completeMission();
+      this.completeMission({ orderedSteps: finalOrder });
     } else {
       this.gameState.set('WRONG');
       setTimeout(() => this.gameState.set('PLAYING'), 800);
     }
   }
 
-  completeMission() {
+  completeMission(respuesta?: Record<string, unknown>) {
     this.showSuccessAnim.set(true);
     this.progress.set(100);
 
     if (this.trabajoId) {
-      this.alumnoPortalService.completarTrabajo(this.trabajoId).subscribe({
+      const respuestaJson = respuesta ? JSON.stringify(respuesta) : undefined;
+      this.alumnoPortalService.completarTrabajo(this.trabajoId, respuestaJson).subscribe({
         error: (err) => console.error('No se pudo registrar el trabajo como completado', err)
       });
     }
@@ -140,7 +143,6 @@ export class StudentGameEngineComponent implements OnInit {
    * FLASHCARD = Act 1, 4, 7, 8 (single card with image+word)
    * PAIR = Act 2 (two images side by side for minimal pairs)
    * OPTIONS = Act 3, 9, 10 (multiple choice / checklist)
-   * TEXT = Act 5 (free text / IA analysis)
    * PLAN = Act 6 (action plan - informational)
    * SEQUENCE = Act 11 (drag & drop ordering)
    */
@@ -149,7 +151,6 @@ export class StudentGameEngineComponent implements OnInit {
     if (type === 2) return 'PAIR';
     if ([1, 4, 7, 8].includes(type!)) return 'FLASHCARD';
     if ([3, 9, 10].includes(type!)) return 'OPTIONS';
-    if (type === 5) return 'TEXT';
     if (type === 6) return 'PLAN';
     if (type === 11) return 'SEQUENCE';
     return 'FLASHCARD'; // fallback

@@ -5,6 +5,7 @@ import {
   CanalizationListItem,
   AddCanalizationRequest,
   UpdateCanalizationStatusRequest,
+  AttendCanalizationRequest,
   CanalizationStatus,
   ApiResponse
 } from '../models/api-models';
@@ -13,27 +14,32 @@ import {
 export class CanalizationService {
   constructor(private api: ApiService) {}
 
-  /** GET /api/canalizaciones?status=&requesterId=&receiverId= */
+  /** GET /api/canalizaciones?estado=&solicitanteId=&receptorId= */
   getCanalizations(
-    status?: CanalizationStatus,
-    requesterId?: string,
-    receiverId?: string
+    estado?: CanalizationStatus,
+    solicitanteId?: string,
+    receptorId?: string
   ): Observable<CanalizationListItem[]> {
     const params: string[] = [];
-    if (status !== undefined) params.push(`status=${status}`);
-    if (requesterId) params.push(`requesterId=${requesterId}`);
-    if (receiverId) params.push(`receiverId=${receiverId}`);
+    if (estado !== undefined) params.push(`estado=${estado}`);
+    if (solicitanteId) params.push(`solicitanteId=${solicitanteId}`);
+    if (receptorId) params.push(`receptorId=${receptorId}`);
     const qs = params.length ? `?${params.join('&')}` : '';
     return this.api.get<CanalizationListItem[]>(`api/canalizaciones${qs}`);
   }
 
   /** POST /api/canalizaciones */
-  createCanalization(request: AddCanalizationRequest): Observable<ApiResponse<string>> {
-    return this.api.post<string>('api/canalizaciones', request);
+  createCanalization(request: AddCanalizationRequest): Observable<ApiResponse<number>> {
+    return this.api.post<number>('api/canalizaciones', request);
   }
 
   /** PUT /api/canalizaciones/{id}/estado */
-  updateStatus(id: string, request: UpdateCanalizationStatusRequest): Observable<ApiResponse<any>> {
+  updateStatus(id: number, request: UpdateCanalizationStatusRequest): Observable<ApiResponse<any>> {
     return this.api.put<any>(`api/canalizaciones/${id}/estado`, request);
+  }
+
+  /** PUT /api/canalizaciones/{id}/atender */
+  attend(id: number, request: AttendCanalizationRequest): Observable<ApiResponse<any>> {
+    return this.api.put<any>(`api/canalizaciones/${id}/atender`, request);
   }
 }

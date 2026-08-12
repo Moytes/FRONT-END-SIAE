@@ -67,7 +67,7 @@
 
         <div class="table-wrapper" *ngIf="!loading() && filteredStudents().length > 0">
           <table>
-            <thead><tr><th>Alumno</th><th>Edad</th><th>Escuela</th><th>Grupo</th><th>CURP</th></tr></thead>
+            <thead><tr><th>Alumno</th><th>Edad</th><th>Escuela</th><th>Grupo</th><th>CURP</th><th>Acciones</th></tr></thead>
             <tbody>
               <tr *ngFor="let student of filteredStudents()">
                 <td><div class="person-cell"><div class="avatar">{{ student.name.charAt(0) }}{{ student.fatherLastName.charAt(0) }}</div><strong>{{ getStudentName(student) }}</strong></div></td>
@@ -75,6 +75,7 @@
                 <td>{{ student.schoolName || 'Sin escuela' }}</td>
                 <td>{{ student.groupName || 'Sin grupo' }}</td>
                 <td>{{ student.curp || 'Sin CURP' }}</td>
+                <td><a class="ghost-button" [routerLink]="['/especialista/alumnos', student.id, 'expediente']">Ver expediente</a></td>
               </tr>
             </tbody>
           </table>

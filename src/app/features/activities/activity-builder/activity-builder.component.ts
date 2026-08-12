@@ -170,10 +170,7 @@ export class ActivityBuilderComponent implements OnInit {
   // For Act 9/10: educational level selection
   educationalLevel = signal<'preescolar' | 'primaria' | 'secundaria'>('primaria');
 
-  // Escritura IA (Act 5)
-  iaPrompt = signal('');
-
-  // Plan de Acción (Act 6) — no config needed, it generates from history
+  // Plan de Acción (Act 6) — carga una plantilla editable, ver action-plan-renderer
 
   // Secuencias (Act 11)
   sequenceMainQ = signal('');
@@ -193,7 +190,7 @@ export class ActivityBuilderComponent implements OnInit {
     const dimMap: Record<number, ActivityDimension> = {
       1: 'FONOLOGIA', 2: 'FONOLOGIA',
       3: 'PRAGMATICA',
-      4: 'MORFOSINTAXIS', 5: 'MORFOSINTAXIS',
+      4: 'MORFOSINTAXIS',
       6: 'MORFOSINTAXIS',
       7: 'SEMANTICA', 8: 'SEMANTICA',
       9: 'DISCURSOS', 10: 'DISCURSOS',
@@ -259,8 +256,6 @@ export class ActivityBuilderComponent implements OnInit {
     } else if (type === 3) {
       // Pragmática — ítems fijos del instrumento, sin config extra
       specificConfig = { pragmaticaMode: true };
-    } else if (type === 5) {
-      specificConfig = { question: this.iaPrompt() };
     } else if (type === 6) {
       specificConfig = { title: this.activityTitle() };
     } else if (type === 9 || type === 10) {
@@ -301,7 +296,6 @@ export class ActivityBuilderComponent implements OnInit {
         this.flashcardImageUrl2.set('');
         this.checklistMainQ.set('');
         this.checklistQuestions.set([]);
-        this.iaPrompt.set('');
         this.sequenceMainQ.set('');
         this.sequenceSteps.set([]);
         // Navegar al engine para previsualizar (queda como borrador hasta publicarse
@@ -330,7 +324,6 @@ export class ActivityBuilderComponent implements OnInit {
       2: 'Act 2 · Pares Mínimos',
       3: 'Act 3 · Checklist Pragmática',
       4: 'Act 4 · Tarjetas por Niveles',
-      5: 'Act 5 · Análisis IA',
       6: 'Act 6 · Plan de Acción',
       7: 'Act 7 · La Comidita',
       8: 'Act 8 · Preguntas sobre Imagen',

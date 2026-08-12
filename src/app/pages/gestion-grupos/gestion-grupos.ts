@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { CatalogService } from '../../core/services/catalog.service';
 import { StudentService } from '../../core/services/student.service';
 import {
@@ -14,7 +15,7 @@ import {
 @Component({
   selector: 'app-gestion-grupos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './gestion-grupos.html',
   styleUrl: './gestion-grupos.css'
 })

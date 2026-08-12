@@ -103,7 +103,10 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn-ghost" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Ver Expediente</button>
+                  <a class="btn-ghost" style="padding: 0.5rem 1rem; font-size: 0.8rem; display: inline-block; text-decoration: none;"
+                     routerLink="/gestion-user" [queryParams]="{ search: s.curp || (s.name + ' ' + s.fatherLastName) }">
+                    Ver Expediente
+                  </a>
                 </td>
               </tr>
             </tbody>

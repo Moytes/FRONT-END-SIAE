@@ -136,26 +136,6 @@
       </ng-container>
 
       <!--========================================
-            TEXTO LIBRE: Act 5
-      =========================================-->
-      <ng-container *ngSwitchCase="'TEXT'">
-        <div class="instruction-row">
-          <div class="mini-mascot"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Teacher&backgroundColor=transparent" alt="Mini"></div>
-          <h2 class="question-text">{{ mission()?.config?.question }}</h2>
-        </div>
-
-        <div class="text-area-container mt-4">
-          <textarea class="duo-textarea" placeholder="Escribe tu historia aquí..." rows="4" #storyInput></textarea>
-        </div>
-
-        <div class="interaction-area mt-8">
-           <button class="duo-btn duo-success huge-btn w-full" (click)="completeMission()" [disabled]="showSuccessAnim()">
-              Enviar Historia 🚀
-           </button>
-        </div>
-      </ng-container>
-
-      <!--========================================
             PLAN DE ACCIÓN: Act 6
       =========================================-->
       <ng-container *ngSwitchCase="'PLAN'">

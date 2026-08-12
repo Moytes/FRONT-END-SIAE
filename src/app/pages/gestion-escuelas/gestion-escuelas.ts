@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../../core/services/catalog.service';
-import { AuthService } from '../../services/auth.service';
-import { School, Group, SchoolYear } from '../../core/models/api-models';
+import { School, Group, SchoolYear, SchoolZone, EnumOption, AddSchoolRequest } from '../../core/models/api-models';
 
 @Component({
   selector: 'app-gestion-escuelas',
@@ -15,21 +14,26 @@ import { School, Group, SchoolYear } from '../../core/models/api-models';
 })
 export class GestionEscuelas implements OnInit {
   private catalogService = inject(CatalogService);
-  private authService = inject(AuthService);
 
   schools = signal<School[]>([]);
   groups = signal<Group[]>([]);
   schoolYears = signal<SchoolYear[]>([]);
+  zones = signal<SchoolZone[]>([]);
+  educationLevels = signal<EnumOption[]>([]);
   loading = signal(false);
   showModal = signal<string>('none');
 
   // Form Models
-  schoolForm = { name: '', cct: '', schoolZoneId: '' };
+  schoolForm: AddSchoolRequest = this.emptySchoolForm();
   yearForm = { name: '', startDate: '', endDate: '', isActive: true };
 
   ngOnInit() {
     this.loadData();
     this.loadCatalogs();
+  }
+
+  private emptySchoolForm(): AddSchoolRequest {
+    return { name: '', cct: '', turn: 1, educationLevelId: 0, schoolZoneId: '' };
   }
 
   loadData() {
@@ -47,6 +51,11 @@ export class GestionEscuelas implements OnInit {
 
   loadCatalogs() {
     this.catalogService.getSchoolYears().subscribe(res => this.schoolYears.set(res));
+    this.catalogService.getSchoolZones().subscribe(res => this.zones.set(res));
+    this.catalogService.getEducationLevels().subscribe(res => {
+      this.educationLevels.set(res);
+      this.schoolForm.educationLevelId = res[0]?.key || 0;
+    });
   }
 
   getGroupsForSchool(schoolId: string): Group[] {
@@ -63,15 +72,23 @@ export class GestionEscuelas implements OnInit {
   }
 
   resetForms() {
-    this.schoolForm = { name: '', cct: '', schoolZoneId: '' };
+    this.schoolForm = this.emptySchoolForm();
+    this.schoolForm.educationLevelId = this.educationLevels()[0]?.key || 0;
     this.yearForm = { name: '', startDate: '', endDate: '', isActive: true };
   }
 
   createSchool() {
-    const user = this.authService.currentUser();
-    if (!this.schoolForm.name || !this.schoolForm.cct || !user?.schoolZoneId) return;
+    if (!this.schoolForm.name || !this.schoolForm.cct || !this.schoolForm.schoolZoneId || !this.schoolForm.educationLevelId) {
+      alert('Complete nombre, CCT, zona escolar y nivel educativo.');
+      return;
+    }
 
-    const payload = { ...this.schoolForm, schoolZoneId: user.schoolZoneId };
+    const payload = {
+      ...this.schoolForm,
+      turn: Number(this.schoolForm.turn),
+      educationLevelId: Number(this.schoolForm.educationLevelId),
+      schoolZoneId: Number(this.schoolForm.schoolZoneId)
+    };
 
     this.catalogService.createSchool(payload).subscribe({
       next: () => {

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { PsicologiaService } from '../../core/services/psicologia.service';
 import { PsychoService } from '../../core/services/psycho.service';
 import { ReportService } from '../../core/services/report.service';
@@ -26,7 +27,7 @@ interface AlertState {
 @Component({
   selector: 'app-psicologia',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './psicologia.html',
   styleUrl: './psicologia.css'
 })

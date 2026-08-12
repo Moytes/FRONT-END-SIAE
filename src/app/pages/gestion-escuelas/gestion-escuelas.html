@@ -81,9 +81,30 @@
           <label>Clave CCT</label>
           <input type="text" name="cct" [(ngModel)]="schoolForm.cct" class="form-input" placeholder="15EPR..." required>
         </div>
+        <div class="form-group">
+          <label>Zona Escolar</label>
+          <select name="schoolZoneId" [(ngModel)]="schoolForm.schoolZoneId" class="form-input" required>
+            <option [ngValue]="''" disabled>Seleccione...</option>
+            <option *ngFor="let z of zones()" [ngValue]="z.id">{{ z.name || ('Zona ' + z.number) }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nivel Educativo</label>
+          <select name="educationLevelId" [(ngModel)]="schoolForm.educationLevelId" class="form-input" required>
+            <option *ngFor="let lvl of educationLevels()" [ngValue]="lvl.key">{{ lvl.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Turno</label>
+          <select name="turn" [(ngModel)]="schoolForm.turn" class="form-input" required>
+            <option [ngValue]="1">Matutino</option>
+            <option [ngValue]="2">Vespertino</option>
+            <option [ngValue]="3">Tiempo Completo</option>
+          </select>
+        </div>
         <div class="modal-footer">
           <button type="button" class="btn-ghost" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-primary" [disabled]="!schoolForm.name || !schoolForm.cct">Guardar Institución</button>
+          <button type="submit" class="btn-primary" [disabled]="!schoolForm.name || !schoolForm.cct || !schoolForm.schoolZoneId || !schoolForm.educationLevelId">Guardar Institución</button>
         </div>
       </form>
     </div>

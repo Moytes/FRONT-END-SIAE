@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AprendizajeService } from '../../core/services/aprendizaje.service';
 import { Group, School, SchoolYear, StudentListItem } from '../../core/models/api-models';
 
@@ -15,7 +16,7 @@ interface AlertState {
 @Component({
   selector: 'app-aprendizaje',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './aprendizaje.html',
   styleUrl: './aprendizaje.css'
 })

@@ -63,6 +63,36 @@ export const routes: Routes = [
                     import('./pages/especialista-dashboard/especialista-dashboard').then(m => m.EspecialistaDashboard)
             },
             {
+                path: 'especialista/tea/nuevo',
+                canActivate: [roleGuard],
+                data: { permission: 'PLAN_ACCION' },
+                loadComponent: () =>
+                    import('./pages/tea-screening-wizard/tea-screening-wizard').then(m => m.TeaScreeningWizard)
+            },
+            {
+                path: 'especialista/alumnos/:id/expediente',
+                canActivate: [roleGuard],
+                data: { permission: 'PLAN_ACCION' },
+                loadComponent: () =>
+                    import('./pages/especialista-expediente/especialista-expediente').then(m => m.EspecialistaExpediente)
+            },
+            {
+                path: 'especialista/evaluaciones/nueva',
+                canActivate: [roleGuard],
+                data: { permission: 'PLAN_ACCION' },
+                loadComponent: () =>
+                    import('./pages/psychoeducational-assessment-wizard/psychoeducational-assessment-wizard')
+                        .then(m => m.PsychoeducationalAssessmentWizard)
+            },
+            {
+                path: 'especialista/evaluaciones/:id',
+                canActivate: [roleGuard],
+                data: { permission: 'PLAN_ACCION' },
+                loadComponent: () =>
+                    import('./pages/psychoeducational-assessment-wizard/psychoeducational-assessment-wizard')
+                        .then(m => m.PsychoeducationalAssessmentWizard)
+            },
+            {
                 path: 'alumno',
                 canActivate: [authGuard, roleGuard],
                 data: { permission: 'PORTAL_ALUMNO' },
@@ -129,13 +159,6 @@ export const routes: Routes = [
                 data: { permission: 'GESTION_ESCUELAS' },
                 loadComponent: () =>
                     import('./pages/gestion-escuelas/gestion-escuelas').then(m => m.GestionEscuelas)
-            },
-            {
-                path: 'lecciones',
-                canActivate: [roleGuard],
-                data: { permission: 'LECTURA_ALUMNO' },
-                loadComponent: () =>
-                    import('./pages/lecciones/lecciones').then(m => m.Lecciones)
             }
         ]
     },
