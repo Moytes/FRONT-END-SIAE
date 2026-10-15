@@ -11,10 +11,13 @@ export const apiGatewayInterceptor: HttpInterceptorFn = (req, next) => {
 
   // 1. Asegurar que la URL apunte al Gateway si es una petición de API
   let apiReq = req;
-  if (req.url.startsWith('api/') || req.url.startsWith('/api')) {
+  if (req.url.startsWith('api/') || req.url.startsWith('/api') || req.url === 'api' || req.url === '/api') {
     const cleanUrl = req.url.startsWith('/') ? req.url.substring(1) : req.url;
+    const path = cleanUrl.replace(/^api\/?/, '');
+    const baseUrl = environment.apiUrl.replace(/\/+$/, '');
+    const finalUrl = path ? `${baseUrl}/${path}` : baseUrl;
     apiReq = req.clone({
-      url: `${environment.apiUrl}/${cleanUrl.replace('api/', '')}`,
+      url: finalUrl,
       setHeaders: token ? { Authorization: `Bearer ${token}` } : {}
     });
   }
