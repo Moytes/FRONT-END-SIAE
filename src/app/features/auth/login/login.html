@@ -37,6 +37,8 @@
                     <span>SiembraEdu</span>
                 </div>
 
+                @switch (view()) {
+                @case ('login') {
                 <div class="form-panel-header">
                     <span class="form-eyebrow">Acceso al sistema</span>
                     <h1>Bienvenido de nuevo</h1>
@@ -112,7 +114,7 @@
                         <input type="checkbox" />
                         Recordarme
                     </label>
-                    <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    <a href="#" class="forgot-link" (click)="goTo('request', $event)">¿Olvidaste tu contraseña?</a>
                 </div>
 
                 <!-- Submit -->
@@ -125,6 +127,133 @@
                     }
                 </button>
                 </form>
+                }
+
+                <!-- ===== Recuperación de contraseña (RQF04) ===== -->
+                @case ('request') {
+                <div class="form-panel-header">
+                    <span class="form-eyebrow">Recuperación de acceso</span>
+                    <h1>Recupera tu contraseña</h1>
+                    <p>Ingresa el correo asociado a tu cuenta. Te enviaremos un código temporal para restablecerla.</p>
+                </div>
+
+                <form class="login-form" (ngSubmit)="onRequestCode()">
+                    @if (errorMessage()) {
+                    <div class="login-form__error" role="alert">{{ errorMessage() }}</div>
+                    }
+
+                    <div class="form-group">
+                        <label for="recovery-email" class="form-label">Correo electrónico registrado</label>
+                        <div class="input-wrapper" [class.input-wrapper--error]="email.length > 0 && !isEmailValid">
+                            <input id="recovery-email" type="email" class="form-input" placeholder="ejemplo@correo.com"
+                                [(ngModel)]="email" name="recoveryEmail" autocomplete="email" required />
+                        </div>
+                        @if (email.length > 0 && !isEmailValid) {
+                        <span class="form-error">Ingresa un correo electrónico válido</span>
+                        }
+                    </div>
+
+                    <button type="submit" class="btn-submit" [disabled]="!email || !isEmailValid || isLoading()">
+                        @if (isLoading()) { <span class="spinner"></span> Enviando... } @else { Enviar código }
+                    </button>
+                    <a href="#" class="forgot-link recovery-back" (click)="goTo('login', $event)">← Volver al inicio de sesión</a>
+                </form>
+                }
+
+                @case ('verify') {
+                <div class="form-panel-header">
+                    <span class="form-eyebrow">Verificación de identidad</span>
+                    <h1>Ingresa el código</h1>
+                    <p>Escribe el código de 6 dígitos enviado a <strong>{{ email }}</strong>. Solo puede usarse una vez.</p>
+                </div>
+
+                <form class="login-form" (ngSubmit)="onVerifyCode()">
+                    @if (infoMessage()) {
+                    <div class="login-form__info" role="status">
+                        {{ infoMessage() }}
+                        @if (secondsLeft() > 0) {
+                        <span>El código expira en <strong>{{ countdownLabel }}</strong>.</span>
+                        } @else {
+                        <span>El código expiró. Solicita uno nuevo.</span>
+                        }
+                    </div>
+                    }
+                    @if (errorMessage()) {
+                    <div class="login-form__error" role="alert">{{ errorMessage() }}</div>
+                    }
+
+                    <div class="form-group">
+                        <label for="reset-code" class="form-label">Código de 6 dígitos</label>
+                        <div class="input-wrapper">
+                            <input id="reset-code" type="text" class="form-input recovery-code" inputmode="numeric"
+                                maxlength="6" placeholder="000000" [(ngModel)]="resetCode" name="resetCode"
+                                autocomplete="one-time-code" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" [disabled]="!isCodeValid || isLoading()">
+                        @if (isLoading()) { <span class="spinner"></span> Verificando... } @else { Verificar código }
+                    </button>
+                    <div class="form-row-between">
+                        <a href="#" class="forgot-link" (click)="goTo('request', $event)">Solicitar otro código</a>
+                        <a href="#" class="forgot-link" (click)="goTo('login', $event)">Volver al inicio de sesión</a>
+                    </div>
+                </form>
+                }
+
+                @case ('reset') {
+                <div class="form-panel-header">
+                    <span class="form-eyebrow">Restablecer contraseña</span>
+                    <h1>Crea una nueva contraseña</h1>
+                    <p>Código verificado para <strong>{{ email }}</strong>. Usa al menos 8 caracteres.</p>
+                </div>
+
+                <form class="login-form" (ngSubmit)="onResetPassword()">
+                    @if (errorMessage()) {
+                    <div class="login-form__error" role="alert">{{ errorMessage() }}</div>
+                    }
+
+                    <div class="form-group">
+                        <label for="new-password" class="form-label">Nueva contraseña</label>
+                        <div class="input-wrapper">
+                            <input id="new-password" [type]="showPassword() ? 'text' : 'password'" class="form-input"
+                                [(ngModel)]="newPassword" name="newPassword" autocomplete="new-password" required />
+                            <button type="button" class="toggle-password" (click)="togglePassword()"
+                                aria-label="Mostrar contraseña">{{ showPassword() ? 'Ocultar' : 'Ver' }}</button>
+                        </div>
+                        @if (newPassword.length > 0 && newPassword.length < 8) {
+                        <span class="form-error">La contraseña debe tener al menos 8 caracteres</span>
+                        }
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password" class="form-label">Confirmar contraseña</label>
+                        <div class="input-wrapper" [class.input-wrapper--error]="confirmPassword.length > 0 && !passwordsMatch">
+                            <input id="confirm-password" [type]="showPassword() ? 'text' : 'password'" class="form-input"
+                                [(ngModel)]="confirmPassword" name="confirmPassword" autocomplete="new-password" required />
+                        </div>
+                        @if (confirmPassword.length > 0 && !passwordsMatch) {
+                        <span class="form-error">Las contraseñas no coinciden</span>
+                        }
+                    </div>
+
+                    <button type="submit" class="btn-submit" [disabled]="!isNewPasswordValid || isLoading()">
+                        @if (isLoading()) { <span class="spinner"></span> Guardando... } @else { Restablecer contraseña }
+                    </button>
+                    <a href="#" class="forgot-link recovery-back" (click)="goTo('login', $event)">Cancelar y volver al inicio de sesión</a>
+                </form>
+                }
+
+                @case ('done') {
+                <div class="form-panel-header">
+                    <span class="form-eyebrow">Recuperación de acceso</span>
+                    <h1>Contraseña restablecida</h1>
+                    <p>La contraseña de <strong>{{ email }}</strong> se actualizó correctamente. El código quedó invalidado.</p>
+                </div>
+
+                <button type="button" class="btn-submit" (click)="goTo('login')">Volver al inicio de sesión</button>
+                }
+                }
 
                 <p class="signup-text">¿Necesitas acceso? <strong>Contacta al administrador de tu centro educativo</strong></p>
             </div>
