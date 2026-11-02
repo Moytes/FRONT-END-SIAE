@@ -160,6 +160,12 @@
 
     <!-- SECCIÓN PERFIL (Universal) -->
     <div class="nav-divider"></div>
+    <a *ngIf="user.role === 5 || user.role === 8 || user.role === 9" routerLink="/chat" routerLinkActive="active-link" class="nav-item" title="Chat" (click)="closeMobile()">
+      <div class="nav-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <span class="nav-label" *ngIf="!isCollapsed">Chat</span>
+    </a>
     <a routerLink="/perfil" routerLinkActive="active-link" class="nav-item" title="Mi Perfil" (click)="closeMobile()">
       <div class="nav-icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>

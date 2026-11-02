@@ -105,6 +105,14 @@ export const routes: Routes = [
                     import('./pages/perfil/perfil').then(m => m.Perfil)
             },
             {
+                // Chat (RQF06): especialista (5), docente (8) y tutor/padre de familia (9)
+                path: 'chat',
+                canActivate: [roleGuard],
+                data: { roles: [5, 8, 9] },
+                loadComponent: () =>
+                    import('./pages/chat/chat').then(m => m.ChatPage)
+            },
+            {
                 path: 'actividades/builder',
                 canActivate: [roleGuard],
                 data: { permission: 'GESTION_ACTIVIDADES' },
