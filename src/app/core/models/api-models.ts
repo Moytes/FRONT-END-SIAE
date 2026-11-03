@@ -1140,3 +1140,41 @@ export interface AlumnoTrabajo {
     };
   };
 }
+
+// ================================================================
+// CHAT (RQF06) — /api/chat
+// ================================================================
+
+export type ChatChannelKind = 'DOCENTE_ESPECIALISTA' | 'FAMILIA_DOCENTE';
+
+export interface ChatChannel {
+  id: number;
+  kind: ChatChannelKind;
+  studentId: string;
+  studentName: string;
+  counterpartUserId: string;
+  counterpartName: string;
+  counterpartRole: string;
+  lastMessage?: string | null;
+  lastMessageAt?: string | null;
+  unreadCount: number;
+}
+
+export interface ChatContact {
+  kind: ChatChannelKind;
+  studentId: string;
+  studentName: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  channelId?: number | null;
+}
+
+export interface ChatMessage {
+  id: number;
+  channelId: number;
+  senderId: string;
+  senderName: string;
+  text: string;
+  createdAt: string;
+}

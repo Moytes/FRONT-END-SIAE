@@ -1,0 +1,154 @@
+<div class="chat-page">
+  <header class="chat-header">
+    <div>
+      <h1>Chat</h1>
+      <p>Conversaciones relacionadas con el seguimiento educativo de cada alumno.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openNewChat()">+ Nueva conversación</button>
+  </header>
+
+  @if (error()) {
+  <div class="chat-error" role="alert">
+    {{ error() }}
+    <button type="button" (click)="error.set('')" aria-label="Cerrar">×</button>
+  </div>
+  }
+
+  <div class="chat-shell" [class.thread-open]="activeChannel()">
+    <!-- ===== Lista de conversaciones ===== -->
+    <aside class="channel-panel">
+      <div class="channel-tools">
+        <input type="search" class="chat-input" placeholder="Buscar por nombre o alumno"
+          [ngModel]="search()" (ngModelChange)="search.set($event)" />
+        @if (showKindFilter()) {
+        <div class="kind-tabs" role="tablist">
+          <button type="button" [class.active]="kindFilter() === 'all'" (click)="kindFilter.set('all')">Todos</button>
+          <button type="button" [class.active]="kindFilter() === 'DOCENTE_ESPECIALISTA'"
+            (click)="kindFilter.set('DOCENTE_ESPECIALISTA')">Especialistas</button>
+          <button type="button" [class.active]="kindFilter() === 'FAMILIA_DOCENTE'"
+            (click)="kindFilter.set('FAMILIA_DOCENTE')">Familias</button>
+        </div>
+        }
+      </div>
+
+      <div class="channel-list">
+        @if (loadingChannels()) {
+        <p class="muted center">Cargando conversaciones...</p>
+        } @else {
+        @for (channel of filteredChannels(); track channel.id) {
+        <button type="button" class="channel-item" [class.active]="channel.id === activeChannelId()"
+          (click)="selectChannel(channel)">
+          <span class="avatar" [class.avatar--family]="channel.kind === 'FAMILIA_DOCENTE'">{{ initials(channel.counterpartName) }}</span>
+          <span class="channel-body">
+            <span class="channel-top">
+              <strong>{{ channel.counterpartName }}</strong>
+              <small>{{ formatTime(channel.lastMessageAt) }}</small>
+            </span>
+            <span class="channel-meta">{{ channel.counterpartRole }} · {{ channel.studentName }}</span>
+            <span class="channel-preview">{{ channel.lastMessage || 'Sin mensajes todavía' }}</span>
+          </span>
+          @if (channel.unreadCount > 0) {
+          <span class="badge">{{ channel.unreadCount }}</span>
+          }
+        </button>
+        } @empty {
+        <div class="empty">
+          <p>No tienes conversaciones{{ search() || kindFilter() !== 'all' ? ' con este filtro' : '' }}.</p>
+          <button type="button" class="link" (click)="openNewChat()">Iniciar una conversación</button>
+        </div>
+        }
+        }
+      </div>
+    </aside>
+
+    <!-- ===== Conversación activa ===== -->
+    <section class="thread-panel">
+      @if (activeChannel(); as channel) {
+      <div class="thread-header">
+        <button type="button" class="back-btn" (click)="activeChannelId.set(null)" aria-label="Volver a conversaciones">←</button>
+        <span class="avatar" [class.avatar--family]="channel.kind === 'FAMILIA_DOCENTE'">{{ initials(channel.counterpartName) }}</span>
+        <div>
+          <strong>{{ channel.counterpartName }}</strong>
+          <span class="muted">{{ channel.counterpartRole }} · conversación sobre {{ channel.studentName }}</span>
+        </div>
+      </div>
+      <div class="privacy-note">
+        🔒 Canal {{ kindLabels[channel.kind] }} · Solo los dos participantes pueden consultar esta conversación.
+      </div>
+
+      <div class="messages" #messagesBox>
+        @if (hasOlder()) {
+        <button type="button" class="link older" [disabled]="loadingMessages()" (click)="loadOlder()">
+          Ver mensajes anteriores
+        </button>
+        }
+        @if (loadingMessages() && messages().length === 0) {
+        <p class="muted center">Cargando historial...</p>
+        }
+        @for (message of messages(); track message.id) {
+        <div class="bubble-row" [class.mine]="isMine(message)">
+          <div class="bubble">
+            <p>{{ message.text }}</p>
+            <small>{{ isMine(message) ? 'Tú' : message.senderName }} · {{ formatTime(message.createdAt) }}</small>
+          </div>
+        </div>
+        } @empty {
+        @if (!loadingMessages()) {
+        <p class="muted center">Aún no hay mensajes. Escribe el primero.</p>
+        }
+        }
+      </div>
+
+      <form class="composer" (ngSubmit)="send()">
+        <textarea class="chat-input" rows="2" maxlength="2000" placeholder="Escribe un mensaje..."
+          [(ngModel)]="draft" name="draft" (keydown)="onDraftKeydown($event)"></textarea>
+        <button type="submit" class="btn-primary" [disabled]="!draft.trim() || sending()">
+          {{ sending() ? 'Enviando...' : 'Enviar' }}
+        </button>
+      </form>
+      <p class="composer-hint">No incluyas información que no corresponda al seguimiento educativo.</p>
+      } @else {
+      <div class="thread-empty">
+        <p>Selecciona una conversación o inicia una nueva.</p>
+      </div>
+      }
+    </section>
+  </div>
+
+  <!-- ===== Nueva conversación ===== -->
+  @if (showNewChat()) {
+  <div class="modal-backdrop" (click)="showNewChat.set(false)">
+    <div class="modal" role="dialog" aria-label="Nueva conversación" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nueva conversación</h2>
+        <button type="button" class="close-btn" (click)="showNewChat.set(false)" aria-label="Cerrar">×</button>
+      </div>
+      <input type="search" class="chat-input" placeholder="Buscar persona o alumno"
+        [ngModel]="contactSearch()" (ngModelChange)="contactSearch.set($event)" />
+      <div class="contact-list">
+        @if (loadingContacts()) {
+        <p class="muted center">Cargando contactos...</p>
+        } @else {
+        @for (contact of filteredContacts(); track contact.studentId + contact.userId) {
+        <button type="button" class="contact-item" (click)="startChat(contact)">
+          <span class="avatar" [class.avatar--family]="contact.kind === 'FAMILIA_DOCENTE'">{{ initials(contact.userName) }}</span>
+          <span class="channel-body">
+            <strong>{{ contact.userName }}</strong>
+            <span class="channel-meta">{{ contact.userRole }} · sobre {{ contact.studentName }}</span>
+          </span>
+          @if (contact.channelId) {
+          <small class="muted">Abrir</small>
+          }
+        </button>
+        } @empty {
+        <p class="muted center">
+          No hay personas disponibles. Los contactos dependen de los grupos, escuelas y alumnos
+          que tengas asignados en el ciclo escolar activo.
+        </p>
+        }
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>

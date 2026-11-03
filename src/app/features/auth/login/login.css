@@ -500,6 +500,30 @@
     opacity: 0.7;
 }
 
+/* ---------- Recuperación de contraseña ---------- */
+.login-form__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    border-radius: 12px;
+    color: #115e59;
+    font-size: 0.8125rem;
+}
+
+.recovery-code {
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.recovery-back {
+    align-self: center;
+}
+
 /* ---------- Submit Button ---------- */
 .btn-submit {
     width: 100%;

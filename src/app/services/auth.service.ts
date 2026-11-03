@@ -53,6 +53,16 @@ function rolesPermissions(role: UserRole): PermissionKey[] {
   }
 }
 
+/**
+ * El backend envuelve los errores como { statusCode, intOpCode, data: "mensaje" }.
+ * Los 429 del gateway y los errores de validación de modelo no traen texto útil.
+ */
+function recoveryErrorMessage(err: any, fallback: string): string {
+  if (err?.status === 429) return 'Demasiados intentos. Espera un momento e inténtalo de nuevo.';
+  const data = err?.error?.data;
+  return typeof data === 'string' && data.length > 0 ? data : fallback;
+}
+
 const TOKEN_KEY = 'SIAE_JWT_TOKEN';
 const SESSION_KEY = 'SIAE_USER_SESSION';
 
@@ -203,6 +213,46 @@ export class AuthService {
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err?.error?.message ?? err?.error ?? 'No se pudo cambiar la contraseña.' };
+    }
+  }
+
+  // ================================================================
+  // Recuperación de contraseña (RQF04) — endpoints públicos
+  // ================================================================
+
+  /** POST /api/auth/password/forgot — responde igual exista o no el correo */
+  async requestPasswordReset(email: string): Promise<{ ok: boolean; expiresInMinutes?: number; error?: string }> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<ApiResponse<{ expiresInMinutes: number }>>('api/auth/password/forgot', { email })
+      );
+      return { ok: true, expiresInMinutes: res.data?.expiresInMinutes };
+    } catch (err: any) {
+      return { ok: false, error: recoveryErrorMessage(err, 'No se pudo solicitar el código. Intenta de nuevo.') };
+    }
+  }
+
+  /** POST /api/auth/password/verify — valida el código sin consumirlo */
+  async verifyResetCode(email: string, code: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await firstValueFrom(
+        this.http.post<ApiResponse<string>>('api/auth/password/verify', { email, code })
+      );
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: recoveryErrorMessage(err, 'No se pudo verificar el código.') };
+    }
+  }
+
+  /** POST /api/auth/password/reset — consume el código y define la nueva contraseña */
+  async resetPassword(email: string, code: string, newPassword: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await firstValueFrom(
+        this.http.post<ApiResponse<string>>('api/auth/password/reset', { email, code, newPassword })
+      );
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: recoveryErrorMessage(err, 'No se pudo restablecer la contraseña.') };
     }
   }
 
